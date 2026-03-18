@@ -1,0 +1,112 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Investment Tracking</title>
+    <link rel="stylesheet" href="{% static 'styles/investtrack.css' %}">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+
+<body>
+<div class="container">
+
+    <h2>Investment Tracking</h2>
+
+    <!-- Wallet and Current Investment -->
+    <div class="wallet-investment">
+        <div class="card wallet">
+            <h3>Wallet Balance</h3>
+            <p>KSh {{ wallet.balance|floatformat:2 }}</p>
+        </div>
+
+        <div class="card investment">
+            <h3>Current Investment</h3>
+            <p>KSh {{ current_investment|floatformat:2 }}</p>
+        </div>
+    </div>
+
+    <!-- Redeem Button -->
+    <div class="redeem-action">
+        <form method="post" action="{% url 'finance:redeem_matured_investments' %}">
+            {% csrf_token %}
+            <button type="submit" class="btn-redeem">Redeem Matured Investments</button>
+        </form>
+    </div>
+
+    <!-- Redeemed Investments Notice -->
+    {% if request.session.redeemed_list %}
+    <div class="redeemed-notice">
+        <h3>Recently Redeemed Investments:</h3>
+        <ul>
+            {% for inv in request.session.redeemed_list %}
+            <li>
+                Investment ID: {{ inv.id }} |
+                Principal: KSh {{ inv.amount|floatformat:2 }} |
+                Profit: KSh {{ inv.profit|floatformat:2 }} |
+                Total: KSh {{ inv.total|floatformat:2 }}
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
+
+    <!-- Clear redeemed session -->
+    <script>
+        fetch("{% url 'finance:clear_redeemed_session' %}");
+    </script>
+
+    <!-- Messages -->
+    {% if messages %}
+    <div class="messages-container">
+        {% for message in messages %}
+            <div class="message {{ message.tags }}">
+                {{ message }}
+            </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Investment History -->
+    <div class="history">
+        <h3>Recent Investments</h3>
+        {% if investments %}
+        <table>
+            <thead>
+                <tr>
+                    <th>Date & Time</th>
+                    <th>Amount</th>
+                    <th>Interest Rate</th>
+                    <th>Profit</th>
+                    <th>Total with Interest</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for inv in investments %}
+                <tr>
+                    <td>{{ inv.invested_at|date:"M d, Y H:i" }}</td>
+                    <td>KSh {{ inv.amount|floatformat:2 }}</td>
+                    <!-- Display interest as percentage (0.50%) -->
+                    <td>{{ inv.interest_display|floatformat:2 }}%</td>
+                    <td>KSh {{ inv.profit|floatformat:2 }}</td>
+                    <td>KSh {{ inv.total|floatformat:2 }}</td>
+                    <td>{{ inv.status }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p class="no-data">No investment activity yet.</p>
+        {% endif %}
+    </div>
+
+    <!-- Return Button -->
+    <div class="return-dashboard">
+        <a href="{% url 'user:dashboard' %}" class="btn-dashboard">← Return to Dashboard</a>
+    </div>
+
+</div>
+</body>
+</html>

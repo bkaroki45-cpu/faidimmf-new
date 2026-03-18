@@ -1,0 +1,71 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Profile</title>
+    <link rel="stylesheet" href="{% static 'styles/profile.css' %}">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        .error-text { color: red; font-size: 0.9em; margin-top: 4px; }
+        .success-text { color: green; font-size: 0.9em; margin-top: 4px; }
+    </style>
+</head>
+<body>
+<div class="profile-container">
+    <h2>Welcome, {{ user.username }}</h2>
+
+    <div class="profile-card">
+        <form method="POST">
+            {% csrf_token %}
+            
+            <!-- Update username/email/phone -->
+            <h3>Update Info</h3>
+            <input type="text" name="username" value="{{ user.username }}" placeholder="Username">
+            <input type="email" name="email" value="{{ user.email }}" placeholder="Email">
+            <label>Phone Number:</label>
+            <input type="text" name="phone" value="{{ user.phone|default:'' }}" placeholder="e.g. 0712345678">
+            
+            <!-- Display phone-specific error message -->
+            {% for message in messages %}
+                {% if message.tags == 'error' and 'phone' in message %}
+                    <p class="error-text">{{ message }}</p>
+                {% endif %}
+            {% endfor %}
+
+            <button type="submit" name="update_profile">Save Info</button>
+        </form>
+    </div>
+
+    <div class="pin-section">
+        {% if not pin_obj %}
+            <h3>Set Your PIN</h3>
+            <form method="POST">
+                {% csrf_token %}
+                {{ set_form.as_p }}
+                <button type="submit" name="set_pin">Set PIN</button>
+            </form>
+        {% else %}
+            <h3>Change PIN</h3>
+            <form method="POST">
+                {% csrf_token %}
+                {{ change_form.as_p }}
+                <button type="submit" name="change_pin">Change PIN</button>
+            </form>
+            
+            <p><a href="{% url 'user:forgot_pin_request' %}">Forgot PIN?</a></p>
+        {% endif %}
+    </div>
+
+    <!-- Display general messages (success / PIN errors) -->
+    {% for message in messages %}
+        {% if message.tags != 'error' or 'phone' not in message %}
+            <p class="{% if message.tags %}{{ message.tags }}-text{% endif %}">{{ message }}</p>
+        {% endif %}
+    {% endfor %}
+
+    <div class="return-dashboard">
+        <a href="{% url 'user:dashboard' %}" class="btn-dashboard">← Go to Dashboard</a>
+    </div>
+</div>
+</body>
+</html>

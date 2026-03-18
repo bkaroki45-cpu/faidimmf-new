@@ -1,0 +1,23 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Register</title>
+    <link rel="stylesheet" href="{% static 'styles/register.css' %}">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body>
+    <div class="container">
+        <h2>Register</h2>
+        <form action="{% url 'user:register' %}" method="POST">
+            {% csrf_token %}
+            <input type="text" name="referral_code" placeholder="Referral Code (optional)" value="{{ ref_code }}">
+            {{ form.as_p }}
+            <button type="submit" class="btn">Register</button>
+            <p>Have an account? 
+                <a href="{% url 'user:login' %}" class="login-link">Login</a>
+            </p>
+        </form>
+    </div>
+</body>
+</html>

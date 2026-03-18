@@ -1,0 +1,110 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Referral Program</title>
+<link rel="stylesheet" href="{% static 'styles/referral.css' %}">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+
+<body>
+
+<div class="container">
+
+  <h2>Referral Program</h2>
+
+  <!-- Referral Link -->
+  <div class="referral-box">
+    <p>Your Referral Link</p>
+    <div class="link-box">
+      <input type="text" value="{{ referral_link }}" id="refLink" readonly>
+      <button onclick="copyLink()">Copy</button>
+    </div>
+  </div>
+
+  <!-- Stats Cards -->
+  <div class="stats">
+    <div class="card">
+      <h3>{{ referred_users|length }}</h3>
+      <p>Total Referrals</p>
+    </div>
+    <div class="card">
+      <h3>KES {{ total_earnings|default:0 }}</h3>
+      <p>Referral Earnings</p>
+    </div>
+  </div>
+
+  <!-- Referred Users -->
+  <h3>Referred Users</h3>
+  <div class="table-wrapper">
+
+    <!-- Desktop Table -->
+    <table>
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Name</th>
+          <th>Date Joined</th>
+          <th>Status</th>
+          <th>Bonus Earned</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for user in referred_users %}
+        <tr>
+          <td>{{ forloop.counter }}</td>
+          <td>{{ user.username }}</td>
+          <td>{{ user.date_joined|date:"d M Y" }}</td>
+          <td class="{% if user.status %}active{% else %}inactive{% endif %}">
+            {% if user.status %}Active{% else %}Inactive{% endif %}
+          </td>
+          <td>KES {{ user.bonus }}</td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="5">No referrals yet</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+    <!-- Mobile Cards -->
+    <div class="mobile-cards">
+      {% for user in referred_users %}
+      <div class="table-card">
+        <p><strong>#{{ forloop.counter }}</strong></p>
+        <p><strong>Name:</strong> {{ user.username }}</p>
+        <p><strong>Date Joined:</strong> {{ user.date_joined|date:"d M Y" }}</p>
+        <p>
+          <strong>Status:</strong>
+          <span class="status {% if user.status %}active{% else %}inactive{% endif %}">
+            {% if user.status %}Active{% else %}Inactive{% endif %}
+          </span>
+        </p>
+        <p><strong>Bonus Earned:</strong> KES {{ user.bonus }}</p>
+      </div>
+      {% empty %}
+      <p>No referrals yet</p>
+      {% endfor %}
+    </div>
+
+  </div>
+
+  <div class="return-dashboard">
+    <a href="{% url 'user:dashboard' %}" class="btn-dashboard">← Return to Dashboard</a>
+  </div>
+</div>
+
+<script>
+function copyLink(){
+  var copyText = document.getElementById("refLink");
+  copyText.select();
+  copyText.setSelectionRange(0, 99999); // mobile support
+  document.execCommand("copy");
+  alert("Referral link copied!");
+}
+</script>
+
+</body>
+</html>

@@ -1,0 +1,214 @@
+/* ------------------------------
+   ENHANCED REFERRAL/DASHBOARD
+-------------------------------- */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Montserrat', Arial, sans-serif;
+}
+
+body {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    padding: 15px;
+    display: flex;
+    justify-content: center;
+    min-height: 100vh;
+}
+
+.container {
+    max-width: 950px;
+    width: 100%;
+    background: #fff;
+    padding: 25px 20px;
+    border-radius: 15px;
+    box-shadow: 0 15px 40px rgba(0,0,0,0.15);
+}
+
+/* Headings */
+h2, h3 {
+    text-align: center;
+    color: #1a2bff;
+    margin-bottom: 15px;
+}
+
+h2 {
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+h2::after {
+    content: "";
+    width: 50px;
+    height: 3px;
+    background: #4f7cff;
+    display: block;
+    margin: 8px auto 0;
+    border-radius: 2px;
+}
+
+/* Referral Link */
+.referral-box p {
+    font-weight: 600;
+    
+}
+
+.link-box {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 10px;
+}
+
+.link-box input {
+    flex: 1;
+    padding: 12px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+}
+
+.link-box input:focus {
+    border-color: #4f7cff;
+    outline: none;
+    box-shadow: 0 4px 15px rgba(79,124,255,0.3);
+}
+
+.link-box button {
+    padding: 12px 20px;
+    background: linear-gradient(45deg,#4f7cff,#1a2bff);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+    box-shadow: 0 8px 20px rgba(79,124,255,0.3);
+    transition: all 0.3s ease;
+}
+
+.link-box button:hover {
+    transform: translateY(-3px) scale(1.05);
+    background: linear-gradient(45deg,#1a2bff,#4f7cff);
+    box-shadow: 0 12px 25px rgba(79,124,255,0.5);
+}
+
+/* Stats Cards */
+.stats {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-bottom: 25px;
+    margin-top: 10px;
+}
+
+.card {
+    flex: 1;
+    min-width: 200px;
+    background: linear-gradient(135deg,#1a2bff,#4f7cff);
+    color: white;
+    padding: 20px 15px;
+    border-radius: 12px;
+    text-align: center;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+}
+
+.card h3 { font-size: 20px; margin-bottom: 8px; }
+.card p { font-size: 16px; font-weight: 500; }
+
+/* Table wrapper */
+.table-wrapper {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* Desktop Table */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+    min-width: 600px;
+}
+
+th, td {
+    padding: 12px 8px;
+    text-align: center;
+}
+
+th {
+    background: linear-gradient(45deg,#4f7cff,#1a2bff);
+    color: white;
+}
+
+.active { color: #28a745; font-weight: bold; }
+.inactive { color: #ff9800; font-weight: bold; }
+.failed { color: #dc3545; font-weight: bold; }
+
+/* Mobile Cards */
+.mobile-cards { display: none; }
+
+.table-card {
+    background: linear-gradient(135deg,#1a2bff,#4f7cff);
+    color: white;
+    padding: 15px 12px;
+    margin-bottom: 12px;
+    border-radius: 12px;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+}
+
+.table-card p {
+    margin: 5px 0;
+    font-size: 0.9rem;
+}
+
+.table-card .status { font-weight: bold; }
+
+/* Return Dashboard Button */
+.return-dashboard {
+    margin-top: 20px;
+    text-align: center;
+}
+
+.btn-dashboard {
+    display: inline-block;
+    padding: 10px 20px;
+    background: linear-gradient(45deg,#4f7cff,#1a2bff);
+    color: white;
+    border-radius: 10px;
+    font-weight: bold;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.btn-dashboard:hover {
+    transform: translateY(-3px) scale(1.05);
+    background: linear-gradient(45deg,#1a2bff,#4f7cff);
+}
+
+/* Responsive */
+@media(max-width:768px){
+    table { display: none; } /* hide table */
+    .mobile-cards { display: block; }
+
+    .stats {
+        flex-direction: column;
+        gap: 15px;
+    }
+
+    .link-box {
+        flex-direction: column;
+    }
+
+    .link-box input, .link-box button {
+        width: 100%;
+    }
+}
+
+/* Extra small phones */
+@media(max-width:360px){
+    h2 { font-size: 1.4rem; }
+    .card h3 { font-size: 18px; }
+    .card p { font-size: 14px; }
+    .link-box input, .link-box button { font-size: 0.85rem; padding: 10px; }
+}

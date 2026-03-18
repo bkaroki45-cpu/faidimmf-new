@@ -1,0 +1,176 @@
+/* static/styles/profile.css */
+
+/* ------------------------------
+   RESET & BASE
+-------------------------------- */
+* {
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Poppins', sans-serif;
+    background: linear-gradient(to right, #6a11cb, #2575fc);
+    margin: 0;
+    padding: 15px; /* prevent edge touching */
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: background 0.3s;
+}
+
+/* ------------------------------
+   CONTAINER
+-------------------------------- */
+.profile-container {
+    width: 100%;
+    max-width: 500px;
+    background: white;
+    border-radius: 15px;
+    padding: 25px;
+    box-shadow: 0 15px 25px rgba(0,0,0,0.2);
+    animation: fadeIn 0.8s ease-in-out;
+}
+
+/* ------------------------------
+   HEADINGS
+-------------------------------- */
+h2, h3 {
+    text-align: center;
+    color: #333;
+    margin-bottom: 10px;
+}
+
+/* ------------------------------
+   INPUTS
+-------------------------------- */
+input {
+    width: 100%;
+    padding: 11px 14px;
+    margin: 8px 0;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    font-size: 0.95rem;
+    transition: 0.3s;
+}
+input:focus {
+    border-color: #2575fc;
+    box-shadow: 0 0 5px rgba(37, 117, 252, 0.5);
+}
+
+/* ------------------------------
+   BUTTONS
+-------------------------------- */
+button {
+    width: 100%;
+    padding: 11px;
+    margin-top: 10px;
+    background: #2575fc;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: 0.3s;
+}
+button:hover {
+    background: #6a11cb;
+}
+
+/* ------------------------------
+   PIN SECTION
+-------------------------------- */
+.pin-section {
+    margin-top: 20px;
+}
+
+/* ------------------------------
+   MESSAGES
+-------------------------------- */
+.messages li {
+    padding: 10px;
+    margin: 8px 0;
+    border-radius: 8px;
+    list-style: none;
+    font-size: 0.9rem;
+    word-wrap: break-word;
+}
+.messages li.success {
+    background: #d4edda;
+    color: #155724;
+}
+.messages li.error {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+/* ------------------------------
+   DASHBOARD LINK
+-------------------------------- */
+.return-dashboard {
+    text-align: center;
+    margin-top: 15px;
+}
+.return-dashboard .btn-dashboard {
+    color: #00ffd5;
+    text-decoration: none;
+    font-weight: 600;
+    transition: color 0.3s, text-shadow 0.3s;
+}
+.return-dashboard .btn-dashboard:hover {
+    color: #00bfa5;
+    text-shadow: 0 0 8px rgba(0,255,213,0.5);
+}
+
+/* ------------------------------
+   ANIMATIONS
+-------------------------------- */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-15px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* ------------------------------
+   SMALL HEIGHT DEVICES
+-------------------------------- */
+@media (max-height: 650px) {
+    body {
+        align-items: flex-start; /* allow scrolling */
+    }
+    .profile-container {
+        margin-top: 20px;
+    }
+}
+
+/* ------------------------------
+   MOBILE WIDTH
+-------------------------------- */
+@media (max-width: 600px) {
+    .profile-container {
+        padding: 20px;
+        border-radius: 12px;
+    }
+
+    input, button {
+        font-size: 0.9rem;
+        padding: 10px 12px;
+    }
+}
+
+/* ------------------------------
+   EXTRA SMALL PHONES
+-------------------------------- */
+@media (max-width: 360px) {
+    .profile-container {
+        padding: 15px;
+    }
+
+    h2 {
+        font-size: 1.4rem;
+    }
+
+    input, button {
+        font-size: 0.85rem;
+        padding: 9px 10px;
+    }
+}

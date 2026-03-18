@@ -1,0 +1,48 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Set New PIN</title>
+    <link rel="stylesheet" href="{% static 'styles/set_new_pin.css' %}">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body>
+    <div class="set-pin-wrapper">
+        <div class="set-pin-card">
+            <h1>Set New PIN</h1>
+            <p class="subtitle">Enter your new secure PIN below</p>
+
+            <!-- Display messages -->
+            <div class="messages">
+                {% for message in messages %}
+                    <p class="{% if message.tags %}{{ message.tags }}{% endif %}">{{ message }}</p>
+                {% endfor %}
+            </div>
+
+            <form method="POST">
+                {% csrf_token %}
+                <div class="form-group">
+                   {{ form.as_p }}
+                        <p class="error">{{ form.pin.errors|striptags }}</p>
+                </div>
+
+                <div class="form-group">
+                    {{ form.confirm_pin.label_tag }}
+                    {{ form.confirm_pin }}
+                    {% if form.confirm_pin.errors %}
+                        <p class="error">{{ form.confirm_pin.errors|striptags }}</p>
+                    {% endif %}
+                </div>
+
+                <button type="submit" class="btn-submit">Set PIN</button>
+            </form>
+
+            <div class="action-links">
+                <a href="{% url 'user:dashboard' %}" class="btn-link">Return to Dashboard</a>
+                <a href="{% url 'user:profile' %}" class="btn-link">Back to Profile</a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,68 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+<meta charset="UTF-8">
+<title>M-Pesa Payment Status</title>
+
+<link rel="stylesheet" href="{% static 'styles/status.css' %}">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+{% if refresh %}
+<meta http-equiv="refresh" content="5">
+{% endif %}
+
+</head>
+
+<body>
+
+<div class="status-container">
+
+<h1>📲 M-Pesa Payment Status</h1>
+
+<div class="status-box">
+
+{% if "Completed" in message %}
+<div class="success">
+🎉 ✅ Payment Successful! <br><br>
+💰 Your deposit has been completed.
+</div>
+
+{% elif "Cancelled" in message %}
+<div class="failed">
+❌ Payment Cancelled <br><br>
+⌛ You delayed entering your M-Pesa PIN.
+</div>
+
+{% elif "Failed" in message %}
+<div class="failed">
+⚠️ Payment Failed <br><br>
+Please try again.
+</div>
+
+{% else %}
+<div class="pending">
+⏳ Waiting for M-Pesa Confirmation... <br><br>
+📱 Check your phone and enter your PIN.
+</div>
+{% endif %}
+
+</div>
+<div class="yes">
+    <form action="/finance/deposit/">
+    <button class="btn-home">💳 Make Another Deposit</button>
+    <div class="return-dashboard">
+        <a href="{% url 'user:dashboard' %}" class="btn-dashboard">← Return to Dashboard</a>
+    </div>
+</form>
+</div>
+
+
+</div>
+<!-- Return to Dashboard Button -->
+           
+
+</body>
+</html>

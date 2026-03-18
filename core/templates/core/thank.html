@@ -1,0 +1,57 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thank You - FAIDI Money Market Fund</title>
+    <link rel="stylesheet" href="{% static 'styles/thank.css' %}">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Navbar -->
+    <header>
+        <nav class="navbar">
+            <div class="logo">
+                <img src="{% static 'images/logo.png' %}" alt="Smart Money Growth">
+            </div>
+            <ul class="nav-links">
+                <li><a href="{% url 'home' %}">Home</a></li>
+                <li><a href="{% url 'about' %}">About</a></li>
+                <li><a href="{% url 'contacts' %}">Contact</a></li>
+                <li><a href="#login" class="btn">Login</a></li>
+            </ul>
+            <div class="burger">
+                <div></div>
+                <div></div>
+                <div></div>
+            </div>
+        </nav>
+    </header>
+
+    <!-- Thank You Hero Section -->
+    <section class="thankyou-hero">
+        <div class="thankyou-content">
+            <img src="{% static 'images/thank.jpg' %}" alt="Thank You" class="thankyou-image">
+            <h1>Thank You!</h1>
+            <p>Your message has been successfully sent. We will get back to you as soon as possible.</p>
+            <a href="{% url 'home' %}" class="btn-hero">Back to Home</a>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <p>&copy; 2026 FAIDI Money Market Fund. All Rights Reserved.</p>
+    </footer>
+
+    <!-- Burger Script -->
+    <script>
+        const burger = document.querySelector('.burger');
+        const nav = document.querySelector('.nav-links');
+        burger.addEventListener('click', () => {
+            nav.classList.toggle('nav-active');
+            burger.classList.toggle('toggle');
+        });
+    </script>
+</body>
+</html>
