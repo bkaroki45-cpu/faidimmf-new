@@ -411,29 +411,32 @@ def transactions(request):
 
 
 
+
+
 @login_required
 def referrals(request):
     user = request.user
 
-    # Referral link
+    # 1️⃣ Generate referral link (always use your site's base URL)
     referral_link = f"http://127.0.0.1:8000/register/?ref={user.referral_code}"
 
-    # All users referred by this user
+    # 2️⃣ Fetch all users referred by this user
     referred_users = user.referrals.all()
 
-    # Calculate referral earnings per referred user
+    # 3️⃣ Calculate referral earnings
     referred_users_data = []
-    total_earnings = Decimal('0.00')  # Use Decimal for money
+    total_earnings = Decimal('0.00')
 
     for ref_user in referred_users:
-        # Referral bonus is 10% of their first deposit
+        # Get the first completed deposit by date
         first_deposit = ref_user.transaction_set.filter(
             tx_type="Deposit",
             status="completed"
-        ).first()
+        ).order_by('timestamp').first()
 
         bonus = Decimal('0.00')
         if first_deposit:
+            # 10% of first deposit
             bonus = (first_deposit.amount * Decimal('0.10')).quantize(Decimal('0.01'), rounding=ROUND_DOWN)
             total_earnings += bonus
 
@@ -441,21 +444,21 @@ def referrals(request):
             'username': ref_user.username,
             'date_joined': ref_user.date_joined,
             'status': ref_user.is_active,
+            'first_deposit': first_deposit.amount if first_deposit else None,
             'bonus': bonus
         })
 
-    # Update the logged-in user's wallet with total earnings
+    # 4️⃣ Update the logged-in user's wallet
     wallet, _ = Wallet.objects.get_or_create(user=user)
     wallet.balance = total_earnings
     wallet.save()
 
+    # 5️⃣ Render referral page
     return render(request, 'finance/referrals.html', {
         'referral_link': referral_link,
         'referred_users': referred_users_data,
         'total_earnings': total_earnings
     })
-
-
 
 
 

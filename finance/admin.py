@@ -60,14 +60,20 @@ class InvestmentInline(admin.TabularInline):
     verbose_name_plural = "Investments"
     classes = ('collapse',)
 
+    @admin.display(description='Status')
     def status_badge(self, obj):
         if obj.is_redeemed:
-            return format_html('<span style="color: green; font-weight: bold;">Redeemed</span>')
+            color, label = 'gray', 'Redeemed'
         elif obj.is_matured():
-            return format_html('<span style="color: orange; font-weight: bold;">Matured</span>')
+            color, label = 'green', 'Matured'
         else:
-            return format_html('<span style="color: blue; font-weight: bold;">Active</span>')
-    status_badge.short_description = 'Status'
+            color, label = 'blue', 'Active'
+
+        return format_html(
+            '<span style="color: {}; font-weight: bold;">{}</span>',
+            color,
+            label
+        )
 
 
 # ------------------------------

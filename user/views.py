@@ -21,32 +21,37 @@ import datetime
 from decimal import Decimal
 from django.shortcuts import render
 from django.utils import timezone
-
-
+from .utils import send_otp_email
 
 
 def register(request):
-    ref_code = request.GET.get('ref')  # from referral link
+    # Referral code from URL (link user clicked)
+    ref_code_from_link = request.GET.get('ref', '')  # e.g., ?ref=ABC123
 
     if request.method == 'POST':
         form = CustomUserCreationForm(request.POST)
-        entered_ref = request.POST.get('referral_code')  # manual input
+        entered_ref = request.POST.get('referral_code', '').strip()  # user input
 
         if form.is_valid():
             user = form.save()
 
-            # Use entered referral OR URL referral
-            code = entered_ref or ref_code
+            # If referral link was used, ensure the user enters the same code
+            if ref_code_from_link:
+                if entered_ref != ref_code_from_link:
+                    messages.warning(
+                        request,
+                        "Referral code must match the one in the link you used."
+                    )
+                    user.delete()  # remove user due to mismatch
+                    return redirect(request.path + f"?ref={ref_code_from_link}")
 
-            if code:
+            # Assign referrer if code exists
+            if entered_ref:
                 try:
-                    referrer = CustomUser.objects.get(referral_code=code)
-
-                    # prevent self-referral (extra safety)
+                    referrer = CustomUser.objects.get(referral_code=entered_ref)
                     if referrer != user:
                         user.referred_by = referrer
                         user.save()
-
                 except CustomUser.DoesNotExist:
                     messages.warning(request, "Invalid referral code (ignored).")
 
@@ -62,8 +67,9 @@ def register(request):
 
     return render(request, 'user/register.html', {
         'form': form,
-        'ref_code': ref_code  # send to template
+        'ref_code_from_link': ref_code_from_link
     })
+
 
 def login_view(request):
     error_message = None
@@ -285,29 +291,39 @@ def profile(request):
         "change_form": change_form if pin_obj else None,
     }
     return render(request, "user/profile.html", context)
+
 # ---------------- FORGOT PIN / OTP ----------------
+
+
 OTP_EXPIRATION_SECONDS = 300  # 5 minutes
 
 def forgot_pin_request(request):
     if request.method == "POST":
         form = ForgotPINForm(request.POST)
         if form.is_valid():
-            phone = form.cleaned_data['phone']
+            email = form.cleaned_data['email']
+
+            # Check if the email belongs to a registered user
             try:
-                user = CustomUser.objects.get(phone=phone)
+                user = CustomUser.objects.get(email=email)
             except CustomUser.DoesNotExist:
-                messages.error(request, "No user found with this phone.")
+                messages.error(request, "No user found with this email.")
                 return redirect('user:forgot_pin_request')
 
-            otp = str(random.randint(100000, 999999))
+            # Optional: Ensure the email is the one used by the logged-in user
+            if request.user.is_authenticated and user != request.user:
+                messages.error(request, "Please enter the email you registered with.")
+                return redirect('user:forgot_pin_request')
+
+            # Send OTP via email
+            otp = send_otp_email(user.email)
+
+            # Store OTP and timing in session
             request.session['forgot_pin_user'] = user.id
             request.session['forgot_pin_otp'] = otp
             request.session['forgot_pin_otp_time'] = time.time()
 
-            # TODO: Send SMS in production
-            print(f"OTP for {phone}: {otp}")
-
-            messages.success(request, "OTP sent to your phone.")
+            messages.success(request, "OTP sent to your registered email.")
             return redirect('user:forgot_pin_verify')
     else:
         form = ForgotPINForm()
@@ -327,7 +343,7 @@ def forgot_pin_verify(request):
                 return redirect('user:forgot_pin_request')
 
             if otp == session_otp:
-                request.session['otp_verified'] = True  # ✅ add this
+                request.session['otp_verified'] = True
                 messages.success(request, "OTP verified! Set your new PIN now.")
                 return redirect('user:set_new_pin')
             else:

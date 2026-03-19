@@ -77,8 +77,11 @@ class ChangePINForm(forms.Form):
 
 
 # --- Forgot PIN OTP Forms ---
+# forms.py
+from django import forms
+
 class ForgotPINForm(forms.Form):
-    phone = forms.CharField(max_length=15, label="Registered Phone")
+    email = forms.EmailField(label="Email", max_length=254)
 
 class VerifyOTPForm(forms.Form):
     otp = forms.CharField(max_length=6, label="Enter OTP")

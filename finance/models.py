@@ -96,34 +96,44 @@ class CompanyAccount(models.Model):
 
 class InvestmentTracking(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-    amount = models.DecimalField(max_digits=12, decimal_places=2)  # safer for money
+    amount = models.DecimalField(max_digits=12, decimal_places=2)
 
     # Daily interest rate: 0.5%
-    interest_rate = models.DecimalField(max_digits=5, decimal_places=4, default=Decimal('0.005'))  # 0.5% daily
+    interest_rate = models.DecimalField(
+        max_digits=5,
+        decimal_places=4,
+        default=Decimal('0.005')
+    )
 
     invested_at = models.DateTimeField(default=timezone.now)
-    maturity_date = models.DateTimeField(blank=True, null=True)
+    maturity_date = models.DateTimeField(null=False, blank=False)
     is_redeemed = models.BooleanField(default=False)
 
     def save(self, *args, **kwargs):
-        if not self.invested_at:
+        if self.invested_at is None:
             self.invested_at = timezone.now()
-        # 24-hour maturity by default
-        if not self.maturity_date:
+
+        if self.maturity_date is None:
             self.maturity_date = self.invested_at + timedelta(hours=24)
+
         super().save(*args, **kwargs)
 
     def is_matured(self):
-        """Check if the investment has matured (24h default)."""
+        if self.maturity_date is None:
+            return False
         return timezone.now() >= self.maturity_date
 
     def calculate_profit(self):
-        """Calculate profit using Decimal for precision."""
-        return (self.amount * self.interest_rate).quantize(Decimal('0.01'), rounding=ROUND_DOWN)
+        return (self.amount * self.interest_rate).quantize(
+            Decimal('0.01'),
+            rounding=ROUND_DOWN
+        )
 
     def total_return(self):
-        """Total amount including principal + profit."""
-        return (self.amount + self.calculate_profit()).quantize(Decimal('0.01'), rounding=ROUND_DOWN)
+        return (self.amount + self.calculate_profit()).quantize(
+            Decimal('0.01'),
+            rounding=ROUND_DOWN
+        )
 
     def __str__(self):
         return f"{self.user.username} - KSh {self.amount} - {'Redeemed' if self.is_redeemed else 'Active'}"

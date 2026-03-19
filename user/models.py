@@ -5,10 +5,11 @@ from django.contrib.auth.hashers import make_password, check_password
 import uuid
 
 
+
 class CustomUser(AbstractUser):
     phone = models.CharField(max_length=15, null=True, blank=True, unique=True)
+    email = models.EmailField(unique=True, blank=False, null=False)  # ✅ make email unique
 
-    # 🔗 Referral system
     referral_code = models.CharField(max_length=10, blank=True, unique=True)
     referred_by = models.ForeignKey(
         'self',
@@ -19,14 +20,12 @@ class CustomUser(AbstractUser):
     )
 
     def save(self, *args, **kwargs):
-        # Auto-generate referral code if not set
         if not self.referral_code:
             self.referral_code = self.generate_unique_referral_code()
         super().save(*args, **kwargs)
 
     def generate_unique_referral_code(self):
-        code = uuid.uuid4().hex[:10].upper()  # 10-character code
-        # Ensure code is unique
+        code = uuid.uuid4().hex[:10].upper()
         while CustomUser.objects.filter(referral_code=code).exists():
             code = uuid.uuid4().hex[:10].upper()
         return code

@@ -7,17 +7,35 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
 <body>
-    <div class="container">
-        <h2>Register</h2>
-        <form action="{% url 'user:register' %}" method="POST">
-            {% csrf_token %}
-            <input type="text" name="referral_code" placeholder="Referral Code (optional)" value="{{ ref_code }}">
-            {{ form.as_p }}
-            <button type="submit" class="btn">Register</button>
-            <p>Have an account? 
-                <a href="{% url 'user:login' %}" class="login-link">Login</a>
-            </p>
-        </form>
-    </div>
+<div class="container">
+    <h2>Register</h2>
+    <form action="{% url 'user:register' %}" method="POST">
+        {% csrf_token %}
+
+        <!-- Display referral code from link for user to copy -->
+        {% if ref_code_from_link %}
+            <div style="background:#f0f0f0; padding:10px; margin-bottom:15px; border-left:4px solid #007bff;">
+                <strong>Referral Code from link:</strong> {{ ref_code_from_link }}
+                <p style="font-size:12px; color:#555;">Copy this code into the "Referral Code" field below.</p>
+            </div>
+        {% endif %}
+
+        <!-- Referral code input -->
+        <label>Referral Code</label>
+        <input type="text" 
+               name="referral_code" 
+               value="{{ ref_code_from_link }}" 
+               placeholder="Enter referral code here" 
+               {% if ref_code_from_link %}required{% endif %}>
+
+        <!-- User form fields -->
+        {{ form.as_p }}
+
+        <button type="submit" class="btn">Register</button>
+        <p>Have an account? 
+            <a href="{% url 'user:login' %}" class="login-link">Login</a>
+        </p>
+    </form>
+</div>
 </body>
 </html>
