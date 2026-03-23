@@ -8,12 +8,11 @@ from django.contrib.auth import get_user_model
 User = get_user_model()
 
 class CustomUserCreationForm(UserCreationForm):
+    referral_code = forms.CharField(required=False)
 
-    phone = forms.CharField(max_length=15, required=True)  # add phone field here
-
-    class Meta(UserCreationForm.Meta):
-        model = CustomUser  # directly reference your model
-        fields = ("username", "email")  # add other fields if needed
+    class Meta:
+        model = CustomUser
+        fields = ['username', 'email', 'referral_code', 'password1', 'password2']
 
 
 
@@ -27,8 +26,7 @@ class ProfileForm(forms.ModelForm):
 
 
 # user/forms.py
-from django import forms
-from .models import TransactionPIN
+
 
 # --- Set or Change PIN Form ---
 class SetTransactionPINForm(forms.Form):

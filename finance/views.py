@@ -18,6 +18,7 @@ from django.http import HttpResponse
 from django.db import transaction
 from django.db.models import Sum
 from finance.b2c_utils import send_b2c_payment
+from django.contrib.sites.shortcuts import get_current_site
 
 
 
@@ -287,11 +288,7 @@ def invest(request):
 
 
 
-from decimal import Decimal
-from django.contrib.auth.decorators import login_required
-from django.shortcuts import render
-from django.utils import timezone
-from .models import Wallet, InvestmentTracking
+
 
 @login_required
 def invest_tracking(request):
@@ -412,23 +409,22 @@ def transactions(request):
 
 
 
-
 @login_required
 def referrals(request):
     user = request.user
 
-    # 1️⃣ Generate referral link (always use your site's base URL)
-    referral_link = f"http://127.0.0.1:8000/register/?ref={user.referral_code}"
+    # ✅ Dynamic domain (works in production)
+    domain = get_current_site(request).domain
+    referral_link = f"http://{domain}/register/?ref={user.referral_code}"
 
-    # 2️⃣ Fetch all users referred by this user
     referred_users = user.referrals.all()
 
-    # 3️⃣ Calculate referral earnings
+    from decimal import Decimal, ROUND_DOWN
+
     referred_users_data = []
     total_earnings = Decimal('0.00')
 
     for ref_user in referred_users:
-        # Get the first completed deposit by date
         first_deposit = ref_user.transaction_set.filter(
             tx_type="Deposit",
             status="completed"
@@ -436,8 +432,9 @@ def referrals(request):
 
         bonus = Decimal('0.00')
         if first_deposit:
-            # 10% of first deposit
-            bonus = (first_deposit.amount * Decimal('0.10')).quantize(Decimal('0.01'), rounding=ROUND_DOWN)
+            bonus = (first_deposit.amount * Decimal('0.10')).quantize(
+                Decimal('0.01'), rounding=ROUND_DOWN
+            )
             total_earnings += bonus
 
         referred_users_data.append({
@@ -448,12 +445,10 @@ def referrals(request):
             'bonus': bonus
         })
 
-    # 4️⃣ Update the logged-in user's wallet
     wallet, _ = Wallet.objects.get_or_create(user=user)
     wallet.balance = total_earnings
     wallet.save()
 
-    # 5️⃣ Render referral page
     return render(request, 'finance/referrals.html', {
         'referral_link': referral_link,
         'referred_users': referred_users_data,

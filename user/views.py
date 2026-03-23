@@ -22,52 +22,38 @@ from decimal import Decimal
 from django.shortcuts import render
 from django.utils import timezone
 from .utils import send_otp_email
-
+from django.contrib.sites.shortcuts import get_current_site
 
 def register(request):
-    # Referral code from URL (link user clicked)
-    ref_code_from_link = request.GET.get('ref', '')  # e.g., ?ref=ABC123
+    # Grab referral code from URL if present
+    ref_code_from_link = request.GET.get('ref', '')
 
     if request.method == 'POST':
         form = CustomUserCreationForm(request.POST)
-        entered_ref = request.POST.get('referral_code', '').strip()  # user input
 
         if form.is_valid():
-            user = form.save()
+            user = form.save(commit=False)
 
-            # If referral link was used, ensure the user enters the same code
+            # Apply referral code only if it exists in the URL
             if ref_code_from_link:
-                if entered_ref != ref_code_from_link:
-                    messages.warning(
-                        request,
-                        "Referral code must match the one in the link you used."
-                    )
-                    user.delete()  # remove user due to mismatch
-                    return redirect(request.path + f"?ref={ref_code_from_link}")
-
-            # Assign referrer if code exists
-            if entered_ref:
                 try:
-                    referrer = CustomUser.objects.get(referral_code=entered_ref)
+                    referrer = CustomUser.objects.get(referral_code=ref_code_from_link)
                     if referrer != user:
                         user.referred_by = referrer
-                        user.save()
                 except CustomUser.DoesNotExist:
-                    messages.warning(request, "Invalid referral code (ignored).")
+                    pass  # Invalid referral code is ignored
 
+            user.save()
             login(request, user)
             messages.success(request, f"Welcome, {user.username}! Your account was created.")
             return redirect('user:dashboard')
-
-        else:
-            messages.error(request, "Please correct the errors below.")
 
     else:
         form = CustomUserCreationForm()
 
     return render(request, 'user/register.html', {
         'form': form,
-        'ref_code_from_link': ref_code_from_link
+        'ref_code_from_link': ref_code_from_link  # Pass code to template if exists
     })
 
 

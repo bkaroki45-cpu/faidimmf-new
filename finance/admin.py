@@ -106,6 +106,12 @@ class CompanyAccountAdmin(admin.ModelAdmin):
 # ------------------------------
 # TRANSACTION ADMIN (STANDALONE)
 # ------------------------------
+from django.contrib import admin
+from django.db.models import Sum
+from django.utils.timezone import localdate
+from django.utils.html import format_html
+from .models import Transaction
+
 @admin.register(Transaction)
 class TransactionAdmin(admin.ModelAdmin):
     list_display = ('id', 'user', 'tx_type', 'amount', 'status', 'timestamp', 'status_badge')
@@ -120,25 +126,22 @@ class TransactionAdmin(admin.ModelAdmin):
     status_badge.short_description = 'Status'
 
     def changelist_view(self, request, extra_context=None):
-        # Use all transactions (not filtered by admin queryset)
-        qs = Transaction.objects.all()
+        qs = Transaction.objects.filter(status__iexact='completed')  # ✅ Only completed
 
-        # Use localdate() to avoid timezone issues
         today = localdate()
         current_month = today.month
         current_year = today.year
 
-        # Filter transactions for today
+        # Today's totals
         today_qs = qs.filter(timestamp__date=today)
         total_deposited_today = today_qs.filter(tx_type__iexact='deposit').aggregate(Sum('amount'))['amount__sum'] or 0
         total_withdrawn_today = today_qs.filter(tx_type__iexact='withdraw').aggregate(Sum('amount'))['amount__sum'] or 0
 
-        # Filter transactions for this month
+        # This month's totals
         month_qs = qs.filter(timestamp__year=current_year, timestamp__month=current_month)
         total_deposited_month = month_qs.filter(tx_type__iexact='deposit').aggregate(Sum('amount'))['amount__sum'] or 0
         total_withdrawn_month = month_qs.filter(tx_type__iexact='withdraw').aggregate(Sum('amount'))['amount__sum'] or 0
 
-        # Pass totals to template
         extra_context = extra_context or {}
         extra_context.update({
             'total_deposited_today': total_deposited_today,

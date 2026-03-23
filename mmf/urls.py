@@ -1,33 +1,19 @@
-"""
-URL configuration for mmf project.
-
-The `urlpatterns` list routes URLs to views. For more information please see:
-    https://docs.djangoproject.com/en/6.0/topics/http/urls/
-Examples:
-Function views
-    1. Add an import:  from my_app import views
-    2. Add a URL to urlpatterns:  path('', views.home, name='home')
-Class-based views
-    1. Add an import:  from other_app.views import Home
-    2. Add a URL to urlpatterns:  path('', Home.as_view(), name='home')
-Including another URLconf
-    1. Import the include() function: from django.urls import include, path
-    2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
-"""
 from django.contrib import admin
 from django.urls import path, include
-from django.views.generic import RedirectView  # ✅ import RedirectView
+from django.views.generic.base import RedirectView  # ✅ for redirect
+
+# Optional: preserve query string in redirect
+class RegisterRedirectWithQuery(RedirectView):
+    url = '/user/register/'
+    permanent = False
+    query_string = True  # ✅ keep ?ref=XYZ
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', include('core.urls')),  # Core pages: home, about, contacts
-    path('user/', include(('user.urls', 'user'), namespace='user')),  # User app
-    path('finance/', include(('finance.urls', 'finance'), namespace='finance')),  # Finance app
-]
+    path('', include('core.urls')),  # Core pages
+    path('user/', include(('user.urls', 'user'), namespace='user')),
+    path('finance/', include(('finance.urls', 'finance'), namespace='finance')),
 
-# -----------------------------
-# Optional redirect: /register/ → /user/register/
-# -----------------------------
-urlpatterns += [
-    path('register/', RedirectView.as_view(url='/user/register/', permanent=False)),
+    # Preserve referral code in redirect
+    path('register/', RegisterRedirectWithQuery.as_view()),
 ]

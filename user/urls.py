@@ -12,5 +12,4 @@ urlpatterns = [
     path('forgot_pin/', views.forgot_pin_request, name='forgot_pin_request'),
     path('forgot_pin/verify', views.forgot_pin_verify, name='forgot_pin_verify'),
     path('set_new_pin/', views.set_new_pin, name='set_new_pin'),
-    path('', views.register, name='register')
 ]
