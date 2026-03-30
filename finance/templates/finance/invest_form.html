@@ -7,6 +7,7 @@
 <link rel="stylesheet" href="{% static 'styles/invest_form.css' %}">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
+
 <body>
 
 <div class="investment-page">
@@ -19,22 +20,39 @@
         </div>
     </div>
 
+    <!-- 🔥 GLOBAL MESSAGES BLOCK -->
+    
+    {% if messages %}
+        {% for message in messages %}
+            <div class="message {{ message.tags }}">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+
     <form method="POST" action="{% url 'finance:invest' %}">
         {% csrf_token %}
-        <input type="number" name="amount" placeholder="Enter amount to invest" required min="1" max="{{ wallet.balance }}">
-        <input type="password" name="pin" placeholder="Enter your transaction PIN" required>
+
+        <input type="number"
+               name="amount"
+               placeholder="Enter amount to invest"
+               required>
+
+        <input type="password"
+               name="pin"
+               placeholder="Enter your transaction PIN"
+               required>
+
         <button type="submit">Invest Now</button>
     </form>
 
-    {% if error_message %}
-        <p class="error">{{ error_message }}</p>
-    {% endif %}
     <div class="return-dashboard">
-        <a href="{% url 'user:dashboard' %}" class="btn-dashboard">← Return to Dashboard</a>
+        <a href="{% url 'user:dashboard' %}" class="btn-dashboard">
+            ← Return to Dashboard
+        </a>
     </div>
-</div>
- <!-- Return to Dashboard Button -->
 
+</div>
 
 </body>
 </html>

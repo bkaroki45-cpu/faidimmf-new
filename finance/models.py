@@ -2,44 +2,130 @@ from django.db import models
 from django.conf import settings
 from django.db.models.signals import post_save
 from django.dispatch import receiver
-from django.contrib.auth.models import User
 from django.utils import timezone
 from datetime import timedelta
-import datetime
-from decimal import Decimal,ROUND_DOWN
+from decimal import Decimal, ROUND_DOWN
 
 
+# =========================
+# TRANSACTIONS
+# =========================
+from django.db import models
+from django.conf import settings
+from django.utils import timezone
+
+
+from django.db import models
+from django.conf import settings
+from django.utils import timezone
 
 
 class Transaction(models.Model):
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=True, blank=True)
+
+    TRANSACTION_TYPES = [
+        ('deposit', 'Deposit'),
+        ('withdraw', 'Withdraw'),
+        ('invest', 'Invest'),
+        ('referral', 'Referral Bonus'),
+        ('investment_return', 'Investment Return'),
+    ]
+
+    STATUS_TYPES = [
+        ('pending', 'Pending'),
+        ('completed', 'Completed'),
+        ('failed', 'Failed'),
+    ]
+
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True
+    )
+
+    # ======================
+    # CORE AMOUNT
+    # ======================
     amount = models.DecimalField(max_digits=20, decimal_places=2)
-    
-    # Internal reference
+
+    # ======================
+    # UNIQUE IDS
+    # ======================
     checkout_id = models.CharField(max_length=100, unique=True)
-    
-    # M-Pesa B2C identifiers
+
     mpesa_code = models.CharField(max_length=100, unique=True, null=True, blank=True)
     conversation_id = models.CharField(max_length=100, null=True, blank=True)
     originator_conversation_id = models.CharField(max_length=100, null=True, blank=True)
-    
-    phone_number = models.CharField(max_length=15)
-    status = models.CharField(max_length=20, default='pending')
+
+    # ======================
+    # PAYMENT INFO
+    # ======================
+    phone_number = models.CharField(max_length=15, null=True, blank=True)
+
+    # ======================
+    # STATUS & TYPE
+    # ======================
+    status = models.CharField(
+        max_length=20,
+        choices=STATUS_TYPES,
+        default='pending'
+    )
+
     tx_type = models.CharField(
-        max_length=10,
-        choices=[('deposit','Deposit'),('withdraw','Withdraw')],
+        max_length=20,
+        choices=TRANSACTION_TYPES,
         default='deposit'
     )
+
+    # ======================
+    # REFERRAL SUPPORT
+    # ======================
+    reference_user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="referral_source"
+    )
+
+    # ======================
+    # EXTRA INFO
+    # ======================
     result_desc = models.TextField(null=True, blank=True)
+
     timestamp = models.DateTimeField(auto_now_add=True)
     completed_at = models.DateTimeField(null=True, blank=True)
+
+    # ======================
+    # METHODS
+    # ======================
+    def mark_completed(self):
+        self.status = "completed"
+        self.completed_at = timezone.now()
+        self.save(update_fields=["status", "completed_at"])
+
+    def is_credit(self):
+        """
+        Money IN types (wallet increases)
+        """
+        return self.tx_type in ["deposit", "referral", "investment_return"]
+
+    def signed_amount(self):
+        """
+        Returns positive or negative value depending on type
+        """
+        if self.is_credit():
+            return self.amount
+        return -self.amount
 
     def __str__(self):
         return f"{self.tx_type} - {self.amount} KES - {self.status}"
 
-
+# =========================
+# WALLET (FIXED - NO RESET BUG)
+# =========================
 class Wallet(models.Model):
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     balance = models.DecimalField(max_digits=20, decimal_places=2, default=Decimal('0.00'))
 
     def __str__(self):
@@ -51,18 +137,16 @@ def create_wallet(sender, instance, created, **kwargs):
     if created:
         Wallet.objects.create(user=instance)
 
-# finance/models.py
 
-
-
-
-
-
+# =========================
+# COMPANY ACCOUNTS
+# =========================
 class CompanyAccount(models.Model):
     ACCOUNT_TYPE_CHOICES = [
         ("liquidity", "Liquidity Reserve"),
         ("investment_pool", "Investment Pool"),
     ]
+
     name = models.CharField(max_length=100)
     account_type = models.CharField(max_length=20, choices=ACCOUNT_TYPE_CHOICES)
     account_number = models.CharField(max_length=50, blank=True, null=True)
@@ -71,12 +155,8 @@ class CompanyAccount(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
-    class Meta:
-        verbose_name = "Company Account"
-        verbose_name_plural = "Company Accounts"
-
     def __str__(self):
-        return f"{self.name} ({self.account_type}) - Balance: {self.balance}"
+        return f"{self.name} ({self.account_type})"
 
     def deposit(self, amount):
         self.balance += Decimal(amount)
@@ -85,42 +165,38 @@ class CompanyAccount(models.Model):
     def withdraw(self, amount):
         amount = Decimal(amount)
         if amount > self.balance:
-            raise ValueError("Insufficient funds in company account")
+            raise ValueError("Insufficient funds")
         self.balance -= amount
         self.save()
 
 
-
-
-# finance/models.py
-
+# =========================
+# INVESTMENTS
+# =========================
 class InvestmentTracking(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     amount = models.DecimalField(max_digits=12, decimal_places=2)
 
-    # Daily interest rate: 0.5%
     interest_rate = models.DecimalField(
         max_digits=5,
         decimal_places=4,
-        default=Decimal('0.005')
+        default=Decimal('0.005')  # 0.5% daily
     )
 
     invested_at = models.DateTimeField(default=timezone.now)
-    maturity_date = models.DateTimeField(null=False, blank=False)
+    maturity_date = models.DateTimeField(null=True, blank=True)
     is_redeemed = models.BooleanField(default=False)
 
     def save(self, *args, **kwargs):
-        if self.invested_at is None:
+        if not self.invested_at:
             self.invested_at = timezone.now()
 
-        if self.maturity_date is None:
+        if not self.maturity_date:
             self.maturity_date = self.invested_at + timedelta(hours=24)
 
         super().save(*args, **kwargs)
 
     def is_matured(self):
-        if self.maturity_date is None:
-            return False
         return timezone.now() >= self.maturity_date
 
     def calculate_profit(self):
@@ -136,5 +212,4 @@ class InvestmentTracking(models.Model):
         )
 
     def __str__(self):
-        return f"{self.user.username} - KSh {self.amount} - {'Redeemed' if self.is_redeemed else 'Active'}"
-
+        return f"{self.user.username} - KSh {self.amount}"

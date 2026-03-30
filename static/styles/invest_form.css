@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
 
 /* ------------------------------
    GLOBAL STYLES
@@ -23,16 +23,15 @@ body {
     width: 90%;
     max-width: 420px;
     box-shadow: 0 20px 50px rgba(0,0,0,0.3);
-    animation: fadeIn 1s ease forwards;
+    animation: fadeIn 0.8s ease;
 }
 
-/* PAGE HEADING */
+/* TITLE */
 .investment-page h2 {
     text-align: center;
     font-size: 1.8rem;
     margin-bottom: 20px;
     color: #00ffd5;
-    letter-spacing: 1px;
     text-shadow: 0 0 10px rgba(0,255,213,0.5);
 }
 
@@ -43,27 +42,14 @@ body {
     border-radius: 12px;
     text-align: center;
     margin-bottom: 20px;
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-}
-
-.wallet-info .card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 15px 25px rgba(0,0,0,0.5);
-}
-
-.wallet-info h3 {
-    margin: 0;
-    font-size: 1.2rem;
-    font-weight: 600;
 }
 
 .wallet-info p {
-    margin: 5px 0 0 0;
     font-size: 1.5rem;
     font-weight: 700;
 }
 
-/* FORM STYLING */
+/* FORM */
 form {
     display: flex;
     flex-direction: column;
@@ -71,100 +57,94 @@ form {
 }
 
 form input {
-    padding: 12px 15px;
+    padding: 12px;
     border-radius: 8px;
     border: none;
     font-size: 1rem;
-    outline: none;
     background: #2a2a3d;
     color: #fff;
-    transition: all 0.3s ease;
+    outline: none;
 }
 
 form input:focus {
-    box-shadow: 0 0 10px rgba(0,255,213,0.7);
     border: 1px solid #00ffd5;
+    box-shadow: 0 0 10px rgba(0,255,213,0.6);
 }
 
 /* BUTTON */
 form button {
-    padding: 12px 15px;
+    padding: 12px;
     background: #00ffd5;
-    color: #1f1f2e;
     border: none;
     border-radius: 8px;
-    font-size: 1rem;
-    font-weight: 600;
+    font-weight: 700;
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: 0.3s;
 }
 
 form button:hover {
     background: #00bfa5;
-    transform: translateY(-3px);
-    box-shadow: 0 10px 20px rgba(0,0,0,0.4);
+    transform: translateY(-2px);
 }
 
-/* ERROR MESSAGE */
-.error {
+/* ------------------------------
+   🔥 GLOBAL MESSAGES (FIXED)
+-------------------------------- */
+.messages {
+    width: 100%;
+    margin-bottom: 15px;
+}
+
+.messages .message {
+    background: #ffe5e5;
+    color: #b91c1c;
+
+    padding: 16px;
+    margin: 10px 0;
+    border-radius: 10px;
+
+    font-size: 1.3rem;
+    font-weight: 900;
     text-align: center;
-    color: #ff4d6d;
-    font-weight: 600;
+
+    border: 2px solid red;
+    box-shadow: 0 0 12px rgba(255, 0, 0, 0.3);
+
     animation: shake 0.5s ease;
 }
 
-/* Return to Dashboard */
+/* RETURN */
 .return-dashboard {
     text-align: center;
     margin-top: 20px;
 }
-.return-dashboard .btn-dashboard {
+
+.return-dashboard a {
     color: #00ffd5;
     text-decoration: none;
     font-weight: 600;
-    transition: all 0.3s ease;
-}
-.return-dashboard .btn-dashboard:hover {
-    color: #00bfa5;
-    text-shadow: 0 0 8px rgba(0,255,213,0.5);
 }
 
 /* ANIMATIONS */
 @keyframes fadeIn {
-    0% {opacity: 0; transform: translateY(20px);}
-    100% {opacity: 1; transform: translateY(0);}
+    from {opacity: 0; transform: translateY(20px);}
+    to {opacity: 1; transform: translateY(0);}
 }
 
 @keyframes shake {
-    0%, 100% { transform: translateX(0); }
-    25% { transform: translateX(-5px); }
-    50% { transform: translateX(5px); }
-    75% { transform: translateX(-5px); }
+    0%,100% {transform: translateX(0);}
+    25% {transform: translateX(-5px);}
+    50% {transform: translateX(5px);}
+    75% {transform: translateX(-5px);}
 }
 
-/* ------------------------------
-   RESPONSIVE STYLING
--------------------------------- */
+/* RESPONSIVE */
 @media (max-width: 480px) {
     .investment-page {
         padding: 20px;
     }
 
-    .wallet-info .card {
-        padding: 15px;
-    }
-
-    .wallet-info h3 {
-        font-size: 1rem;
-    }
-
-    .wallet-info p {
-        font-size: 1.2rem;
-    }
-
     form input, form button {
         font-size: 0.95rem;
-        padding: 10px 12px;
     }
 }
-

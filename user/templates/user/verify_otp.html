@@ -1,0 +1,44 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Verify OTP</title>
+    <link rel="stylesheet" href="{% static 'styles/verify_otp.css' %}">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+
+<body>
+
+<div class="container">
+
+    <div class="card">
+
+        <h2>OTP Verification</h2>
+        <p class="subtitle">Enter the 6-digit code sent to your email</p>
+
+        {% if error %}
+            <div class="error">{{ error }}</div>
+        {% endif %}
+
+        <form method="POST">
+            {% csrf_token %}
+
+            <div class="otp-box">
+                <input type="text" name="otp" maxlength="6" placeholder="Enter OTP" required>
+            </div>
+
+            <button type="submit">Verify OTP</button>
+        </form>
+
+        <div class="links">
+            <a href="{% url 'user:forgot_password' %}">Resend OTP</a>
+        </div>
+
+    </div>
+
+</div>
+
+</body>
+</html>

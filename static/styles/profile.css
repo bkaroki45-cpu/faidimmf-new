@@ -1,5 +1,3 @@
-/* static/styles/profile.css */
-
 /* ------------------------------
    RESET & BASE
 -------------------------------- */
@@ -11,12 +9,11 @@ body {
     font-family: 'Poppins', sans-serif;
     background: linear-gradient(to right, #6a11cb, #2575fc);
     margin: 0;
-    padding: 15px; /* prevent edge touching */
+    padding: 15px;
     min-height: 100vh;
     display: flex;
     justify-content: center;
     align-items: center;
-    transition: background 0.3s;
 }
 
 /* ------------------------------
@@ -53,6 +50,7 @@ input {
     font-size: 0.95rem;
     transition: 0.3s;
 }
+
 input:focus {
     border-color: #2575fc;
     box-shadow: 0 0 5px rgba(37, 117, 252, 0.5);
@@ -73,6 +71,7 @@ button {
     cursor: pointer;
     transition: 0.3s;
 }
+
 button:hover {
     background: #6a11cb;
 }
@@ -85,23 +84,45 @@ button:hover {
 }
 
 /* ------------------------------
-   MESSAGES
+   🔥 FIXED MESSAGES SYSTEM (IMPORTANT)
 -------------------------------- */
-.messages li {
-    padding: 10px;
-    margin: 8px 0;
-    border-radius: 8px;
-    list-style: none;
-    font-size: 0.9rem;
+
+/* container */
+.messages {
+    margin-bottom: 15px;
+}
+
+/* base message style */
+.message {
+    padding: 14px;
+    margin: 10px 0;
+    border-radius: 10px;
+    font-size: 0.95rem;
+    font-weight: 700;
+    text-align: center;
+    animation: fadeIn 0.4s ease;
     word-wrap: break-word;
 }
-.messages li.success {
+
+/* success */
+.message.success {
     background: #d4edda;
     color: #155724;
+    border: 1px solid #28a745;
 }
-.messages li.error {
+
+/* error */
+.message.error {
     background: #f8d7da;
     color: #721c24;
+    border: 1px solid #dc3545;
+}
+
+/* info */
+.message.info {
+    background: #d1ecf1;
+    color: #0c5460;
+    border: 1px solid #17a2b8;
 }
 
 /* ------------------------------
@@ -111,39 +132,35 @@ button:hover {
     text-align: center;
     margin-top: 15px;
 }
+
 .return-dashboard .btn-dashboard {
-    color: #00ffd5;
+    color: #00bfa5;
     text-decoration: none;
     font-weight: 600;
-    transition: color 0.3s, text-shadow 0.3s;
+    transition: 0.3s;
 }
+
 .return-dashboard .btn-dashboard:hover {
-    color: #00bfa5;
-    text-shadow: 0 0 8px rgba(0,255,213,0.5);
+    color: #2575fc;
+    text-shadow: 0 0 8px rgba(37,117,252,0.3);
 }
 
 /* ------------------------------
    ANIMATIONS
 -------------------------------- */
 @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(-15px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-
-/* ------------------------------
-   SMALL HEIGHT DEVICES
--------------------------------- */
-@media (max-height: 650px) {
-    body {
-        align-items: flex-start; /* allow scrolling */
+    from {
+        opacity: 0;
+        transform: translateY(-15px);
     }
-    .profile-container {
-        margin-top: 20px;
+    to {
+        opacity: 1;
+        transform: translateY(0);
     }
 }
 
 /* ------------------------------
-   MOBILE WIDTH
+   MOBILE
 -------------------------------- */
 @media (max-width: 600px) {
     .profile-container {
@@ -154,23 +171,5 @@ button:hover {
     input, button {
         font-size: 0.9rem;
         padding: 10px 12px;
-    }
-}
-
-/* ------------------------------
-   EXTRA SMALL PHONES
--------------------------------- */
-@media (max-width: 360px) {
-    .profile-container {
-        padding: 15px;
-    }
-
-    h2 {
-        font-size: 1.4rem;
-    }
-
-    input, button {
-        font-size: 0.85rem;
-        padding: 9px 10px;
     }
 }

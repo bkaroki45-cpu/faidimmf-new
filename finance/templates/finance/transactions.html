@@ -28,27 +28,48 @@
             </tr>
         </thead>
 
-        <tbody>
-        {% for tx in transactions %}
-            <tr>
-                <td>{{ forloop.counter }}</td>
-                <td>{{ tx.timestamp|localtime|date:"d M Y H:i" }}</td>
-                <td>{{ tx.tx_type|title }}</td>
-                <td class="{% if tx.tx_type|lower == 'deposit' %}credit{% else %}debit{% endif %}">
-                    {% if tx.tx_type|lower == 'deposit' %}+{% else %}-{% endif %}KES {{ tx.amount }}
-                </td>
-                <td class="{% if tx.status == 'completed' %}success{% elif tx.status == 'failed' %}failed{% else %}pending{% endif %}" 
-                    data-checkout="{{ tx.checkout_id }}" class="tx-status">
-                    {{ tx.status|title }} - {{ tx.result_desc }}
-                </td>
-                </td>
-            </tr>
-        {% empty %}
-            <tr>
-                <td colspan="5">No transactions yet</td>
-            </tr>
-        {% endfor %}
-        </tbody>
+<tbody>
+{% for tx in transactions %}
+    <tr>
+        <td>{{ forloop.counter }}</td>
+
+        <td>{{ tx.timestamp|localtime|date:"d M Y H:i" }}</td>
+
+        <td>{{ tx.tx_type|title }}</td>
+
+        <!-- AMOUNT FIXED (Deposit + Referral + Returns = +) -->
+        <td class="
+            {% if tx.tx_type|lower == 'deposit' or tx.tx_type|lower == 'referral' or tx.tx_type|lower == 'investment_return' %}
+                credit
+            {% else %}
+                debit
+            {% endif %}
+        ">
+            {% if tx.tx_type|lower == 'deposit' or tx.tx_type|lower == 'referral' or tx.tx_type|lower == 'investment_return' %}
+                +KES {{ tx.amount }}
+            {% else %}
+                -KES {{ tx.amount }}
+            {% endif %}
+        </td>
+
+        <!-- STATUS FIXED (removed duplicate class bug) -->
+        <td 
+            class="tx-status 
+            {% if tx.status == 'completed' %}success
+            {% elif tx.status == 'failed' %}failed
+            {% else %}pending{% endif %}"
+            data-checkout="{{ tx.checkout_id }}"
+        >
+            {{ tx.status|title }} - {{ tx.result_desc }}
+        </td>
+
+    </tr>
+{% empty %}
+    <tr>
+        <td colspan="5">No transactions yet</td>
+    </tr>
+{% endfor %}
+</tbody>
     </table>
 </div>
 

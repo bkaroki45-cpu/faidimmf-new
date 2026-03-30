@@ -3,11 +3,12 @@ from django.contrib.auth.models import AbstractUser
 from django.conf import settings
 from django.contrib.auth.hashers import make_password, check_password
 import uuid
+from django.utils import timezone
 
 
 
 class CustomUser(AbstractUser):
-    phone = models.CharField(max_length=15, null=True, blank=True, unique=True)
+    phone = models.CharField(max_length=15, null=True, blank=True, unique=False)
     email = models.EmailField(unique=True, blank=False, null=False)  # ✅ make email unique
 
     referral_code = models.CharField(max_length=10, blank=True, unique=True)
@@ -53,3 +54,13 @@ class TransactionPIN(models.Model):
     # Verify PIN
     def check_pin(self, raw_pin):
         return check_password(raw_pin, self.pin)
+    
+
+class PasswordResetOTP(models.Model):
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
+    otp = models.CharField(max_length=6)
+    created_at = models.DateTimeField(auto_now_add=True)
+    is_used = models.BooleanField(default=False)
+
+    def is_valid(self):
+        return (timezone.now() - self.created_at).seconds < 600  # 10 minutes

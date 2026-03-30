@@ -22,7 +22,9 @@ from decimal import Decimal
 from django.shortcuts import render
 from django.utils import timezone
 from .utils import send_otp_email
-from django.contrib.sites.shortcuts import get_current_site
+from user.utils import get_wallet_balance
+from django.utils import timezone
+from .models import PasswordResetOTP
 
 def register(request):
     # Grab referral code from URL if present
@@ -85,7 +87,100 @@ def logout_view(request):
         return redirect('user:login')
     else:
         return redirect('home')
+    
+    import random
+from django.core.mail import send_mail
 
+def forgot_password(request):
+    message = None
+
+    if request.method == "POST":
+        email = request.POST.get("email", "").strip()
+
+        try:
+            user = CustomUser.objects.get(email=email)
+        except CustomUser.DoesNotExist:
+            message = "Email not found. Please use your registered email."
+            return render(request, "user/forgot_password.html", {"message": message})
+
+        # Generate OTP
+        otp = str(random.randint(100000, 999999))
+
+        PasswordResetOTP.objects.create(user=user, otp=otp)
+
+        # Send email
+        send_mail(
+            "Password Reset OTP",
+            f"Your OTP code is: {otp}",
+            "noreply@yourapp.com",
+            [email],
+            fail_silently=False,
+        )
+
+        request.session["reset_user_id"] = user.id
+        return redirect("user:verify_otp")
+
+    return render(request, "user/forgot_password.html", {"message": message})
+
+
+def verify_otp(request):
+    user_id = request.session.get("reset_user_id")
+
+    if not user_id:
+        return redirect("user:forgot_password")
+
+    user = CustomUser.objects.get(id=user_id)
+
+    if request.method == "POST":
+        otp_input = request.POST.get("otp")
+
+        otp_obj = PasswordResetOTP.objects.filter(
+            user=user,
+            otp=otp_input,
+            is_used=False
+        ).order_by('-created_at').first()
+
+        if otp_obj and otp_obj.is_valid():
+            otp_obj.is_used = True
+            otp_obj.save()
+
+            request.session["otp_verified"] = True
+            return redirect("user:reset_password")
+
+        return render(request, "user/verify_otp.html", {
+            "error": "Invalid or expired OTP"
+        })
+
+    return render(request, "user/verify_otp.html")
+
+
+from django.contrib.auth.hashers import make_password
+
+def reset_password(request):
+    if not request.session.get("otp_verified"):
+        return redirect("user:forgot_password")
+
+    user_id = request.session.get("reset_user_id")
+    user = CustomUser.objects.get(id=user_id)
+
+    if request.method == "POST":
+        password1 = request.POST.get("password1")
+        password2 = request.POST.get("password2")
+
+        if password1 != password2:
+            return render(request, "user/reset_password.html", {
+                "error": "Passwords do not match"
+            })
+
+        user.password = make_password(password1)
+        user.save()
+
+        # cleanup session
+        request.session.flush()
+
+        return redirect("user:login")
+
+    return render(request, "user/reset_password.html")
 
 
 
@@ -93,71 +188,99 @@ def logout_view(request):
 @login_required
 def dashboard(request):
     user = request.user
-    wallet, _ = Wallet.objects.get_or_create(user=user)
-    balance = wallet.balance
 
-    # --- Last 10 transactions ---
+    # =========================
+    # 💰 REAL BALANCE (SOURCE OF TRUTH)
+    # =========================
+    balance = get_wallet_balance(user)
+
+    wallet, _ = Wallet.objects.get_or_create(user=user)
+    wallet.balance = balance
+    wallet.save()
+
+    # =========================
+    # 📌 TRANSACTIONS
+    # =========================
     transactions = Transaction.objects.filter(user=user).order_by('-timestamp')[:10]
 
-    # --- Aggregates ---
+    # =========================
+    # 📊 TOTALS (FIXED USING tx_type)
+    # =========================
     total_deposits = Transaction.objects.filter(
-        user=user, tx_type='Deposit', status='completed'
-    ).aggregate(Sum('amount'))['amount__sum'] or 0
+        user=user,
+        tx_type__iexact="deposit",
+        status__icontains="completed"
+    ).aggregate(total=Sum('amount'))['total'] or 0
 
     total_withdrawals = Transaction.objects.filter(
-        user=user, tx_type='withdraw', status='completed'
-    ).aggregate(Sum('amount'))['amount__sum'] or 0
+        user=user,
+        tx_type__iexact="withdraw",
+        status__icontains="completed"
+    ).aggregate(total=Sum('amount'))['total'] or 0
+
+    total_investments = Transaction.objects.filter(
+        user=user,
+        tx_type__iexact="invest",
+        status__icontains="completed"
+    ).aggregate(total=Sum('amount'))['total'] or 0
 
     daily_profit = Transaction.objects.filter(
-        user=user, tx_type='profit', timestamp__date=timezone.localdate()
-    ).aggregate(Sum('amount'))['amount__sum'] or 0
+        user=user,
+        tx_type__iexact="profit",
+        timestamp__date=timezone.localdate(),
+        status__icontains="completed"
+    ).aggregate(total=Sum('amount'))['total'] or 0
 
-    # --- LIVE CHART: Account Growth (Last 7 Days) ---
+    # =========================
+    # 📈 ACCOUNT GROWTH (FIXED: REAL CUMULATIVE BALANCE)
+    # =========================
     today = timezone.localdate()
     last_7_days = [today - datetime.timedelta(days=i) for i in range(6, -1, -1)]
 
-    all_transactions_exist = Transaction.objects.filter(user=user).exists()
     balance_by_day = []
 
-    if all_transactions_exist:
-        # Start from current wallet balance
-        running_balance = Decimal(balance)
+    for day in last_7_days:
+        deposits = Transaction.objects.filter(
+            user=user,
+            tx_type__iexact="deposit",
+            status__icontains="completed",
+            timestamp__date=day
+        ).aggregate(total=Sum('amount'))['total'] or 0
 
-        # Work backwards to compute daily balance
-        for day in reversed(last_7_days):
-            deposits = Transaction.objects.filter(
-                user=user, tx_type='Deposit', status='completed', timestamp__date=day
-            ).aggregate(Sum('amount'))['amount__sum'] or 0
+        withdrawals = Transaction.objects.filter(
+            user=user,
+            tx_type__iexact="withdraw",
+            status__icontains="completed",
+            timestamp__date=day
+        ).aggregate(total=Sum('amount'))['total'] or 0
 
-            withdrawals = Transaction.objects.filter(
-                user=user, tx_type='withdraw', status='completed', timestamp__date=day
-            ).aggregate(Sum('amount'))['amount__sum'] or 0
+        investments = Transaction.objects.filter(
+            user=user,
+            tx_type__iexact="invest",
+            status__icontains="completed",
+            timestamp__date=day
+        ).aggregate(total=Sum('amount'))['total'] or 0
 
-            profit = Transaction.objects.filter(
-                user=user, tx_type='profit', timestamp__date=day
-            ).aggregate(Sum('amount'))['amount__sum'] or 0
+        daily_net = Decimal(deposits) - Decimal(withdrawals) - Decimal(investments)
 
-            running_balance -= Decimal(deposits) - Decimal(withdrawals) + Decimal(profit)
-            balance_by_day.append(running_balance)
+        balance_by_day.append(daily_net)
 
-        balance_by_day = list(reversed(balance_by_day))
-        chart_name = 'Balance'
-        line_color = 'green'
+    # 🔥 convert to cumulative (IMPORTANT FIX)
+    cumulative = []
+    running = Decimal(0)
 
-    else:
-        # No transactions ever → placeholder line
-        balance_by_day = [0.01 for _ in last_7_days]  # tiny value to force rendering
-        chart_name = 'No activity yet'
-        line_color = 'gray'
+    for value in balance_by_day:
+        running += Decimal(value)
+        cumulative.append(running)
 
     growth_chart = go.Figure()
     growth_chart.add_trace(go.Scatter(
-        x=[day.strftime('%d %b') for day in last_7_days],
-        y=balance_by_day,
+        x=[d.strftime('%d %b') for d in last_7_days],
+        y=cumulative,
         mode='lines+markers',
-        name=chart_name,
-        line=dict(color=line_color, width=3)
+        name='Balance'
     ))
+
     growth_chart.update_layout(
         title='Account Growth (Last 7 Days)',
         xaxis_title='Date',
@@ -167,22 +290,27 @@ def dashboard(request):
         plot_bgcolor='#0b0f19',
         font=dict(color='white')
     )
+
     growth_plot = plot(growth_chart, output_type='div', include_plotlyjs=False)
 
-    # --- LIVE CHART: Transaction Status Overview ---
-    status_counts_qs = Transaction.objects.filter(user=user).values('status').annotate(count=Count('id'))
+    # =========================
+    # 📊 STATUS CHART
+    # =========================
+    status_counts_qs = Transaction.objects.filter(user=user)\
+        .values('status')\
+        .annotate(count=Count('id'))
 
-    if status_counts_qs.exists():
-        labels = [item['status'].capitalize() for item in status_counts_qs]
-        values = [item['count'] for item in status_counts_qs]
-    else:
-        labels = ['Deposits', 'Withdrawals', 'Profits']
-        values = [0, 0, 0]  # placeholder for new users
+    labels = [i['status'].capitalize() for i in status_counts_qs] if status_counts_qs else ['No Data']
+    values = [i['count'] for i in status_counts_qs] if status_counts_qs else [1]
 
     status_chart = go.Figure(data=[go.Pie(labels=labels, values=values, hole=0.3)])
     status_chart.update_layout(title='Transaction Status Overview', template='plotly_dark')
+
     status_plot = plot(status_chart, output_type='div', include_plotlyjs=False)
 
+    # =========================
+    # 📦 CONTEXT
+    # =========================
     context = {
         'balance': balance,
         'transactions': transactions,
@@ -206,40 +334,35 @@ def dashboard(request):
 def profile(request):
     user = request.user
 
-    # Get existing PIN object if any
     pin_obj = TransactionPIN.objects.filter(user=user).first()
 
-    # Initialize forms
     set_form = SetNewPINForm()
     change_form = ChangePINForm()
 
     if request.method == "POST":
 
-        # --- Update profile info (username/email/phone) ---
-        # --- Update profile info (username/email/phone) ---
+        # --- Update profile info ---
         if "update_profile" in request.POST:
             new_username = request.POST.get("username")
             new_email = request.POST.get("email")
             new_phone = request.POST.get("phone")
 
-            # <-- Check if phone already exists for another user -->
-            if CustomUser.objects.filter(phone=new_phone).exclude(pk=user.pk).exists():
-                messages.error(request, "phone: This phone number is already registered.")
-            else:
-                # Save only if phone is unique
-                user.username = new_username
-                user.email = new_email
-                user.phone = new_phone
-                user.save()
-                messages.success(request, "Profile updated successfully!")
+            # ❌ REMOVED UNIQUE PHONE CHECK (as requested)
 
+            user.username = new_username
+            user.email = new_email
+            user.phone = new_phone
+            user.save()
+
+            messages.success(request, "Profile updated successfully!")
             return redirect("user:profile")
 
-        # --- Set PIN for first time ---
+        # --- Set PIN ---
         elif "set_pin" in request.POST:
             set_form = SetNewPINForm(request.POST)
             if set_form.is_valid():
                 pin_value = set_form.cleaned_data["pin"]
+
                 if pin_obj:
                     pin_obj.set_pin(pin_value)
                 else:
@@ -251,7 +374,7 @@ def profile(request):
             else:
                 messages.error(request, "Error setting PIN. Please check your input.")
 
-        # --- Change existing PIN ---
+        # --- Change PIN ---
         elif "change_pin" in request.POST:
             change_form = ChangePINForm(request.POST)
             if change_form.is_valid():
@@ -269,15 +392,14 @@ def profile(request):
             else:
                 messages.error(request, "Please fill all fields correctly.")
 
-    # GET request or fallback
     context = {
         "user": user,
         "pin_obj": pin_obj,
         "set_form": set_form,
         "change_form": change_form if pin_obj else None,
     }
-    return render(request, "user/profile.html", context)
 
+    return render(request, "user/profile.html", context)
 # ---------------- FORGOT PIN / OTP ----------------
 
 

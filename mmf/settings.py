@@ -14,6 +14,10 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 
+from django.contrib.messages import constants as messages
+
+MESSAGE_STORAGE = 'django.contrib.messages.storage.session.SessionStorage'
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -175,3 +179,15 @@ EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_HOST_USER = 'bkaroki45@gmail.com'         # Your Gmail address
 EMAIL_HOST_PASSWORD = 'afuc lemi gwrz shil'  # App password (not your regular Gmail password)
+
+
+
+MESSAGE_STORAGE = 'django.contrib.messages.storage.session.SessionStorage'
+
+from django.contrib.messages import constants as message_constants
+
+MESSAGE_TAGS = {
+    message_constants.ERROR: 'error',
+    message_constants.SUCCESS: 'success',
+    message_constants.INFO: 'info',
+}

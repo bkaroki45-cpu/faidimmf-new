@@ -17,8 +17,6 @@ urlpatterns = [
     path('query/', query_status, name='query_status'),
     path('callback/', views.mpesa_callback, name='mpesa_callback'),
     path('set-pin/', views.set_pin, name='set_pin'),
-    path('redeem/', views.redeem_matured_investments, name='redeem_matured_investments'),
-    path('clear_redeemed_session/', views.clear_redeemed_session, name='clear_redeemed_session'),
     path('b2c_result/', views.b2c_result, name='b2c_result'),
     path('b2c_timeout/', views.b2c_timeout, name='b2c_timeout'),
 ]

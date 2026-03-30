@@ -27,35 +27,12 @@
         </div>
     </div>
 
-    <!-- Redeem Button -->
-    <div class="redeem-action">
-        <form method="post" action="{% url 'finance:redeem_matured_investments' %}">
-            {% csrf_token %}
-            <button type="submit" class="btn-redeem">Redeem Matured Investments</button>
-        </form>
+    <!-- AUTO INFO (no button anymore) -->
+    <div class="auto-note">
+        <p>
+            🔄 Investments are automatically redeemed after 24 hours and added to your wallet.
+        </p>
     </div>
-
-    <!-- Redeemed Investments Notice -->
-    {% if request.session.redeemed_list %}
-    <div class="redeemed-notice">
-        <h3>Recently Redeemed Investments:</h3>
-        <ul>
-            {% for inv in request.session.redeemed_list %}
-            <li>
-                Investment ID: {{ inv.id }} |
-                Principal: KSh {{ inv.amount|floatformat:2 }} |
-                Profit: KSh {{ inv.profit|floatformat:2 }} |
-                Total: KSh {{ inv.total|floatformat:2 }}
-            </li>
-            {% endfor %}
-        </ul>
-    </div>
-    {% endif %}
-
-    <!-- Clear redeemed session -->
-    <script>
-        fetch("{% url 'finance:clear_redeemed_session' %}");
-    </script>
 
     <!-- Messages -->
     {% if messages %}
@@ -71,6 +48,7 @@
     <!-- Investment History -->
     <div class="history">
         <h3>Recent Investments</h3>
+
         {% if investments %}
         <table>
             <thead>
@@ -83,20 +61,29 @@
                     <th>Status</th>
                 </tr>
             </thead>
+
             <tbody>
                 {% for inv in investments %}
                 <tr>
                     <td>{{ inv.invested_at|date:"M d, Y H:i" }}</td>
                     <td>KSh {{ inv.amount|floatformat:2 }}</td>
-                    <!-- Display interest as percentage (0.50%) -->
                     <td>{{ inv.interest_display|floatformat:2 }}%</td>
                     <td>KSh {{ inv.profit|floatformat:2 }}</td>
                     <td>KSh {{ inv.total|floatformat:2 }}</td>
-                    <td>{{ inv.status }}</td>
+                    <td>
+                        {% if inv.is_redeemed %}
+                            <span style="color:green;">Redeemed</span>
+                        {% elif inv.status == "Matured" %}
+                            <span style="color:orange;">Matured</span>
+                        {% else %}
+                            <span style="color:blue;">Active</span>
+                        {% endif %}
+                    </td>
                 </tr>
                 {% endfor %}
             </tbody>
         </table>
+
         {% else %}
         <p class="no-data">No investment activity yet.</p>
         {% endif %}
