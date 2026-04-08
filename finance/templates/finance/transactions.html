@@ -79,32 +79,11 @@
     <a href="{% url 'user:dashboard' %}" class="btn-dashboard">← Return to Dashboard</a>
 </div>
 
-<!-- JS for polling transaction status -->
 <script>
-function pollTransactionStatus() {
-    document.querySelectorAll(".tx-status").forEach(span => {
-        const checkoutId = span.dataset.checkout;
-        if (!checkoutId) return;
-
-        fetch(`/finance/transaction-status/?checkout_id=${checkoutId}`)
-            .then(res => res.json())
-            .then(data => {
-                if (data.status) {
-                    span.innerText = data.status + " - " + (data.result_desc || "");
-                    span.className = "tx-status " + (data.status === "completed" ? "success" :
-                                                      data.status === "failed" ? "failed" : "pending");
-                    // Keep polling only if still pending
-                    if (data.status === "pending") {
-                        setTimeout(pollTransactionStatus, 5000);
-                    }
-                }
-            })
-            .catch(err => console.error("Error fetching transaction status:", err));
-    });
-}
-
-// start polling when page loads
-document.addEventListener("DOMContentLoaded", pollTransactionStatus);
+  // Reload page every 15 seconds
+  setTimeout(() => {
+    window.location.reload();
+  }, 15000);
 </script>
 
 </body>

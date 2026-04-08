@@ -64,11 +64,14 @@
 
         <!-- Referral Code (readonly) -->
         {% if ref_code_from_link %}
-        <p>
-            <label>Referral Code:</label><br>
-            <input type="text" value="{{ ref_code_from_link }}" readonly
-                   style="background:#e9ecef; cursor:not-allowed;">
-        </p>
+            <p>
+                <label>Referral Code:</label><br>
+                <input type="text" value="{{ ref_code_from_link }}" readonly
+                    style="background:#e9ecef; cursor:not-allowed;">
+            </p>
+
+            <!-- 🔥 THIS IS THE IMPORTANT LINE -->
+            <input type="hidden" name="ref" value="{{ ref_code_from_link }}">
         {% endif %}
 
         <!-- Password -->

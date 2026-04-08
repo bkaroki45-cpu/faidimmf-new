@@ -5,19 +5,14 @@ from django.dispatch import receiver
 from django.utils import timezone
 from datetime import timedelta
 from decimal import Decimal, ROUND_DOWN
-
+from django.db.models import Sum
+from django.db.models.signals import post_save
 
 # =========================
 # TRANSACTIONS
 # =========================
-from django.db import models
-from django.conf import settings
-from django.utils import timezone
 
-
-from django.db import models
-from django.conf import settings
-from django.utils import timezone
+from django.core.exceptions import ValidationError
 
 
 class Transaction(models.Model):
@@ -49,11 +44,22 @@ class Transaction(models.Model):
     amount = models.DecimalField(max_digits=20, decimal_places=2)
 
     # ======================
-    # UNIQUE IDS
+    # UNIQUE IDS (FIXED 🔥)
     # ======================
-    checkout_id = models.CharField(max_length=100, unique=True)
+    checkout_id = models.CharField(
+        max_length=100,
+        unique=True,
+        null=True,
+        blank=True
+    )
 
-    mpesa_code = models.CharField(max_length=100, unique=True, null=True, blank=True)
+    mpesa_code = models.CharField(
+        max_length=100,
+        unique=True,
+        null=True,
+        blank=True
+    )
+
     conversation_id = models.CharField(max_length=100, null=True, blank=True)
     originator_conversation_id = models.CharField(max_length=100, null=True, blank=True)
 
@@ -105,6 +111,23 @@ class Transaction(models.Model):
         self.save(update_fields=["status", "completed_at"])
 
     def is_credit(self):
+        return self.tx_type in ["deposit", "referral", "investment_return"]
+
+    def signed_amount(self):
+        return self.amount if self.is_credit() else -self.amount
+
+    def __str__(self):
+        return f"{self.tx_type} - {self.amount} KES - {self.status}"
+
+    # ======================
+    # METHODS
+    # ======================
+    def mark_completed(self):
+        self.status = "completed"
+        self.completed_at = timezone.now()
+        self.save(update_fields=["status", "completed_at"])
+
+    def is_credit(self):
         """
         Money IN types (wallet increases)
         """
@@ -126,10 +149,20 @@ class Transaction(models.Model):
 # =========================
 class Wallet(models.Model):
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-    balance = models.DecimalField(max_digits=20, decimal_places=2, default=Decimal('0.00'))
 
-    def __str__(self):
-        return f"{self.user.username} Wallet"
+    @property
+    def balance(self):
+        credits = LedgerEntry.objects.filter(
+            user=self.user,
+            is_credit=True
+        ).aggregate(total=Sum("amount"))["total"] or Decimal("0")
+
+        debits = LedgerEntry.objects.filter(
+            user=self.user,
+            is_credit=False
+        ).aggregate(total=Sum("amount"))["total"] or Decimal("0")
+
+        return credits - debits
 
 
 @receiver(post_save, sender=settings.AUTH_USER_MODEL)
@@ -138,38 +171,164 @@ def create_wallet(sender, instance, created, **kwargs):
         Wallet.objects.create(user=instance)
 
 
+
 # =========================
 # COMPANY ACCOUNTS
 # =========================
+
 class CompanyAccount(models.Model):
-    ACCOUNT_TYPE_CHOICES = [
-        ("liquidity", "Liquidity Reserve"),
-        ("investment_pool", "Investment Pool"),
+
+    ACCOUNT_TYPES = [
+        ("reserve", "Reserve"),
+        ("system", "System"),
+        ("pool", "Investment Pool"),
     ]
 
     name = models.CharField(max_length=100)
-    account_type = models.CharField(max_length=20, choices=ACCOUNT_TYPE_CHOICES)
-    account_number = models.CharField(max_length=50, blank=True, null=True)
-    balance = models.DecimalField(max_digits=12, decimal_places=2, default=Decimal('0.00'))
+    account_type = models.CharField(max_length=20, choices=ACCOUNT_TYPES)
+    invested_today = models.DecimalField(max_digits=20, decimal_places=2, default=0)
 
     created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         return f"{self.name} ({self.account_type})"
 
-    def deposit(self, amount):
-        self.balance += Decimal(amount)
-        self.save()
+    # =========================
+    # LEDGER BALANCE (REAL SOURCE OF TRUTH)
+    # =========================
+    def balance(self):
+        credits = LedgerEntry.objects.filter(
+            account=self,
+            is_credit=True
+        ).aggregate(total=Sum("amount"))["total"] or Decimal("0")
 
-    def withdraw(self, amount):
-        amount = Decimal(amount)
-        if amount > self.balance:
-            raise ValueError("Insufficient funds")
-        self.balance -= amount
-        self.save()
+        debits = LedgerEntry.objects.filter(
+            account=self,
+            is_credit=False
+        ).aggregate(total=Sum("amount")) or Decimal("0")
 
+        return credits - debits
 
+    # =========================
+    # POST TRANSACTION ENGINE
+    # =========================
+    @staticmethod
+    def post_transaction(tx):
+        """
+        Creates LedgerEntries for a transaction, linking to company accounts
+        and ensuring Wallet reflects the user's balance correctly.
+        """
+        try:
+            reserve = CompanyAccount.objects.get(account_type="reserve")
+            system = CompanyAccount.objects.get(account_type="system")
+            pool = CompanyAccount.objects.get(account_type="pool")
+        except CompanyAccount.DoesNotExist as e:
+            raise ValueError(f"Required company account missing: {e}")
+
+        amount = tx.amount
+
+        if tx.tx_type == "deposit":
+            # User wallet entry
+            LedgerEntry.objects.create(
+                user=tx.user,       # Only this one affects wallet
+                account=reserve,
+                tx_type="deposit",
+                amount=amount,
+                is_credit=True
+            )
+
+            # Only company accounting, no user
+            LedgerEntry.objects.create(
+                user=None,
+                account=system,
+                tx_type="deposit",
+                amount=amount,
+                is_credit=True
+            )
+
+        elif tx.tx_type == "withdraw":
+            LedgerEntry.objects.create(
+                user=tx.user,
+                account=reserve,
+                tx_type="withdraw",
+                amount=amount,
+                is_credit=False
+            )
+            LedgerEntry.objects.create(
+                user=None,
+                account=system,
+                tx_type="withdraw",
+                amount=amount,
+                is_credit=False
+            )
+
+        elif tx.tx_type == "invest":
+            LedgerEntry.objects.create(
+                user=None,
+                account=system,
+                tx_type="invest",
+                amount=amount,
+                is_credit=False
+            )
+            LedgerEntry.objects.create(
+                user=None,
+                account=pool,
+                tx_type="invest",
+                amount=amount,
+                is_credit=True
+            )
+
+        elif tx.tx_type == "investment_return":
+            LedgerEntry.objects.create(
+                user=None,
+                account=pool,
+                tx_type="investment_return",
+                amount=amount,
+                is_credit=False
+            )
+            LedgerEntry.objects.create(
+                user=tx.user,   # Only the system-to-user return affects wallet
+                account=system,
+                tx_type="investment_return",
+                amount=amount,
+                is_credit=True
+            )
+
+        else:
+            raise ValueError(f"Unknown transaction type: {tx.tx_type}")
+        
+    # In your CompanyAccount model or a transaction handler
+    @staticmethod
+    def post_referral_bonus(referrer, amount, referred_user):
+        """
+        Credit the referral bonus to the referrer's wallet via LedgerEntry.
+        """
+        try:
+            reserve = CompanyAccount.objects.get(account_type="reserve")
+            system = CompanyAccount.objects.get(account_type="system")
+        except CompanyAccount.DoesNotExist as e:
+            raise ValueError(f"Required company account missing: {e}")
+
+        # Create ledger entries
+        LedgerEntry.objects.create(
+            user=referrer,          # affects wallet
+            account=reserve,        # where user funds are stored
+            tx_type="referral_bonus",
+            amount=amount,
+            is_credit=True,
+            metadata=f"Referral bonus from {referred_user.username}"
+        )
+
+        LedgerEntry.objects.create(
+            user=None,              # company bookkeeping only
+            account=system,
+            tx_type="referral_bonus",
+            amount=amount,
+            is_credit=False,
+            metadata=f"Referral bonus for {referrer.username}"
+        )
+
+  
 # =========================
 # INVESTMENTS
 # =========================
@@ -213,3 +372,34 @@ class InvestmentTracking(models.Model):
 
     def __str__(self):
         return f"{self.user.username} - KSh {self.amount}"
+    
+
+    from django.conf import settings
+
+
+
+class SystemState(models.Model):
+    last_reset = models.DateField(default=timezone.now)
+
+
+
+
+class LedgerEntry(models.Model):
+    ENTRY_TYPES = [
+        ("deposit", "Deposit"),
+        ("withdraw", "Withdraw"),
+        ("invest", "Invest"),
+        ("investment_return", "Investment Return"),
+        ("fee", "Fee"),
+    ]
+
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=True, blank=True)
+    account = models.ForeignKey("CompanyAccount", on_delete=models.CASCADE)
+    tx_type = models.CharField(max_length=30, choices=ENTRY_TYPES)
+    amount = models.DecimalField(max_digits=20, decimal_places=2)
+    created_at = models.DateTimeField(auto_now_add=True)
+    is_credit = models.BooleanField(default=False)  # money in/out
+    reference = models.CharField(max_length=100, null=True, blank=True)
+    metadata = models.TextField(null=True, blank=True)
+
+

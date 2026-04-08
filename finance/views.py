@@ -14,12 +14,15 @@ from user.models import TransactionPIN
 from decimal import Decimal
 from django.contrib import messages
 import uuid
-from django.http import HttpResponse
+import json
 from django.db import transaction
 from django.db.models import Sum
 from finance.b2c_utils import send_b2c_payment
 from django.contrib.sites.shortcuts import get_current_site
 from user.utils import process_maturity
+from .stkpush import stk_push
+from user.decorators import profile_required
+from finance.models import LedgerEntry
 
 
 
@@ -46,99 +49,115 @@ def set_pin(request):
     return render(request, 'user/set_pin.html', {'form': form})
 
 
-MIN_DEPOSIT = 100  # Minimum deposit amount in KSh
+MIN_DEPOSIT = 5  # Minimum deposit amount in KSh
 
 @login_required
 def deposit(request):
     wallet, _ = Wallet.objects.get_or_create(user=request.user)
-    message = None
 
     if request.method == "POST":
         phone = request.POST.get("phone")
         amount = request.POST.get("amount")
         method = request.POST.get("method")
 
+        # -----------------------------
+        # VALIDATE AMOUNT
+        # -----------------------------
         try:
             amount = Decimal(amount)
-        except (ValueError, TypeError, InvalidOperation):
-            message = {"title": "Error", "body": "Invalid amount entered."}
-            return render(request, "finance/deposit.html", {"balance": wallet.balance, "message": message})
+        except:
+            return render(request, "finance/deposit.html", {
+                "balance": wallet.balance,
+                "message": {"title": "Error", "body": "Invalid amount"}
+            })
 
         if amount < MIN_DEPOSIT:
-            message = {"title": "Error", "body": f"Minimum deposit is KSh {MIN_DEPOSIT}."}
-            return render(request, "finance/deposit.html", {"balance": wallet.balance, "message": message})
+            return render(request, "finance/deposit.html", {
+                "balance": wallet.balance,
+                "message": {"title": "Error", "body": f"Minimum deposit is KES {MIN_DEPOSIT}"}
+            })
 
+        # -----------------------------
+        # VALIDATE METHOD
+        # -----------------------------
         if method != "mpesa":
-            message = {"title": "Error", "body": "Only M-Pesa deposits are supported."}
-            return render(request, "finance/deposit.html", {"balance": wallet.balance, "message": message})
+            return render(request, "finance/deposit.html", {
+                "balance": wallet.balance,
+                "message": {"title": "Error", "body": "Only MPESA allowed"}
+            })
 
-        access_token = get_access_token_value()
-        if not access_token:
-            message = {"title": "Error", "body": "Could not get access token."}
-            return render(request, "finance/deposit.html", {"balance": wallet.balance, "message": message})
+        # -----------------------------
+        # SEND STK PUSH FIRST 🔥
+        # -----------------------------
+        response = stk_push(request)
+        res = json.loads(response.content)
+        print("STK RESPONSE:", res)
 
-        business_shortcode = "174379"
-        passkey = "bfb279f9aa9bdbcf158e97dd71a467cd2e0c893059b10f78e6b72ada1ed2c919"
+        # -----------------------------
+        # HANDLE FAILED STK
+        # -----------------------------
+        if not res or res.get("ResponseCode") != "0":
+            return render(request, "finance/deposit.html", {
+                "balance": wallet.balance,
+                "message": {"title": "Error", "body": "STK Push failed"}
+            })
 
-        timestamp = timezone.now().strftime("%Y%m%d%H%M%S")
-        password_str = business_shortcode + passkey + timestamp
-        password = base64.b64encode(password_str.encode()).decode("utf-8")
+        # -----------------------------
+        # NOW GET CHECKOUT ID ✅
+        # -----------------------------
+        checkout_id = res.get("CheckoutRequestID")
 
-        callback_url = f"{PUBLIC_URL}/finance/callback/"
+        # -----------------------------
+        # CREATE TRANSACTION NOW ✅
+        # -----------------------------
+        tx = Transaction.objects.create(
+            user=request.user,
+            amount=amount,
+            checkout_id=checkout_id,
+            phone_number=phone,
+            tx_type="deposit",
+            status="pending"
+        )
 
-        payload = {
-            "BusinessShortCode": business_shortcode,
-            "Password": password,
-            "Timestamp": timestamp,
-            "TransactionType": "CustomerPayBillOnline",
-            "Amount": float(amount),
-            "PartyA": phone.replace("+", ""),
-            "PartyB": business_shortcode,
-            "PhoneNumber": phone.replace("+", ""),
-            "CallBackURL": callback_url,
-            "AccountReference": "SMMF",
-            "TransactionDesc": "Deposit",
-        }
+        # -----------------------------
+        # UI ONLY (PENDING DISPLAY)
+        # -----------------------------
+        wallet.pending_deposit = amount
+        wallet.save()
 
-        headers = {
-            "Authorization": f"Bearer {access_token}",
-            "Content-Type": "application/json",
-        }
+        # -----------------------------
+        # REFERRAL BONUS HANDLING
+        # -----------------------------
+        # Check if this is the user's first deposit
+        first_deposit = Transaction.objects.filter(
+            user=request.user,
+            tx_type__iexact="deposit",
+            status__iexact="completed"
+        ).exclude(id=tx.id).exists()
 
-        try:
-            response = requests.post(
-                "https://sandbox.safaricom.co.ke/mpesa/stkpush/v1/processrequest",
-                json=payload,
-                headers=headers,
-                timeout=30,
+        if not first_deposit and request.user.referred_by:
+            bonus_amount = (amount * Decimal("0.10")).quantize(Decimal("0.01"))
+            from finance.models import CompanyAccount
+            CompanyAccount.post_referral_bonus(
+                referrer=request.user.referred_by,
+                amount=bonus_amount,
+                referred_user=request.user
             )
-            res_json = response.json()
 
-            if res_json.get("ResponseCode") == "0":
-                checkout_id = res_json.get("CheckoutRequestID")
+        # OPTIONAL SESSION STORAGE
+        request.session["checkout_id"] = checkout_id
 
-                Transaction.objects.create(
-                    user=request.user,
-                    amount=amount,
-                    checkout_id=checkout_id,
-                    tx_type="deposit",   # ✅ FIXED
-                    status="pending",
-                )
+        return redirect("finance:transactions")
 
-                request.session["checkout_id"] = checkout_id
-                request.session["checkout_start_time"] = timezone.now().timestamp()
-
-                return redirect("finance:transactions")
-
-            else:
-                message = {"title": "Error", "body": res_json.get("errorMessage", "Unknown error")}
-
-        except requests.RequestException as e:
-            message = {"title": "Error", "body": str(e)}
-
-    return render(request, "finance/deposit.html", {"balance": wallet.balance, "message": message})
+    return render(request, "finance/deposit.html", {
+        "balance": wallet.balance
+    })
 
 
+# -------------------------
+# MPESA CALLBACK
+# -------------------------
+from django.db import transaction as db_transaction
 
 @csrf_exempt
 def mpesa_callback(request):
@@ -148,121 +167,127 @@ def mpesa_callback(request):
     try:
         data = json.loads(request.body)
         callback_data = data.get("Body", {}).get("stkCallback", {})
+
         checkout_id = callback_data.get("CheckoutRequestID")
         result_code = callback_data.get("ResultCode")
         result_desc = callback_data.get("ResultDesc")
 
-        try:
-            tx = Transaction.objects.get(checkout_id=checkout_id)
-        except Transaction.DoesNotExist:
-            return JsonResponse({"ResultCode": 0, "ResultDesc": "Accepted"})
+        print("🔔 CALLBACK RECEIVED - Checkout ID:", checkout_id)
 
-        if result_code == 0:
-            tx.status = "completed"
+        with db_transaction.atomic():
+            try:
+                # 🔒 LOCK ROW (IMPORTANT)
+                tx = Transaction.objects.select_for_update().get(checkout_id=checkout_id)
+            except Transaction.DoesNotExist:
+                return JsonResponse({"ResultCode": 0, "ResultDesc": "Accepted"})
 
-            wallet, _ = Wallet.objects.get_or_create(user=tx.user)
-            wallet.balance += Decimal(tx.amount)
-            wallet.save()
+            # ✅ SAFE CHECK AFTER LOCK
+            if tx.status == "completed":
+                print("✅ Already processed:", checkout_id)
+                return JsonResponse({"ResultCode": 0, "ResultDesc": "Already processed"})
 
-            liquidity_account, _ = CompanyAccount.objects.get_or_create(
-                account_type="liquidity",
-                defaults={"name": "Reserve", "balance": 0}
-            )
+            if result_code == 0:
+                metadata = callback_data.get("CallbackMetadata", {}).get("Item", [])
 
-            liquidity_account.balance += Decimal(tx.amount)
-            liquidity_account.save()
+                mpesa_receipt = None
+                mpesa_phone = None
 
-            # ✅ FIXED referral filter (lowercase)
-            user = tx.user
+                for item in metadata:
+                    if item.get("Name") == "MpesaReceiptNumber":
+                        mpesa_receipt = item.get("Value")
+                    elif item.get("Name") == "PhoneNumber":
+                        mpesa_phone = item.get("Value")
 
-            previous_deposits = Transaction.objects.filter(
-                user=user,
-                tx_type="deposit",
-                status="completed"
-            ).exclude(id=tx.id)
+                # ✅ Update transaction FIRST
+                tx.mpesa_code = mpesa_receipt
+                tx.phone_number = mpesa_phone
+                tx.status = "completed"
+                tx.result_desc = result_desc
+                tx.completed_at = timezone.now()
+                tx.save()
 
-            is_first = not previous_deposits.exists()
+                # 🔥 POST TO LEDGER ONCE
+                CompanyAccount.post_transaction(tx)
 
-            if is_first and hasattr(user, "referred_by") and user.referred_by:
-                bonus = Decimal(tx.amount) * Decimal("0.10")
+                print("✅ Transaction completed:", checkout_id)
 
-                ref_wallet, _ = Wallet.objects.get_or_create(user=user.referred_by)
-                ref_wallet.balance += bonus
-                ref_wallet.save()
+            else:
+                tx.status = "failed"
+                tx.result_desc = result_desc
+                tx.completed_at = timezone.now()
+                tx.save(update_fields=["status", "result_desc", "completed_at"])
 
-        else:
-            tx.status = "failed"
-
-        tx.result_desc = result_desc
-        tx.completed_at = timezone.now()
-        tx.save()
+                print("❌ Transaction failed:", checkout_id)
 
         return JsonResponse({"ResultCode": 0, "ResultDesc": "Accepted"})
 
     except Exception as e:
+        print("🔥 CALLBACK ERROR:", str(e))
         return JsonResponse({"ResultCode": 1, "ResultDesc": str(e)}, status=500)
 
 
 
+    
+
+@profile_required
 @login_required
 def invest(request):
     wallet, _ = Wallet.objects.get_or_create(user=request.user)
 
     pin_obj = getattr(request.user, "transaction_pin", None)
-
-    # 🚨 FIX: No PIN → redirect to profile
     if not pin_obj:
-        messages.error(request, "Please set your transaction PIN first.")
-        return redirect("user:profile")  # change if your profile url name is different
+        messages.error(request, "Set PIN first")
+        return redirect("user:profile")
 
     if request.method == "POST":
-        amount = request.POST.get("amount")
+        amount = Decimal(request.POST.get("amount"))
         pin = request.POST.get("pin", "").strip()
 
-        try:
-            amount = Decimal(amount)
-
-            if amount < 100:
-                messages.error(request, "Minimum investment is KES 100.")
-                return redirect("finance:invest")
-
-        except:
-            messages.error(request, "Invalid amount entered.")
+        if amount < 3:
+            messages.error(request, "Min KES 100")
             return redirect("finance:invest")
 
         if amount > wallet.balance:
-            messages.error(request, f"Insufficient balance. You have {wallet.balance}")
+            messages.error(request, "Insufficient balance")
             return redirect("finance:invest")
 
-        # 🔐 PIN check
         if not pin_obj.check_pin(pin):
             messages.error(request, "Invalid PIN")
             return redirect("finance:invest")
 
-        pool_account = CompanyAccount.objects.get(account_type="investment_pool")
+        reserve = CompanyAccount.objects.select_for_update().get(account_type="reserve")
+        pool = CompanyAccount.objects.select_for_update().get(account_type="pool")
 
-        # 💰 move money
-        wallet.balance -= amount
-        wallet.save()
+        with transaction.atomic():
 
-        pool_account.balance += amount
-        pool_account.save()
+            # 1. wallet deduction
+            LedgerEntry.objects.create(
+                user=request.user,
+                account=reserve,   # Or link to reserve account if you want
+                tx_type="invest",
+                amount=amount,
+                is_credit=False
+            )
 
-        # 📊 create investment
-        InvestmentTracking.objects.create(
-            user=request.user,
-            amount=amount,
-            interest_rate=Decimal("0.005")
-        )
+            # 2. pool analytics only
+            pool.invested_today += amount
+            pool.save()
 
-        # 🧾 transaction record
-        Transaction.objects.create(
-            user=request.user,
-            amount=amount,
-            tx_type="invest",
-            status="completed",
-            checkout_id=str(uuid.uuid4())
-        )
+            # 4. investment record
+            inv = InvestmentTracking.objects.create(
+                user=request.user,
+                amount=amount,
+                interest_rate=Decimal("0.005")
+            )
+
+            # 5. USER HISTORY
+            Transaction.objects.create(
+                user=request.user,
+                amount=amount,
+                tx_type="invest",
+                status="completed",
+                checkout_id=str(uuid.uuid4())
+            )
 
         messages.success(request, "Investment successful")
         return redirect("finance:invest_tracking")
@@ -325,6 +350,9 @@ def transactions(request):
 
 
 
+
+
+
 @login_required
 def referrals(request):
     user = request.user
@@ -371,108 +399,50 @@ def referrals(request):
 
   # your B2C helper function
 
-MIN_WITHDRAWAL_AMOUNT = Decimal("50.00")  # Minimum withdrawal: 50 KSh
+MIN_WITHDRAWAL_AMOUNT = Decimal("3.00")  # Minimum withdrawal: 50 KSh
 
+@profile_required
 @login_required
 def withdraw(request):
     wallet, _ = Wallet.objects.get_or_create(user=request.user)
-    liquidity_account = CompanyAccount.objects.get(account_type="liquidity")
-
-    # =========================
-    # ENFORCE PHONE NUMBER
-    # =========================
-    if not getattr(request.user, "phone", None):
-        messages.info(request, "Please add your phone number in your profile before withdrawing.")
-        return redirect("user:profile")
-
-    # =========================
-    # ENFORCE TRANSACTION PIN
-    # =========================
-    pin_obj = getattr(request.user, "transaction_pin", None)
-    if not pin_obj:
-        messages.info(request, "You must set a transaction PIN before withdrawing.")
-        return redirect("user:profile")
+    reserve_account = CompanyAccount.objects.get(account_type="reserve")
+    user=request.user
+  
 
     if request.method == "POST":
-        amount = request.POST.get("amount")
-        pin = request.POST.get("pin", "").strip()
+        amount = Decimal(request.POST.get("amount"))
+        pin = request.POST.get("pin")
 
-        # =========================
-        # VALIDATE AMOUNT
-        # =========================
-        try:
-            amount = Decimal(amount)
-            if amount <= 0:
-                messages.error(request, "Amount must be greater than zero.")
-                return redirect("finance:withdraw")
-        except (TypeError, ValueError, InvalidOperation):
-            messages.error(request, "Invalid amount entered.")
+        if amount > wallet.balance():
+            messages.error(request, "Insufficient balance")
             return redirect("finance:withdraw")
 
-        # =========================
-        # VALIDATE PIN
-        # =========================
-        if not pin_obj.check_pin(pin):
-            messages.error(request, "Invalid transaction PIN.")
+        if amount > reserve_account.system_balance:
+            messages.error(request, "Insufficient liquidity")
             return redirect("finance:withdraw")
 
-        # =========================
-        # BALANCE CHECKS
-        # =========================
-        if amount > wallet.balance:
-            messages.error(request, "Insufficient wallet balance.")
-            return redirect("finance:withdraw")
+        with transaction.atomic():
 
-        if amount > liquidity_account.balance:
-            messages.error(request, "Company reserve cannot cover this withdrawal.")
-            return redirect("finance:withdraw")
+            # 1. wallet update
+            wallet.balance -= amount
+            wallet.save()
 
-        # =========================
-        # CREATE PENDING TRANSACTION
-        # =========================
-        tx = Transaction.objects.create(
-            user=request.user,
-            amount=amount,
-            tx_type="withdraw",
-            status="pending",
-            checkout_id=str(uuid.uuid4()),
-            phone_number=request.user.phone,
-            timestamp=timezone.now()
-        )
+            # 2. reserve freeze removed
+            reserve_account.system_balance -= amount
+            reserve_account.save()
 
-        # =========================
-        # CALL M-PESA B2C
-        # =========================
-        response = send_b2c_payment(
-            phone_number=request.user.phone,
-            amount=float(amount),
-            remarks="Wallet Withdrawal",
-            occasion="Withdrawal"
-        )
 
-        # =========================
-        # SAVE RESPONSE
-        # =========================
-        tx.result_desc = str(response)
-        tx.conversation_id = response.get("conversation_id")
-        tx.originator_conversation_id = response.get("originator_conversation_id")
 
-        if response.get("ResponseCode") != "0":
-            tx.status = "failed"
-
-        tx.save()
-
-        # =========================
-        # USER FEEDBACK
-        # =========================
-        if response.get("ResponseCode") == "0":
-            messages.success(request, f"Withdrawal of KES {amount} is being processed via M-Pesa.")
-        else:
-            messages.warning(
-                request,
-                f"Withdrawal failed: {response.get('errorMessage', response)}"
+            # 4. transaction record
+            tx = Transaction.objects.create(
+                user=request.user,
+                amount=amount,
+                tx_type="withdraw",
+                status="processing",
+                checkout_id=str(uuid.uuid4())
             )
 
+        messages.success(request, "Withdrawal processing")
         return redirect("finance:transactions")
 
     return render(request, "finance/withdraw.html", {"wallet": wallet})

@@ -27,23 +27,23 @@ from django.utils import timezone
 from .models import PasswordResetOTP
 
 def register(request):
-    # Grab referral code from URL if present
-    ref_code_from_link = request.GET.get('ref', '')
 
     if request.method == 'POST':
         form = CustomUserCreationForm(request.POST)
 
+        # 🔥 Get ref from POST (NOT GET)
+        ref_code = request.POST.get('ref')
+
         if form.is_valid():
             user = form.save(commit=False)
 
-            # Apply referral code only if it exists in the URL
-            if ref_code_from_link:
+            if ref_code:
                 try:
-                    referrer = CustomUser.objects.get(referral_code=ref_code_from_link)
+                    referrer = CustomUser.objects.get(referral_code=ref_code)
                     if referrer != user:
                         user.referred_by = referrer
                 except CustomUser.DoesNotExist:
-                    pass  # Invalid referral code is ignored
+                    pass
 
             user.save()
             login(request, user)
@@ -52,10 +52,11 @@ def register(request):
 
     else:
         form = CustomUserCreationForm()
+        ref_code = request.GET.get('ref', '')  # only for first load
 
     return render(request, 'user/register.html', {
         'form': form,
-        'ref_code_from_link': ref_code_from_link  # Pass code to template if exists
+        'ref_code_from_link': ref_code
     })
 
 
@@ -185,18 +186,17 @@ def reset_password(request):
 
 
 
+
+
 @login_required
 def dashboard(request):
     user = request.user
 
     # =========================
-    # 💰 REAL BALANCE (SOURCE OF TRUTH)
+    # 💰 REAL BALANCE (FROM LEDGER)
     # =========================
-    balance = get_wallet_balance(user)
-
     wallet, _ = Wallet.objects.get_or_create(user=user)
-    wallet.balance = balance
-    wallet.save()
+    balance = wallet.balance
 
     # =========================
     # 📌 TRANSACTIONS
@@ -204,35 +204,35 @@ def dashboard(request):
     transactions = Transaction.objects.filter(user=user).order_by('-timestamp')[:10]
 
     # =========================
-    # 📊 TOTALS (FIXED USING tx_type)
+    # 📊 TOTALS
     # =========================
     total_deposits = Transaction.objects.filter(
         user=user,
         tx_type__iexact="deposit",
-        status__icontains="completed"
-    ).aggregate(total=Sum('amount'))['total'] or 0
+        status="completed"
+    ).aggregate(total=Sum('amount'))['total'] or Decimal("0")
 
     total_withdrawals = Transaction.objects.filter(
         user=user,
         tx_type__iexact="withdraw",
-        status__icontains="completed"
-    ).aggregate(total=Sum('amount'))['total'] or 0
+        status="completed"
+    ).aggregate(total=Sum('amount'))['total'] or Decimal("0")
 
     total_investments = Transaction.objects.filter(
         user=user,
         tx_type__iexact="invest",
-        status__icontains="completed"
-    ).aggregate(total=Sum('amount'))['total'] or 0
+        status="completed"
+    ).aggregate(total=Sum('amount'))['total'] or Decimal("0")
 
     daily_profit = Transaction.objects.filter(
         user=user,
-        tx_type__iexact="profit",
+        tx_type__iexact="investment_return",  # ✅ FIXED
         timestamp__date=timezone.localdate(),
-        status__icontains="completed"
-    ).aggregate(total=Sum('amount'))['total'] or 0
+        status="completed"
+    ).aggregate(total=Sum('amount'))['total'] or Decimal("0")
 
     # =========================
-    # 📈 ACCOUNT GROWTH (FIXED: REAL CUMULATIVE BALANCE)
+    # 📈 ACCOUNT GROWTH (LAST 7 DAYS)
     # =========================
     today = timezone.localdate()
     last_7_days = [today - datetime.timedelta(days=i) for i in range(6, -1, -1)]
@@ -242,35 +242,34 @@ def dashboard(request):
     for day in last_7_days:
         deposits = Transaction.objects.filter(
             user=user,
-            tx_type__iexact="deposit",
-            status__icontains="completed",
+            tx_type="deposit",
+            status="completed",
             timestamp__date=day
-        ).aggregate(total=Sum('amount'))['total'] or 0
+        ).aggregate(total=Sum('amount'))['total'] or Decimal("0")
 
         withdrawals = Transaction.objects.filter(
             user=user,
-            tx_type__iexact="withdraw",
-            status__icontains="completed",
+            tx_type="withdraw",
+            status="completed",
             timestamp__date=day
-        ).aggregate(total=Sum('amount'))['total'] or 0
+        ).aggregate(total=Sum('amount'))['total'] or Decimal("0")
 
         investments = Transaction.objects.filter(
             user=user,
-            tx_type__iexact="invest",
-            status__icontains="completed",
+            tx_type="invest",
+            status="completed",
             timestamp__date=day
-        ).aggregate(total=Sum('amount'))['total'] or 0
+        ).aggregate(total=Sum('amount'))['total'] or Decimal("0")
 
-        daily_net = Decimal(deposits) - Decimal(withdrawals) - Decimal(investments)
-
+        daily_net = deposits - withdrawals - investments
         balance_by_day.append(daily_net)
 
-    # 🔥 convert to cumulative (IMPORTANT FIX)
+    # 🔥 Convert to cumulative balance
     cumulative = []
-    running = Decimal(0)
+    running = Decimal("0")
 
     for value in balance_by_day:
-        running += Decimal(value)
+        running += value
         cumulative.append(running)
 
     growth_chart = go.Figure()
@@ -304,7 +303,10 @@ def dashboard(request):
     values = [i['count'] for i in status_counts_qs] if status_counts_qs else [1]
 
     status_chart = go.Figure(data=[go.Pie(labels=labels, values=values, hole=0.3)])
-    status_chart.update_layout(title='Transaction Status Overview', template='plotly_dark')
+    status_chart.update_layout(
+        title='Transaction Status Overview',
+        template='plotly_dark'
+    )
 
     status_plot = plot(status_chart, output_type='div', include_plotlyjs=False)
 
@@ -313,9 +315,11 @@ def dashboard(request):
     # =========================
     context = {
         'balance': balance,
+        'wallet': wallet,
         'transactions': transactions,
         'total_deposits': total_deposits,
         'total_withdrawals': total_withdrawals,
+        'total_investments': total_investments,
         'daily_profit': daily_profit,
         'growth_plot': growth_plot,
         'status_plot': status_plot,

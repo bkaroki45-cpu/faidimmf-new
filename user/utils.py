@@ -3,10 +3,11 @@
 from django.core.mail import send_mail
 from django.db.models import Sum
 import random
-from finance.models import Transaction, Wallet, CompanyAccount
+from finance.models import Transaction, Wallet, CompanyAccount, SystemState, LedgerEntry
 from decimal import Decimal
 from django.utils import timezone
 from django.db import transaction
+from datetime import date
 
 
 
@@ -103,47 +104,82 @@ def credit_referral_bonus(user, ref_user):
     return bonus
 
 
-
 def process_maturity(user, investment):
-    """
-    Safely redeems ONE investment (ONLY ONCE)
-    """
 
-    # 🔥 HARD GUARD
     if investment.is_redeemed:
         return 0
 
-    wallet, _ = Wallet.objects.get_or_create(user=user)
-    pool_account = CompanyAccount.objects.get(account_type="investment_pool")
-
-    profit = investment.amount * investment.interest_rate
-    total = investment.amount + profit
-
     with transaction.atomic():
 
-        # 🔥 DOUBLE SAFETY CHECK (VERY IMPORTANT)
         investment.refresh_from_db()
         if investment.is_redeemed:
             return 0
 
-        # 1. Create transaction
-        Transaction.objects.create(
-            user=user,
-            tx_type="investment_return",
-            amount=total,
-            status="completed"
+        wallet = Wallet.objects.select_for_update().get(user=user)
+
+        system = CompanyAccount.objects.select_for_update().get(
+            account_type="system"
         )
 
-        # 2. Update wallet
-        wallet.balance += total
+        pool = CompanyAccount.objects.select_for_update().get(
+            account_type="pool"
+        )
+
+        profit = investment.amount * investment.interest_rate
+        total_return = investment.amount + profit
+
+        # =========================
+        # 1. PAY USER WALLET
+        # =========================
+        wallet.balance += total_return
         wallet.save()
 
-        # 3. Reduce pool
-        pool_account.balance -= investment.amount
-        pool_account.save()
+        # =========================
+        # 2. LEDGER ENTRY (POOL → SYSTEM RETURN)
+        # =========================
+        LedgerEntry.objects.create(
+            user=user,
+            account=pool,
+            tx_type="investment_return",
+            amount=total_return,
+            is_credit=False
+        )
 
-        # 4. Mark redeemed
+        LedgerEntry.objects.create(
+            user=user,
+            account=system,
+            tx_type="investment_return",
+            amount=total_return,
+            is_credit=True
+        )
+
+        # =========================
+        # 3. USER TRANSACTION HISTORY
+        # =========================
+        Transaction.objects.create(
+            user=user,
+            amount=total_return,
+            tx_type="investment_return",
+            status="completed",
+            checkout_id=f"MAT-{investment.id}"
+        )
+
+        # =========================
+        # 4. MARK INVESTMENT DONE
+        # =========================
         investment.is_redeemed = True
         investment.save()
 
-    return total
+    return total_return
+
+
+def reset_daily_if_needed():
+    state, _ = SystemState.objects.get_or_create(id=1)
+
+    if state.last_reset != date.today():
+        CompanyAccount.objects.filter(account_type="investment_pool").update(
+            invested_today=0,
+            matured_today=0
+        )
+        state.last_reset = date.today()
+        state.save()

@@ -49,6 +49,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'core.apps.CoreConfig',
     'user.apps.UserConfig',
+    'django.contrib.humanize',
     'finance.apps.FinanceConfig',
 ]
 
