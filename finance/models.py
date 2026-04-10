@@ -102,6 +102,28 @@ class Transaction(models.Model):
     timestamp = models.DateTimeField(auto_now_add=True)
     completed_at = models.DateTimeField(null=True, blank=True)
 
+
+    @property
+    def display_message(self):
+        """
+        Returns a readable description for the transaction.
+        Uses result_desc if set, otherwise generates default.
+        """
+        if self.result_desc:
+            return self.result_desc
+        # Default messages based on tx_type
+        if self.tx_type == "withdraw":
+            return f"Withdrawal of KES {self.amount}"
+        if self.tx_type == "deposit":
+            return f"Deposit of KES {self.amount}"
+        if self.tx_type == "invest":
+            return f"Investment of KES {self.amount}"
+        if self.tx_type == "referral":
+            return f"Referral bonus of KES {self.amount}"
+        if self.tx_type == "investment_return":
+            return f"Investment return of KES {self.amount}"
+        return "Transaction processed"
+
     # ======================
     # METHODS
     # ======================
@@ -196,6 +218,7 @@ class CompanyAccount(models.Model):
     # =========================
     # LEDGER BALANCE (REAL SOURCE OF TRUTH)
     # =========================
+    @property
     def balance(self):
         credits = LedgerEntry.objects.filter(
             account=self,
@@ -205,7 +228,7 @@ class CompanyAccount(models.Model):
         debits = LedgerEntry.objects.filter(
             account=self,
             is_credit=False
-        ).aggregate(total=Sum("amount")) or Decimal("0")
+        ).aggregate(total=Sum("amount"))["total"] or Decimal("0")
 
         return credits - debits
 

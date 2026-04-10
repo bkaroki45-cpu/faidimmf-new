@@ -122,72 +122,166 @@ class DaysFilter(SimpleListFilter):
 # COMPANY ACCOUNT ADMIN (FIXED - SINGLE VERSION ONLY)
 @admin.register(CompanyAccount)
 class CompanyAccountAdmin(admin.ModelAdmin):
-    actions = ["sync_accounts"] 
-
     list_display = (
         "name",
         "account_type",
-        "display_real_balance",
-        "display_system_balance",
-        "display_pool_invested",
-        "display_pool_matured",
+        "display_balance",
         "created_at",
     )
 
-    def display_real_balance(self, obj):
+    def get_queryset(self, request):
+        """
+        Only show 'reserve' and 'pool' accounts in admin
+        """
+        qs = super().get_queryset(request)
+        return qs.filter(account_type__in=["reserve", "pool"])
 
-        if obj.account_type != "reserve":
-            return "—"
+    def display_balance(self, obj):
+        """
+        Compute balances differently for reserve and pool accounts
+        """
+        if obj.account_type == "reserve":
 
-        credits = LedgerEntry.objects.filter(
-            account=obj,
-            is_credit=True
-        ).aggregate(total=Sum("amount"))["total"] or 0
+            deposits = LedgerEntry.objects.filter(
+                account=obj,
+                tx_type="deposit",
+                is_credit=True
+            ).aggregate(total=Sum("amount"))["total"] or 0
 
-        debits = LedgerEntry.objects.filter(
-            account=obj,
-            is_credit=False
-        ).aggregate(total=Sum("amount"))["total"] or 0
+            matured = LedgerEntry.objects.filter(
+                account=obj,
+                tx_type="investment_return",
+                is_credit=True
+            ).aggregate(total=Sum("amount"))["total"] or 0
 
-        return credits - debits
+            withdrawals = LedgerEntry.objects.filter(
+                account=obj,
+                tx_type="withdraw",
+                is_credit=False
+            ).aggregate(total=Sum("amount"))["total"] or 0
 
-    def display_system_balance(self, obj):
-        total_credit = LedgerEntry.objects.filter(
-            account=obj,
-            is_credit=True
-        ).aggregate(total=Sum("amount"))["total"] or 0
+            investments = LedgerEntry.objects.filter(
+                account=obj,
+                tx_type="invest",
+                is_credit=False
+            ).aggregate(total=Sum("amount"))["total"] or 0
 
-        total_debit = LedgerEntry.objects.filter(
-            account=obj,
-            is_credit=False
-        ).aggregate(total=Sum("amount"))["total"] or 0
+            return deposits + matured - withdrawals - investments
 
-        return total_credit - total_debit
+        elif obj.account_type == "pool":
 
-    def display_pool_invested(self, obj):
-        total = LedgerEntry.objects.filter(
-            account=obj,
-            tx_type="invest",
-            is_credit=True
-        ).aggregate(total=Sum("amount"))["total"] or 0
+            credits = LedgerEntry.objects.filter(
+                account=obj,
+                is_credit=True
+            ).aggregate(total=Sum("amount"))["total"] or 0
 
-        return total
+            debits = LedgerEntry.objects.filter(
+                account=obj,
+                is_credit=False
+            ).aggregate(total=Sum("amount"))["total"] or 0
 
-    def display_pool_matured(self, obj):
-        total = LedgerEntry.objects.filter(
-            account=obj,
-            tx_type="investment_return",
-            is_credit=True
-        ).aggregate(total=Sum("amount"))["total"] or 0
+            balance = credits - debits
 
-        return total
+            # 🔥 FIX: prevent negative display
+        return max(balance, 0)
+
+        
+
+
+
+@admin.action(description="Mark selected withdrawals as PAID")
+def mark_withdrawal_paid(self, request, queryset):
+    reserve_account = CompanyAccount.objects.get(account_type="reserve")
+
+    for tx in queryset:
+        if tx.tx_type != "withdraw" or tx.status != "pending":
+            continue
+
+        wallet = Wallet.objects.filter(user=tx.user).first()
+
+        if not wallet:
+            continue
+
+        # Prevent double processing
+        if tx.status == "completed":
+            continue
+
+        amount = tx.amount
+
+        # -----------------------------
+        # 1. Deduct from user wallet
+        # -----------------------------
+        if wallet.balance < amount:
+            continue  # skip insufficient balance safety
+
+        wallet.balance -= amount
+        wallet.save()
+
+        # -----------------------------
+        # 2. Deduct from reserve account
+        # -----------------------------
+        if reserve_account.balance < amount:
+            continue  # avoid negative reserve
+
+        reserve_account.balance -= amount
+        reserve_account.save()
+
+        # -----------------------------
+        # 3. Mark transaction completed
+        # -----------------------------
+        tx.status = "completed"
+        tx.result_desc = "Paid manually via M-Pesa Till"
+        tx.completed_at = timezone.now()
+        tx.save()
+
+        # -----------------------------
+        # 4. Ledger update (if you use it)
+        # -----------------------------
+        try:
+            CompanyAccount.post_transaction(tx)
+        except Exception as e:
+            print("Ledger error:", e)
 # =========================
 # TRANSACTION ADMIN
 # =========================
 @admin.register(Transaction)
 class TransactionAdmin(admin.ModelAdmin):
-    list_display = ('id', 'user', 'tx_type', 'amount', 'status_badge', 'timestamp')
 
+    list_display = (
+        'id',
+        'user',
+        'phone_number',
+        'wallet_balance',
+        'tx_type',
+        'amount',
+        'status_badge',
+        'timestamp',
+        'action_buttons'
+    )
+
+    list_filter = ('tx_type', 'status')
+    search_fields = ('user__username', 'user__phone')
+
+    actions = ['mark_withdrawal_paid', 'reject_withdrawals']
+
+    # -----------------------
+    # PHONE NUMBER
+    # -----------------------
+    def phone_number(self, obj):
+        return obj.user.phone if hasattr(obj.user, 'phone') else "No phone"
+    phone_number.short_description = "Phone"
+
+    # -----------------------
+    # WALLET BALANCE
+    # -----------------------
+    def wallet_balance(self, obj):
+        wallet = Wallet.objects.filter(user=obj.user).first()
+        return wallet.balance if wallet else 0
+    wallet_balance.short_description = "Wallet Balance"
+
+    # -----------------------
+    # STATUS BADGE (KEEP YOUR STYLE)
+    # -----------------------
     def status_badge(self, obj):
         color = {
             'pending': '#f59e0b',
@@ -199,22 +293,115 @@ class TransactionAdmin(admin.ModelAdmin):
 
     status_badge.short_description = 'Status'
 
-    def changelist_view(self, request, extra_context=None):
-        qs = Transaction.objects.filter(status__iexact='completed')
+    # -----------------------
+    # ACTION BUTTONS
+    # -----------------------
+    def action_buttons(self, obj):
+        if obj.tx_type == "withdraw" and obj.status == "pending":
+            return format_html(
+                '<span style="color:orange;font-weight:bold;">Pending Approval</span>'
+            )
+        return "—"
 
-        today = localdate()
-        month_qs = qs.filter(timestamp__year=today.year, timestamp__month=today.month)
-        today_qs = qs.filter(timestamp__date=today)
+    action_buttons.short_description = "Action"
 
-        extra_context = extra_context or {}
-        extra_context.update({
-            "total_deposited_today": today_qs.filter(tx_type='deposit').aggregate(Sum('amount'))['amount__sum'] or 0,
-            "total_withdrawn_today": today_qs.filter(tx_type='withdraw').aggregate(Sum('amount'))['amount__sum'] or 0,
-            "total_deposited_month": month_qs.filter(tx_type='deposit').aggregate(Sum('amount'))['amount__sum'] or 0,
-            "total_withdrawn_month": month_qs.filter(tx_type='withdraw').aggregate(Sum('amount'))['amount__sum'] or 0,
-        })
+    # -----------------------
+    # APPROVE WITHDRAWAL (MARK PAID)
+    # -----------------------
+    @admin.action(description="Mark selected withdrawals as PAID")
+    def mark_withdrawal_paid(self, request, queryset):
 
-        return super().changelist_view(request, extra_context=extra_context)
+        reserve_account = CompanyAccount.objects.filter(account_type="reserve").first()
+
+        if not reserve_account:
+            return
+
+        for tx in queryset:
+
+            if tx.tx_type != "withdraw" or tx.status != "pending":
+                continue
+
+            wallet = Wallet.objects.filter(user=tx.user).first()
+
+            if not wallet:
+                continue
+
+            amount = tx.amount
+
+            # -----------------------
+            # SAFETY CHECKS
+            # -----------------------
+            if wallet.balance < amount:
+                continue
+
+            if reserve_account.balance < amount:
+                continue
+
+            # -----------------------
+            # 1. Deduct USER WALLET
+            # -----------------------
+            wallet.balance -= amount
+            wallet.save()
+
+            # -----------------------
+            # 2. Deduct RESERVE ACCOUNT
+            # -----------------------
+            reserve_account.balance -= amount
+            reserve_account.save()
+
+            # -----------------------
+            # 3. UPDATE TRANSACTION
+            # -----------------------
+            tx.status = "completed"
+            tx.result_desc = "Paid manually via M-Pesa Till"
+            tx.completed_at = timezone.now()
+            tx.save()
+
+            # -----------------------
+            # 4. LEDGER (optional safe call)
+            # -----------------------
+            try:
+                CompanyAccount.post_transaction(tx)
+            except Exception as e:
+                print("Ledger error:", e)
+
+    # -----------------------
+    # REJECT WITHDRAWAL
+    # -----------------------
+    @admin.action(description="Reject selected withdrawals")
+    def reject_withdrawals(self, request, queryset):
+
+        for tx in queryset:
+            if tx.tx_type == "withdraw" and tx.status == "pending":
+                tx.status = "failed"
+                tx.result_desc = "Rejected by admin"
+                tx.save()
+
+    # -----------------------
+    # BULK APPROVE (MARK PAID)
+    # -----------------------
+    @admin.action(description="Mark selected withdrawals as PAID")
+    def mark_withdrawal_paid(self, request, queryset):
+        for tx in queryset:
+            if tx.tx_type == "withdraw" and tx.status == "pending":
+                tx.status = "completed"
+                tx.result_desc = "Paid manually via M-Pesa Till"
+                tx.completed_at = timezone.now()
+                tx.save()
+
+                CompanyAccount.post_transaction(tx)
+
+    # -----------------------
+    # BULK REJECT
+    # -----------------------
+    @admin.action(description="Reject selected withdrawals")
+    def reject_withdrawals(self, request, queryset):
+        for tx in queryset:
+            if tx.tx_type == "withdraw" and tx.status == "pending":
+                tx.status = "failed"
+                tx.result_desc = "Rejected by admin"
+                tx.save()
+
 
 
 # =========================
@@ -267,3 +454,4 @@ def get_queryset(self, request):
     for obj in qs:
         obj.sync_from_transactions()
     return qs
+

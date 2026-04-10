@@ -17,7 +17,6 @@ import uuid
 import json
 from django.db import transaction
 from django.db.models import Sum
-from finance.b2c_utils import send_b2c_payment
 from django.contrib.sites.shortcuts import get_current_site
 from user.utils import process_maturity
 from .stkpush import stk_push
@@ -399,118 +398,110 @@ def referrals(request):
 
   # your B2C helper function
 
-MIN_WITHDRAWAL_AMOUNT = Decimal("3.00")  # Minimum withdrawal: 50 KSh
+# finance/views.py
+MIN_WITHDRAWAL_AMOUNT = Decimal("10.00")  # Minimum withdrawal allowed
 
 @profile_required
 @login_required
 def withdraw(request):
     wallet, _ = Wallet.objects.get_or_create(user=request.user)
     reserve_account = CompanyAccount.objects.get(account_type="reserve")
-    user=request.user
-  
 
     if request.method == "POST":
         amount = Decimal(request.POST.get("amount"))
         pin = request.POST.get("pin")
 
-        if amount > wallet.balance():
+        # --- PIN CHECK ---
+        try:
+            user_pin = request.user.transaction_pin
+        except TransactionPIN.DoesNotExist:
+            messages.error(request, "Please set up a transaction PIN first")
+            return redirect("finance:withdraw")
+
+        if not user_pin.check_pin(pin):
+            messages.error(request, "Incorrect PIN")
+            return redirect("finance:withdraw")
+
+        # --- VALIDATION ---
+        if amount <= 0:
+            messages.error(request, "Invalid amount")
+            return redirect("finance:withdraw")
+
+        # Minimum withdrawal
+        if amount < MIN_WITHDRAWAL_AMOUNT:
+            messages.error(request, f"Amount must be at least KES {MIN_WITHDRAWAL_AMOUNT}")
+            return redirect("finance:withdraw")
+
+        # Balance checks
+        if amount > wallet.balance:
             messages.error(request, "Insufficient balance")
             return redirect("finance:withdraw")
 
-        if amount > reserve_account.system_balance:
+        if amount > reserve_account.balance:
             messages.error(request, "Insufficient liquidity")
             return redirect("finance:withdraw")
 
-        with transaction.atomic():
-
-            # 1. wallet update
-            wallet.balance -= amount
-            wallet.save()
-
-            # 2. reserve freeze removed
-            reserve_account.system_balance -= amount
-            reserve_account.save()
-
-
-
-            # 4. transaction record
+        try:
+            # Create WITHDRAWAL REQUEST (NO AUTO PAYOUT)
             tx = Transaction.objects.create(
                 user=request.user,
                 amount=amount,
                 tx_type="withdraw",
-                status="processing",
-                checkout_id=str(uuid.uuid4())
+                status="pending",
+                checkout_id=str(uuid.uuid4()),
+                result_desc=f"Withdrawal request of KES {amount} submitted"
             )
 
-        messages.success(request, "Withdrawal processing")
-        return redirect("finance:transactions")
+            messages.success(
+                request,
+                "Withdrawal request submitted successfully. It will be processed manually."
+            )
+            return redirect("finance:transactions")
+
+        except Exception as e:
+            print("Withdraw error:", str(e))
+            messages.error(request, "Something went wrong. Try again.")
+            return redirect("finance:withdraw")
 
     return render(request, "finance/withdraw.html", {"wallet": wallet})
 
 
-# ----------------------- B2C CALLBACK -----------------------
-@csrf_exempt
-def b2c_result(request):
-    """
-    Handles B2C responses from M-Pesa.
-    Wallet is deducted only on successful withdrawals.
-    """
-    try:
-        data = json.loads(request.body)
-        result = data.get("Result", {})
-        conversation_id = result.get("ConversationID")
-        result_code = result.get("ResultCode")
-        result_desc = result.get("ResultDesc")
+# ----------------------- MANUAL WITHDRAWAL COMPLETION -----------------------
+@login_required
+def mark_withdrawal_completed(request, tx_id):
+    tx = Transaction.objects.get(id=tx_id, tx_type="withdraw")
 
-        # Lookup transaction by conversation_id
-        tx = Transaction.objects.filter(conversation_id=conversation_id).first()
-        if not tx:
-            print(f"No transaction found for ConversationID {conversation_id}")
-            return JsonResponse({"Result": "Accepted"})
+    if tx.status != "pending":
+        messages.error(request, "Transaction already processed")
+        return redirect("finance:admin_withdrawals")
 
-        # Save result info
-        tx.result_desc = result_desc
-        tx.completed_at = timezone.now()
+    tx.status = "completed"
+    tx.completed_at = timezone.now()
+    tx.result_desc = "Paid manually via M-Pesa Till/Paybill"
+    tx.save()
 
-        wallet, _ = Wallet.objects.get_or_create(user=tx.user)
-        liquidity_account, _ = CompanyAccount.objects.get_or_create(
-            account_type="liquidity",
-            defaults={'name': 'Reserve', 'balance': 0}
-        )
+    # Update wallet + company accounts
+    CompanyAccount.post_transaction(tx)
 
-        if result_code == 0:
-            # Withdrawal successful
-            tx.status = "completed"
-            if tx.tx_type == "withdraw":
-                wallet.balance -= Decimal(tx.amount)
-                wallet.save()
-                liquidity_account.withdraw(Decimal(tx.amount))
-            print(f"Withdrawal completed for user {tx.user.username}, amount {tx.amount}")
-        else:
-            # Withdrawal failed
-            tx.status = "failed"
-            print(f"Withdrawal failed for user {tx.user.username}: {result_desc}")
-
-        tx.save()
-        return JsonResponse({"Result": "Accepted"})
-
-    except Exception as e:
-        print("B2C callback error:", str(e))
-        return JsonResponse({"Result": "Failed", "Error": str(e)}, status=500)
+    messages.success(request, "Withdrawal marked as completed")
+    return redirect("finance:admin_withdrawals")
 
 
-@csrf_exempt
-def b2c_timeout(request):
-    """
-    Handles B2C timeout notifications from M-Pesa.
-    """
-    try:
-        data = json.loads(request.body)
-        print("B2C Timeout received:", data)
-        return JsonResponse({"Result": "Timeout received"})
-    except Exception as e:
-        print("B2C Timeout error:", str(e))
-        return JsonResponse({"Result": "Failed", "Error": str(e)}, status=500)
+# ----------------------- OPTIONAL: ADMIN REJECT -----------------------
+@login_required
+def reject_withdrawal(request, tx_id):
+    tx = Transaction.objects.get(id=tx_id, tx_type="withdraw")
+
+    if tx.status != "pending":
+        messages.error(request, "Transaction already processed")
+        return redirect("finance:admin_withdrawals")
+
+    tx.status = "failed"
+    tx.result_desc = "Rejected by admin"
+    tx.save()
+
+    messages.success(request, "Withdrawal rejected")
+    return redirect("finance:admin_withdrawals")
 
 
 

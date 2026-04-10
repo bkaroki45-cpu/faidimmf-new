@@ -32,37 +32,34 @@
 {% for tx in transactions %}
     <tr>
         <td>{{ forloop.counter }}</td>
-
         <td>{{ tx.timestamp|localtime|date:"d M Y H:i" }}</td>
 
-        <td>{{ tx.tx_type|title }}</td>
-
-        <!-- AMOUNT FIXED (Deposit + Referral + Returns = +) -->
-        <td class="
-            {% if tx.tx_type|lower == 'deposit' or tx.tx_type|lower == 'referral' or tx.tx_type|lower == 'investment_return' %}
-                credit
-            {% else %}
-                debit
+        <!-- DESCRIPTION COLUMN -->
+        <td>
+            {{ tx.tx_type|title }}
+            {% if tx.result_desc %}
+                - {{ tx.result_desc }}
             {% endif %}
-        ">
-            {% if tx.tx_type|lower == 'deposit' or tx.tx_type|lower == 'referral' or tx.tx_type|lower == 'investment_return' %}
+        </td>
+
+        <!-- AMOUNT COLUMN -->
+        <td class="{% if tx.is_credit %}credit{% else %}debit{% endif %}">
+            {% if tx.is_credit %}
                 +KES {{ tx.amount }}
             {% else %}
                 -KES {{ tx.amount }}
             {% endif %}
         </td>
 
-        <!-- STATUS FIXED (removed duplicate class bug) -->
-        <td 
-            class="tx-status 
+        <!-- STATUS COLUMN -->
+        <td class="tx-status 
             {% if tx.status == 'completed' %}success
             {% elif tx.status == 'failed' %}failed
             {% else %}pending{% endif %}"
             data-checkout="{{ tx.checkout_id }}"
         >
-            {{ tx.status|title }} - {{ tx.result_desc }}
+            {{ tx.status|title }}
         </td>
-
     </tr>
 {% empty %}
     <tr>
