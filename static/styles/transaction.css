@@ -1,0 +1,148 @@
+/* ------------------------------
+   TRANSACTIONS TABLE (MOBILE PERFECT)
+-------------------------------- */
+
+* {
+    box-sizing: border-box;
+}
+
+/* Body */
+body {
+    font-family: Arial, sans-serif;
+    background: #f4f6f9;
+    margin: 0;
+    padding: 15px; /* prevent edge touching */
+}
+
+/* Container */
+.container {
+    width: 100%;
+    max-width: 900px;
+    margin: auto;
+    background: white;
+    padding: 20px 15px;
+    border-radius: 12px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+/* Heading */
+h2 {
+    text-align: center;
+    margin-bottom: 20px;
+    font-size: 1.6rem;
+    color: #1e88e5;
+}
+
+h2::after {
+    content: '';
+    display: block;
+    width: 50px;
+    height: 3px;
+    background: #4a90e2;
+    margin: 8px auto 0;
+    border-radius: 2px;
+}
+
+/* TABLE WRAPPER (IMPORTANT FIX) */
+.table-wrapper {
+    width: 100%;
+    overflow-x: auto; /* enables horizontal scroll */
+    -webkit-overflow-scrolling: touch;
+}
+
+/* Table */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 600px; /* prevents squishing */
+}
+
+/* Cells */
+th, td {
+    padding: 10px 8px;
+    text-align: center;
+    border-bottom: 1px solid #eee;
+    font-size: 0.9rem;
+}
+
+/* Header */
+th {
+    background: #1e88e5;
+    color: white;
+    font-weight: 600;
+}
+
+/* Row hover (desktop only) */
+@media (hover: hover) {
+    tr:hover {
+        background: #e3f2fd;
+        transform: scale(1.01);
+    }
+}
+
+/* Status Colors */
+.credit {
+    color: #28a745;
+    font-weight: bold;
+}
+.debit {
+    color: #dc3545;
+    font-weight: bold;
+}
+.success {
+    color: #28a745;
+    font-weight: bold;
+}
+.pending {
+    color: #ff9800;
+    font-weight: bold;
+}
+.failed {
+    color: #dc3545;
+    font-weight: bold;
+}
+
+/* Buttons */
+.return-dashboard {
+    margin-top: 20px;
+    text-align: center;
+}
+
+.btn-dashboard {
+    display: inline-block;
+    padding: 10px 20px;
+    background: linear-gradient(135deg, #4a90e2, #1e88e5);
+    color: white;
+    text-decoration: none;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+/* ✅ MOBILE FIXES */
+@media (max-width: 768px) {
+
+    body {
+        padding: 10px;
+    }
+
+    .container {
+        padding: 15px 10px;
+    }
+
+    h2 {
+        font-size: 1.4rem;
+    }
+
+    th, td {
+        font-size: 0.8rem;
+        padding: 8px 6px;
+    }
+}
+
+/* ✅ EXTRA SMALL PHONES */
+@media (max-width: 360px) {
+    th, td {
+        font-size: 0.75rem;
+    }
+}

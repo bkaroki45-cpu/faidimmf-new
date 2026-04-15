@@ -1,0 +1,43 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Withdraw Money</title>
+<link rel="stylesheet" href="{% static 'styles/withdraw.css' %}">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body>
+
+<div class="withdraw-container">
+
+<h2>Withdraw Funds</h2>
+
+<form action="{% url 'finance:withdraw' %}" method="POST">
+    {% csrf_token %}
+    <label>Amount (KES)</label>
+    <input type="number" name="amount" step="0.01" placeholder="Enter amount" required>
+
+    <label>Transaction PIN</label>
+    <input type="password" name="pin" placeholder="Enter PIN" required>
+
+    <button type="submit">Withdraw</button>
+</form>
+
+<!-- Messages -->
+{% if messages %}
+<ul class="messages">
+    {% for message in messages %}
+        <li class="{{ message.tags }}">{{ message }}</li>
+    {% endfor %}
+</ul>
+{% endif %}
+
+<div class="return-dashboard">
+    <a href="{% url 'user:dashboard' %}" class="btn-dashboard">← Return to Dashboard</a>
+</div>
+
+</div>
+
+</body>
+</html>

@@ -1,0 +1,99 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Investment Tracking</title>
+    <link rel="stylesheet" href="{% static 'styles/investtrack.css' %}">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+
+<body>
+<div class="container">
+
+    <h2>Investment Tracking</h2>
+
+    <!-- Wallet and Current Investment -->
+    <div class="wallet-investment">
+        <div class="card wallet">
+            <h3>Wallet Balance</h3>
+            <p>KSh {{ wallet.balance|floatformat:2 }}</p>
+        </div>
+
+        <div class="card investment">
+            <h3>Current Investment</h3>
+            <p>KSh {{ current_investment|floatformat:2 }}</p>
+        </div>
+    </div>
+
+    <!-- AUTO INFO (no button anymore) -->
+    <div class="auto-note">
+        <p>
+            🔄 Investments are automatically redeemed after 24 hours and added to your wallet.
+        </p>
+    </div>
+
+    <!-- Messages -->
+    {% if messages %}
+    <div class="messages-container">
+        {% for message in messages %}
+            <div class="message {{ message.tags }}">
+                {{ message }}
+            </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Investment History -->
+    <div class="history">
+        <h3>Recent Investments</h3>
+
+        {% if investments %}
+        <table>
+            <thead>
+                <tr>
+                    <th>Date & Time</th>
+                    <th>Amount</th>
+                    <th>Interest Rate</th>
+                    <th>Profit</th>
+                    <th>Total with Interest</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                {% for inv in investments %}
+                <tr>
+                    <td>{{ inv.invested_at|date:"M d, Y H:i" }}</td>
+                    <td>KSh {{ inv.amount|floatformat:2 }}</td>
+                    <td>{{ inv.interest_display|floatformat:2 }}%</td>
+                    <td>KSh {{ inv.profit|floatformat:2 }}</td>
+                    <td>KSh {{ inv.total|floatformat:2 }}</td>
+                    <td>
+                        {% if inv.is_redeemed %}
+                            <span style="color:green;">Redeemed</span>
+                        {% elif inv.status == "Matured" %}
+                            <span style="color:orange;">Matured</span>
+                        {% else %}
+                            <span style="color:blue;">Active</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        {% else %}
+        <p class="no-data">No investment activity yet.</p>
+        {% endif %}
+    </div>
+
+    <!-- Return Button -->
+    <div class="return-dashboard">
+        <a href="{% url 'user:dashboard' %}" class="btn-dashboard">← Return to Dashboard</a>
+    </div>
+
+</div>
+</body>
+</html>

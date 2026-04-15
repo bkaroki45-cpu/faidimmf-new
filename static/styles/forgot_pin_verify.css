@@ -1,0 +1,172 @@
+/* Reset & basics */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Poppins', sans-serif;
+}
+
+body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    background: linear-gradient(135deg, #6a11cb, #2575fc);
+    color: #fff;
+    padding: 20px;
+}
+
+/* Container */
+.otp-container {
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(15px);
+    padding: 40px 30px;
+    border-radius: 20px;
+    width: 100%;
+    max-width: 400px;
+    text-align: center;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+    transition: transform 0.3s ease;
+}
+
+.otp-container:hover {
+    transform: translateY(-5px);
+}
+
+/* Header */
+.otp-container h2 {
+    font-size: 1.8rem;
+    margin-bottom: 10px;
+    color: #ffd700;
+    letter-spacing: 1px;
+    animation: fadeIn 1s ease forwards;
+}
+
+.otp-container p {
+    font-size: 0.95rem;
+    color: #e0e0e0;
+    margin-bottom: 25px;
+    animation: fadeIn 1.2s ease forwards;
+}
+
+/* Messages */
+.messages {
+    margin-bottom: 20px;
+    animation: fadeIn 1.5s ease forwards;
+}
+
+.message {
+    background: rgba(255, 255, 255, 0.1);
+    padding: 10px 15px;
+    border-radius: 10px;
+    margin-bottom: 10px;
+    color: #fff;
+    font-size: 0.9rem;
+    transition: transform 0.3s ease, background 0.3s ease;
+}
+
+.message:hover {
+    transform: scale(1.05);
+    background: rgba(255, 255, 255, 0.2);
+}
+
+/* Form */
+form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    animation: fadeIn 1.5s ease forwards;
+}
+
+label {
+    font-size: 0.9rem;
+    text-align: left;
+    margin-bottom: 5px;
+    color: #ffd700;
+}
+
+input[type="text"] {
+    padding: 12px 15px;
+    border-radius: 12px;
+    border: none;
+    outline: none;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    background: rgba(255, 255, 255, 0.15);
+    color: #fff;
+    backdrop-filter: blur(5px);
+}
+
+input[type="text"]::placeholder {
+    color: #e0e0e0;
+}
+
+input[type="text"]:focus {
+    background: rgba(255, 255, 255, 0.3);
+    box-shadow: 0 0 10px #ffd700;
+    transform: scale(1.03);
+}
+
+/* Button */
+button {
+    padding: 12px;
+    border-radius: 12px;
+    border: none;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    background: linear-gradient(135deg, #ffd700, #ff8c00);
+    color: #000;
+    transition: all 0.3s ease;
+}
+
+button:hover {
+    transform: translateY(-3px) scale(1.05);
+    box-shadow: 0 8px 20px rgba(255, 215, 0, 0.5);
+}
+
+/* Resend link */
+.resend {
+    font-size: 0.85rem;
+    margin-top: 15px;
+    color: #e0e0e0;
+}
+
+.resend a {
+    color: #ffd700;
+    text-decoration: none;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.resend a:hover {
+    text-shadow: 0 0 10px #ffd700;
+    transform: scale(1.05);
+}
+
+/* Animations */
+@keyframes fadeIn {
+    0% {opacity: 0; transform: translateY(-10px);}
+    100% {opacity: 1; transform: translateY(0);}
+}
+
+/* Responsive */
+@media (max-width: 500px) {
+    .otp-container {
+        padding: 30px 20px;
+        border-radius: 15px;
+    }
+
+    input[type="text"] {
+        font-size: 0.95rem;
+    }
+
+    button {
+        font-size: 0.95rem;
+        padding: 10px;
+    }
+
+    h2 {
+        font-size: 1.5rem;
+    }
+}

@@ -1,0 +1,108 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Register</title>
+    <link rel="stylesheet" href="{% static 'styles/register.css' %}">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        .errorlist {
+            color: red;
+            margin: 5px 0;
+            list-style: none;
+            padding: 0;
+        }
+        .nonfield-errors {
+            color: red;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h2>Register</h2>
+
+    <form method="POST">
+        {% csrf_token %}
+
+        <!-- Display non-field errors (e.g., password mismatch) -->
+        {% if form.non_field_errors %}
+            <div class="nonfield-errors">
+                <ul>
+                {% for error in form.non_field_errors %}
+                    <li>{{ error }}</li>
+                {% endfor %}
+                </ul>
+            </div>
+        {% endif %}
+
+        <!-- Username -->
+        <p>
+            <label>Username:</label><br>
+            {{ form.username }}
+            {% if form.username.errors %}
+                <ul class="errorlist">
+                {% for error in form.username.errors %}
+                    <li>{{ error }}</li>
+                {% endfor %}
+                </ul>
+            {% endif %}
+        </p>
+
+        <!-- Email -->
+        <p>
+            <label>Email:</label><br>
+            {{ form.email }}
+            {% if form.email.errors %}
+                <ul class="errorlist">
+                {% for error in form.email.errors %}
+                    <li>{{ error }}</li>
+                {% endfor %}
+                </ul>
+            {% endif %}
+        </p>
+
+        <!-- Referral Code (readonly) -->
+        {% if ref_code_from_link %}
+            <p>
+                <label>Referral Code:</label><br>
+                <input type="text" value="{{ ref_code_from_link }}" readonly
+                    style="background:#e9ecef; cursor:not-allowed;">
+            </p>
+
+            <!-- 🔥 THIS IS THE IMPORTANT LINE -->
+            <input type="hidden" name="ref" value="{{ ref_code_from_link }}">
+        {% endif %}
+
+        <!-- Password -->
+        <p>
+            <label>Password:</label><br>
+            {{ form.password1 }}
+            {% if form.password1.errors %}
+                <ul class="errorlist">
+                {% for error in form.password1.errors %}
+                    <li>{{ error }}</li>
+                {% endfor %}
+                </ul>
+            {% endif %}
+        </p>
+
+        <!-- Confirm Password -->
+        <p>
+            <label>Confirm Password:</label><br>
+            {{ form.password2 }}
+            {% if form.password2.errors %}
+                <ul class="errorlist">
+                {% for error in form.password2.errors %}
+                    <li>{{ error }}</li>
+                {% endfor %}
+                </ul>
+            {% endif %}
+        </p>
+
+        <button type="submit" class="btn">Register</button>
+        <p>Have an account? <a href="{% url 'user:login' %}">Login</a></p>
+    </form>
+</div>
+</body>
+</html>

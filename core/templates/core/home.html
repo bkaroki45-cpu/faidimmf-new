@@ -1,0 +1,92 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FAIDI Money Market Fund - Home</title>
+<link rel="stylesheet" href="{% static 'styles/home.css' %}">
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<!-- Navbar -->
+<header>
+    <nav class="navbar">
+        <div class="logo">
+            <img src="{% static 'images/logo.png' %}" alt="Smart Money Growth">
+        </div>
+        <div>
+            <h1 class="name">FAIDI MMF</h1>
+        </div>
+
+        <!-- Nav Links -->
+        <ul class="nav-links">
+            <li class="nav"><a href="{% url 'home' %}">home</a></li>
+            <li class="nav"><a href="{% url 'about' %}">about</a></li>
+            <li class="nav"><a href="{% url 'contacts' %}">contacts</a></li>
+            <li class="nav"><a href="{% url 'user:login' %}">Login</a></li>
+            <li class="nav"><a href="{% url 'user:register' %}" class="btn">Sign up</a></li>
+        </ul>
+
+        <!-- Burger menu -->
+        <div class="burger">
+            <div></div>
+            <div></div>
+            <div></div>
+        </div>
+
+        <!-- Close button -->
+        <div class="close-btn">✖</div>
+    </nav>
+</header>
+
+<!-- Hero Section -->
+<section class="hero">
+    <div class="hero-content-wrapper">
+        <div class="hero-text">
+            <h1>Grow Your Money Smartly</h1>
+            <p>Earn 0.5% daily (≈15% monthly) with FAIDI Money Market Fund. Safe, Reliable & Transparent.</p>
+            <a href="{% url 'user:register' %}" class="btn-hero">Start Investing</a>
+        </div>
+        <div class="hero-image">
+            <img src="{% static 'images/home.jpg' %}" alt="Smart Money Growth">
+        </div>
+    </div>
+</section>
+
+<section class="investment-info">
+    <h2>Investment Details</h2>
+    <p>Minimum Deposit: Ksh 100</p>
+    <p>Daily Growth: 0.5%</p>
+    <p>Estimated Monthly Growth: 15%</p>
+    <p>Minimum withdrawal: Ksh 50</p>
+    <p>Withdraw Anytime. Transparent and Safe.</p>
+    <a href="{% url 'user:register' %}" class="btn-hero">Invest Now</a>
+</section>
+
+<footer>
+    <p>&copy; 2026 FAIDI Money Market Fund. All Rights Reserved.</p>
+</footer>
+
+<!-- Scripts -->
+<script>
+const burger = document.querySelector('.burger');
+const nav = document.querySelector('.nav-links');
+const closeBtn = document.querySelector('.close-btn');
+
+burger.addEventListener('click', () => {
+    nav.classList.add('nav-active');
+    burger.style.display = 'none';
+    closeBtn.style.display = 'block';
+});
+
+closeBtn.addEventListener('click', () => {
+    nav.classList.remove('nav-active');
+    closeBtn.style.display = 'none';
+    burger.style.display = 'flex';
+});
+</script>
+
+</body>
+</html>

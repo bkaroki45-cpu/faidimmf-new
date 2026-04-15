@@ -1,0 +1,52 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Deposit Page</title>
+    <link rel="stylesheet" href="{% static 'styles/deposit.css' %}">
+</head>
+<body>
+    <section class="deposit-page">
+        <div class="deposit-container">
+            <h1>Deposit Funds</h1>
+
+            <!-- User Balance -->
+            <div class="current-balance">
+                <span>Current Balance: Ksh {{ balance }}</span>
+            </div>
+
+            <!-- Show success/error messages -->
+            {% if message %}
+            <div class="confirmation">
+                <h2>{{ message.title }}</h2>
+                <p>{{ message.body }}</p>
+            </div>
+            {% endif %}
+
+            <!-- Deposit Form -->
+            <form class="deposit-form" method="POST">
+                {% csrf_token %}
+                <label for="phone">Phone Number</label>
+                <input type="text" id="phone" name="phone" placeholder="2547XXXXXXXX" required>
+
+                <label for="amount">Deposit Amount (Ksh)</label>
+                <input type="number" id="amount" name="amount" min="1" placeholder="Enter amount" required>
+
+                <label for="method">Select Payment Method</label>
+                <select id="method" name="method" required>
+                    <option value="mpesa">M-Pesa</option>
+                </select>
+
+                <button type="submit">Deposit Now</button>
+            </form>
+
+            <!-- Return to Dashboard Button -->
+            <div class="return-dashboard">
+                <a href="{% url 'user:dashboard' %}" class="btn-dashboard">← Return to Dashboard</a>
+            </div>
+        </div>
+    </section>
+</body>
+</html>

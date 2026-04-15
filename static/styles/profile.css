@@ -1,0 +1,175 @@
+/* ------------------------------
+   RESET & BASE
+-------------------------------- */
+* {
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Poppins', sans-serif;
+    background: linear-gradient(to right, #6a11cb, #2575fc);
+    margin: 0;
+    padding: 15px;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* ------------------------------
+   CONTAINER
+-------------------------------- */
+.profile-container {
+    width: 100%;
+    max-width: 500px;
+    background: white;
+    border-radius: 15px;
+    padding: 25px;
+    box-shadow: 0 15px 25px rgba(0,0,0,0.2);
+    animation: fadeIn 0.8s ease-in-out;
+}
+
+/* ------------------------------
+   HEADINGS
+-------------------------------- */
+h2, h3 {
+    text-align: center;
+    color: #333;
+    margin-bottom: 10px;
+}
+
+/* ------------------------------
+   INPUTS
+-------------------------------- */
+input {
+    width: 100%;
+    padding: 11px 14px;
+    margin: 8px 0;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    font-size: 0.95rem;
+    transition: 0.3s;
+}
+
+input:focus {
+    border-color: #2575fc;
+    box-shadow: 0 0 5px rgba(37, 117, 252, 0.5);
+}
+
+/* ------------------------------
+   BUTTONS
+-------------------------------- */
+button {
+    width: 100%;
+    padding: 11px;
+    margin-top: 10px;
+    background: #2575fc;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+button:hover {
+    background: #6a11cb;
+}
+
+/* ------------------------------
+   PIN SECTION
+-------------------------------- */
+.pin-section {
+    margin-top: 20px;
+}
+
+/* ------------------------------
+   🔥 FIXED MESSAGES SYSTEM (IMPORTANT)
+-------------------------------- */
+
+/* container */
+.messages {
+    margin-bottom: 15px;
+}
+
+/* base message style */
+.message {
+    padding: 14px;
+    margin: 10px 0;
+    border-radius: 10px;
+    font-size: 0.95rem;
+    font-weight: 700;
+    text-align: center;
+    animation: fadeIn 0.4s ease;
+    word-wrap: break-word;
+}
+
+/* success */
+.message.success {
+    background: #d4edda;
+    color: #155724;
+    border: 1px solid #28a745;
+}
+
+/* error */
+.message.error {
+    background: #f8d7da;
+    color: #721c24;
+    border: 1px solid #dc3545;
+}
+
+/* info */
+.message.info {
+    background: #d1ecf1;
+    color: #0c5460;
+    border: 1px solid #17a2b8;
+}
+
+/* ------------------------------
+   DASHBOARD LINK
+-------------------------------- */
+.return-dashboard {
+    text-align: center;
+    margin-top: 15px;
+}
+
+.return-dashboard .btn-dashboard {
+    color: #00bfa5;
+    text-decoration: none;
+    font-weight: 600;
+    transition: 0.3s;
+}
+
+.return-dashboard .btn-dashboard:hover {
+    color: #2575fc;
+    text-shadow: 0 0 8px rgba(37,117,252,0.3);
+}
+
+/* ------------------------------
+   ANIMATIONS
+-------------------------------- */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-15px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* ------------------------------
+   MOBILE
+-------------------------------- */
+@media (max-width: 600px) {
+    .profile-container {
+        padding: 20px;
+        border-radius: 12px;
+    }
+
+    input, button {
+        font-size: 0.9rem;
+        padding: 10px 12px;
+    }
+}

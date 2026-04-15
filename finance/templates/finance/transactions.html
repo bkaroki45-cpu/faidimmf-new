@@ -1,0 +1,87 @@
+{% load static %}
+{% load tz %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Recent Transactions</title>
+<link rel="stylesheet" href="{% static 'styles/transaction.css' %}">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+
+<body>
+
+<div class="container">
+
+    <h2>Recent Transactions</h2>
+   
+</div>
+<div class="table-wrapper">
+    <table>
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Date</th>
+                <th>Description</th>
+                <th>Amount</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+
+<tbody>
+{% for tx in transactions %}
+    <tr>
+        <td>{{ forloop.counter }}</td>
+        <td>{{ tx.timestamp|localtime|date:"d M Y H:i" }}</td>
+
+        <!-- DESCRIPTION COLUMN -->
+        <td>
+            {{ tx.tx_type|title }}
+            {% if tx.result_desc %}
+                - {{ tx.result_desc }}
+            {% endif %}
+        </td>
+
+        <!-- AMOUNT COLUMN -->
+        <td class="{% if tx.is_credit %}credit{% else %}debit{% endif %}">
+            {% if tx.is_credit %}
+                +KES {{ tx.amount }}
+            {% else %}
+                -KES {{ tx.amount }}
+            {% endif %}
+        </td>
+
+        <!-- STATUS COLUMN -->
+        <td class="tx-status 
+            {% if tx.status == 'completed' %}success
+            {% elif tx.status == 'failed' %}failed
+            {% else %}pending{% endif %}"
+            data-checkout="{{ tx.checkout_id }}"
+        >
+            {{ tx.status|title }}
+        </td>
+    </tr>
+{% empty %}
+    <tr>
+        <td colspan="5">No transactions yet</td>
+    </tr>
+{% endfor %}
+</tbody>
+    </table>
+</div>
+
+</div>
+
+<div class="return-dashboard">
+    <a href="{% url 'user:dashboard' %}" class="btn-dashboard">← Return to Dashboard</a>
+</div>
+
+<script>
+  // Reload page every 15 seconds
+  setTimeout(() => {
+    window.location.reload();
+  }, 15000);
+</script>
+
+</body>
+</html>

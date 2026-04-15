@@ -1,0 +1,126 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Faidi MMF - About</title>
+<link rel="stylesheet" href="{% static 'styles/about.css' %}">
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<!-- Navbar -->
+<header>
+    <nav class="navbar">
+        <div class="logo">
+            <a href="{% url 'home' %}">
+                <img src="{% static 'images/logo.png' %}" alt="Faidi MMF Logo" class="logo-img">
+            </a>
+        </div>
+        <div class="burger"><div></div><div></div><div></div></div>
+        <ul class="nav-links">
+            <li><a href="{% url 'home' %}">Home</a></li>
+            <li><a href="{% url 'about' %}">About</a></li>
+            <li><a href="{% url 'contacts' %}">Contacts</a></li>
+            <li><a href="{% url 'user:login' %}">Login</a></li>
+            <li><a href="{% url 'user:register' %}" class="btn">Sign Up</a></li>
+        </ul>
+        <div class="close-btn">✖</div>
+    </nav>
+</header>
+
+<!-- Hero Section -->
+<section class="about-hero">
+    <div class="about-hero-wrapper">
+        <div class="about-text">
+            <h1>About Faidi MMF</h1>
+            <p>Faidi Money Market Fund (Faidi MMF) is Kenya’s premier investment platform. Our mission is to grow your money safely, consistently, and transparently. With daily returns of 0.05% (~15% monthly), we empower our investors to achieve financial freedom while maintaining full control and visibility over their funds.</p>
+            <a href="{% url 'user:register' %}" class="btn-hero">Start Investing</a>
+        </div>
+        <div class="about-image">
+            <img src="{% static 'images/grow.jpg' %}" alt="About Faidi MMF">
+        </div>
+    </div>
+</section>
+
+<!-- Mission & Vision -->
+<section class="mission-vision">
+    <div class="text-left">
+        <h2>Our Mission</h2>
+        <p>To provide Kenyans with safe, transparent, and high-growth investment opportunities that help them secure a better financial future.</p>
+        <h2>Our Vision</h2>
+        <p>To be the most trusted and innovative money market fund in Kenya, recognized for transparency, reliability, and exceptional customer service.</p>
+    </div>
+    <div class="illustration-right">
+        <img src="{% static 'images/two.jpg' %}" alt="Vision Illustration">
+    </div>
+</section>
+
+<!-- Core Principles -->
+<section class="principles">
+    <h2>Our Core Principles</h2>
+    <p><span class="highlight">Transparency:</span> Full visibility into how your money grows, daily updates, and honest reporting.</p>
+    <p><span class="highlight">Safety:</span> Investments are managed using low-risk financial instruments to protect your funds.</p>
+    <p><span class="highlight">Accessibility:</span> Easy deposits, withdrawals, and reinvestment options at your fingertips.</p>
+    <p><span class="highlight">Support:</span> Our expert team is available 24/7 to guide and assist you with your investments.</p>
+</section>
+
+<!-- Achievements -->
+<section class="achievements">
+    <h2>Our Achievements</h2>
+    <div class="stats-row">
+        <div class="stat"><h3 class="counter" data-target="5000">0</h3><p>Happy Investors</p></div>
+        <div class="stat"><h3 class="counter" data-target="15">0</h3><p>% Monthly Growth</p></div>
+        <div class="stat"><h3 class="counter" data-target="1200000">0</h3><p>Ksh Managed</p></div>
+    </div>
+</section>
+
+<!-- Testimonials / Investor Stories -->
+<section class="testimonials">
+    <h2>What Our Investors Say</h2>
+    <div class="testimonial-cards">
+        <div class="testimonial-card">
+            <p>"Investing with Faidi MMF has been life-changing. I see my money grow every day and the team is always helpful!"</p>
+            <h4>- James Mwangi</h4>
+        </div>
+        <div class="testimonial-card">
+            <p>"Safe, reliable, and transparent. I finally trust an investment platform completely."</p>
+            <h4>- Aisha Njeri</h4>
+        </div>
+        <div class="testimonial-card">
+            <p>"I love how easy it is to withdraw or reinvest. Faidi MMF truly empowers ordinary Kenyans."</p>
+            <h4>- Peter Otieno</h4>
+        </div>
+    </div>
+</section>
+
+<!-- Footer -->
+<footer>
+    <p>&copy; 2026 Faidi MMF. All Rights Reserved.</p>
+</footer>
+
+<!-- Scripts -->
+<script>
+const burger = document.querySelector('.burger');
+const nav = document.querySelector('.nav-links');
+const closeBtn = document.querySelector('.close-btn');
+burger.addEventListener('click', () => { nav.classList.add('nav-active'); closeBtn.style.display = 'block'; });
+closeBtn.addEventListener('click', () => { nav.classList.remove('nav-active'); closeBtn.style.display = 'none'; });
+
+// Counter Animation
+const counters = document.querySelectorAll('.counter');
+counters.forEach(counter => {
+    const updateCount = () => {
+        const target = +counter.getAttribute('data-target');
+        const count = +counter.innerText;
+        const increment = target / 200;
+        if(count < target){ counter.innerText = Math.ceil(count + increment); setTimeout(updateCount, 15); }
+        else { counter.innerText = target; }
+    };
+    updateCount();
+});
+</script>
+
+</body>
+</html>

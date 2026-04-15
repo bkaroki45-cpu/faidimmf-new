@@ -1,0 +1,46 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Forgot PIN</title>
+    <link rel="stylesheet" href="{% static 'styles/forgot_pin_request.css' %}">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body>
+<div class="forgot-pin-wrapper">
+    <div class="forgot-pin-card">
+        <h1>Forgot PIN</h1>
+        <p class="subtitle">Enter your registered email to receive an OTP</p>
+
+        <!-- Messages -->
+        <div class="messages">
+            {% for message in messages %}
+                <p class="{% if message.tags %}{{ message.tags }}{% endif %}">{{ message }}</p>
+            {% endfor %}
+        </div>
+
+        <!-- Form -->
+        <form method="POST">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <button type="submit">Send OTP</button>
+        </form>
+
+        {% if messages %}
+        <ul>
+        {% for message in messages %}
+            <li>{{ message }}</li>
+        {% endfor %}
+        </ul>
+        {% endif %}
+
+        <!-- Navigation -->
+        <div class="back-link">
+            <a href="{% url 'user:profile' %}">Return to Profile</a> |
+            <a href="{% url 'user:dashboard' %}">Go to Dashboard</a>
+        </div>
+    </div>
+</div>
+</body>
+</html>

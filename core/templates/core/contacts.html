@@ -1,0 +1,111 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FAIDI Money Market Fund - Contact</title>
+    <link rel="stylesheet" href="{% static 'styles/contacts.css' %}">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <!-- Navbar -->
+    <header>
+    <nav class="navbar">
+        <div class="logo">
+            <img src="{% static 'images/logo.png' %}" alt="Smart Money Growth">
+        </div>
+
+        <!-- Close button -->
+        <div class="close-btn">✖</div>
+
+        <ul class="nav-links">
+            <li class="nav"><a href="{% url 'home' %}">home</a></li>
+            <li class="nav"><a href="{% url 'about' %}">about</a></li>
+            <li class="nav"><a href="{% url 'contacts' %}">contacts</a></li>
+            <li class="nav"><a href="{% url 'user:login' %}">Login</a></li>
+            <li class="nav"><a href="{% url 'user:register' %}" class="btn">Sign up</a></li>
+        </ul>
+
+        <!-- Burger -->
+        <div class="burger">
+            <div></div>
+            <div></div>
+            <div></div>
+        </div>
+</nav>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="contact-hero">
+        <h1>Contact Us</h1>
+        <p>We are here to help! Reach out to FAIDI Money Market Fund for inquiries, support, or investment questions.</p>
+    </section>
+
+    <!-- Contact Form & Info -->
+    <section class="contact-main">
+        <div class="contact-wrapper">
+
+            <!-- Contact Form -->
+            <div class="contact-form">
+                <h2>Send Us a Message</h2>
+                <form action="{% url 'contacts' %}" method="POST">
+                    {% csrf_token %}
+                    <div class="form-field">{{ form.name }}</div>
+                    <div class="form-field">{{ form.email }}</div>
+                    <div class="form-field">{{ form.phone }}</div>
+                    <div class="form-field">{{ form.message }}</div>
+                    <button type="submit" class="btn-hero">Send Message</button>
+                </form>
+            </div>
+
+            <!-- Contact Info -->
+            <div class="contact-info">
+                <h2>Our Contact Details</h2>
+                <div class="info-item">
+                    <img src="{% static 'images/phone.png' %}" alt="Phone">
+                    <p>+254 113 873591</p>
+                </div>
+                <div class="info-item">
+                    <img src="{% static 'images/email.png' %}" alt="Email">
+                    <p>faidimmf@gmail.com</p>
+                </div>
+                <div class="info-item">
+                    <img src="{% static 'images/whatsaap.png' %}" alt="WhatsApp">
+                    <p>+254 113 873591</p>
+                </div>
+                <div class="info-item">
+                    <img src="{% static 'images/facebook.png' %}" alt="Facebook">
+                    <p>@FMMF / FAIDI Money Market Fund</p>
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <p>&copy; 2026 FAIDI Money Market Fund. All Rights Reserved.</p>
+    </footer>
+
+    <!-- Scripts -->
+    <script>
+        const burger = document.querySelector('.burger');
+        const nav = document.querySelector('.nav-links');
+        const closeBtn = document.querySelector('.close-btn');
+
+        burger.addEventListener('click', () => {
+            nav.classList.add('nav-active');  // sidebar slides in
+            burger.classList.add('toggle');   // transform burger to X
+            closeBtn.style.display = "block"; // show X
+        });
+
+        closeBtn.addEventListener('click', () => {
+            nav.classList.remove('nav-active'); // sidebar slides out
+            burger.classList.remove('toggle');  // revert X to burger
+            closeBtn.style.display = "none";    // hide X
+        });
+    </script>
+</body>
+</html>

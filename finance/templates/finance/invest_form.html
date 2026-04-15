@@ -1,0 +1,58 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Invest Money | SMMF</title>
+<link rel="stylesheet" href="{% static 'styles/invest_form.css' %}">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+
+<body>
+
+<div class="investment-page">
+    <h2>Invest Money</h2>
+
+    <div class="wallet-info">
+        <div class="card">
+            <h3>Wallet Balance</h3>
+            <p>KSh {{ wallet.balance }}</p>
+        </div>
+    </div>
+
+    <!-- 🔥 GLOBAL MESSAGES BLOCK -->
+    
+    {% if messages %}
+        {% for message in messages %}
+            <div class="message {{ message.tags }}">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <form method="POST" action="{% url 'finance:invest' %}">
+        {% csrf_token %}
+
+        <input type="number"
+               name="amount"
+               placeholder="Enter amount to invest"
+               required>
+
+        <input type="password"
+               name="pin"
+               placeholder="Enter your transaction PIN"
+               required>
+
+        <button type="submit">Invest Now</button>
+    </form>
+
+    <div class="return-dashboard">
+        <a href="{% url 'user:dashboard' %}" class="btn-dashboard">
+            ← Return to Dashboard
+        </a>
+    </div>
+
+</div>
+
+</body>
+</html>

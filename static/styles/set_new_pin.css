@@ -1,0 +1,163 @@
+/* ------------------------------
+   SET PIN PAGE (MOBILE PERFECT)
+-------------------------------- */
+
+/* Reset */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* Body */
+body {
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: linear-gradient(to right, #4f7cff, #1a2bff);
+    padding: 15px; /* prevent edge touching */
+}
+
+/* Wrapper */
+.set-pin-wrapper {
+    width: 100%;
+    max-width: 400px;
+}
+
+/* Card */
+.set-pin-card {
+    background: #fff;
+    border-radius: 15px;
+    padding: 25px 20px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+    text-align: center;
+}
+
+/* Title */
+.set-pin-card h1 {
+    color: #1a2bff;
+    margin-bottom: 8px;
+    font-size: 1.5rem;
+}
+
+/* Subtitle */
+.subtitle {
+    font-size: 0.85rem;
+    color: #555;
+    margin-bottom: 15px;
+}
+
+/* Messages */
+.messages p {
+    margin-bottom: 8px;
+    padding: 8px;
+    border-radius: 5px;
+    font-size: 0.8rem;
+}
+
+.messages p.error {
+    background: #ffe0e0;
+    color: #d8000c;
+}
+
+.messages p.success {
+    background: #e0ffe0;
+    color: #006400;
+}
+
+/* Form */
+.form-group {
+    margin-bottom: 15px;
+    text-align: left;
+}
+
+.form-group label {
+    display: block;
+    font-weight: 500;
+    margin-bottom: 4px;
+    font-size: 0.85rem;
+    color: #333;
+}
+
+.form-group input {
+    width: 100%;
+    padding: 11px 14px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    font-size: 0.9rem;
+    transition: 0.3s;
+}
+
+.form-group input:focus {
+    border-color: #1a2bff;
+    outline: none;
+}
+
+/* Button */
+.btn-submit {
+    width: 100%;
+    padding: 11px;
+    background: #1a2bff;
+    color: #fff;
+    font-size: 0.95rem;
+    font-weight: 600;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: 0.3s;
+}
+.btn-submit:hover {
+    background: #4f7cff;
+}
+
+/* Links */
+.action-links {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 15px;
+    flex-wrap: wrap; /* important for small screens */
+    gap: 10px;
+}
+
+.btn-link {
+    text-decoration: none;
+    color: #1a2bff;
+    font-size: 0.85rem;
+    font-weight: 500;
+}
+
+/* ✅ SMALL HEIGHT FIX (VERY IMPORTANT) */
+@media (max-height: 600px) {
+    body {
+        align-items: flex-start; /* allows scroll */
+    }
+
+    .set-pin-wrapper {
+        margin-top: 20px;
+    }
+}
+
+/* ✅ MOBILE WIDTH */
+@media (max-width: 480px) {
+    .set-pin-card {
+        padding: 20px 15px;
+        border-radius: 12px;
+    }
+
+    .set-pin-card h1 {
+        font-size: 1.4rem;
+    }
+}
+
+/* ✅ EXTRA SMALL PHONES */
+@media (max-width: 360px) {
+    .form-group input {
+        font-size: 0.85rem;
+    }
+
+    .btn-submit {
+        font-size: 0.9rem;
+    }
+}

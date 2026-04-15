@@ -1,0 +1,30 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Logout</title>
+    <link rel="stylesheet" href="{% static 'styles/logout.css' %}">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+
+<body>
+
+<div class="container">
+
+    <h2>Logout</h2>
+
+    <p>Are you sure you want to logout?</p>
+
+    <form method="POST" action="{% url 'user:logout' %}">
+        {% csrf_token %}
+
+        <button type="submit">Logout</button>
+
+        <a class="profile-btn" href="{% url 'user:profile' %}">View Profile</a>
+
+    </form>
+
+</div>
+
+</body>
+</html>

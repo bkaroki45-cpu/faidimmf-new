@@ -1,0 +1,153 @@
+/* ------------------------------
+   ENHANCED FORM (MOBILE PERFECT)
+-------------------------------- */
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family: 'Arial', 'Helvetica', sans-serif;
+}
+
+/* Background */
+body{
+    min-height:100vh; /* FIX */
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    background: linear-gradient(135deg,#4f7cff,#1a2bff);
+    padding:15px; /* prevents edge touching */
+}
+
+/* Container */
+.container{
+    background: #1f1f2e;
+    padding: 30px 25px;
+    width: 100%;
+    max-width: 380px; /* FIX */
+    border-radius: 16px;
+    box-shadow: 0 15px 35px rgba(0,0,0,0.4);
+    text-align: center;
+    color: #fff;
+    animation: fadeIn 0.8s ease forwards;
+}
+
+/* Title */
+.container h2{
+    margin-bottom:20px;
+    color:#00ffd5;
+    font-size:1.6rem;
+}
+
+/* Form */
+form{
+    text-align:left;
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+}
+
+/* Labels */
+label{
+    font-weight:600;
+    color:#ccc;
+    font-size:0.85rem;
+}
+
+/* Inputs */
+input{
+    width:100%;
+    padding:11px;
+    border:1px solid #333;
+    border-radius:8px;
+    outline:none;
+    font-size:0.95rem;
+    background: #2a2a3d;
+    color:#fff;
+    transition: 0.3s;
+}
+
+/* Focus */
+input:focus{
+    border-color:#00ffd5;
+    box-shadow: 0 0 8px rgba(0,255,213,0.6);
+}
+
+/* Button */
+.btn{
+    width:100%;
+    margin-top:15px;
+    padding:11px;
+    background:#00ffd5;
+    color:#1f1f2e;
+    border:none;
+    border-radius:8px;
+    font-size:0.95rem;
+    font-weight:600;
+    cursor:pointer;
+    transition:0.3s;
+}
+.btn:hover{
+    background:#00bfa5;
+}
+
+/* Help text */
+.helptext{
+    font-size:11px;
+    color:#777;
+}
+
+/* Errors */
+.errorlist{
+    color:#ff4d6d;
+    font-size:12px;
+    list-style:none;
+    margin-bottom:8px;
+}
+
+/* Login link */
+.login-link {
+    color: #00ffd5;
+    font-weight: 600;
+    text-decoration: underline;
+}
+
+/* Animations */
+@keyframes fadeIn {
+    from {opacity:0; transform: translateY(15px);}
+    to {opacity:1; transform: translateY(0);}
+}
+
+/* ✅ VERY IMPORTANT FIX (SMALL HEIGHT PHONES) */
+@media (max-height: 650px){
+    body{
+        align-items:flex-start; /* allows scroll */
+    }
+
+    .container{
+        margin-top:20px;
+    }
+}
+
+/* ✅ MOBILE WIDTH */
+@media(max-width:480px){
+    .container{
+        padding:20px;
+        border-radius:12px;
+    }
+
+    input,
+    .btn{
+        font-size:0.9rem;
+    }
+}
+
+/* ✅ EXTRA SMALL PHONES */
+@media (max-width:360px){
+    .container{
+        padding:15px;
+    }
+
+    .container h2{
+        font-size:1.4rem;
+    }
+}

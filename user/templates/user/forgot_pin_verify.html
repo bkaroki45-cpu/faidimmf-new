@@ -1,0 +1,36 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Verify OTP | MMF</title>
+    <link rel="stylesheet" href="{% static 'styles/forgot_pin_verify.css' %}">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body>
+    <div class="otp-container">
+        <h2>Verify OTP</h2>
+        <p>Enter the OTP sent to your registered email.</p>
+
+        {% if messages %}
+        <div class="messages">
+            {% for message in messages %}
+                <div class="message {{ message.tags }}">{{ message }}</div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <form method="post">
+            {% csrf_token %}
+            <label for="otp">OTP</label>
+            <input type="text" name="otp" id="otp" placeholder="Enter 6-digit OTP" maxlength="6" required>
+
+            <button type="submit">Verify OTP</button>
+        </form>
+
+        <p class="resend">
+            Didn't receive the OTP? <a href="{% url 'user:forgot_pin_request' %}">Resend</a>
+        </p>
+    </div>
+</body>
+</html>

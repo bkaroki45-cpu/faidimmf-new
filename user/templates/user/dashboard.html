@@ -1,0 +1,130 @@
+{% load static %}
+{% load humanize %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>SMMF Dashboard</title>
+    <link rel="stylesheet" href="{% static 'styles/dashboard.css' %}">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- Plotly -->
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+
+    <!-- Auto refresh -->
+    <meta http-equiv="refresh" content="30">
+</head>
+
+<body>
+
+    <!-- Sidebar -->
+    <div class="sidebar" id="sidebar">
+        <div class="close-btn" onclick="toggleMenu()">✖</div>
+        <h2 class="logo">SMMF</h2>
+        <ul>
+            <li><a href="{% url 'user:dashboard' %}">Dashboard</a></li>
+            <li><a href="{% url 'finance:deposit' %}">Deposit</a></li>
+            <li><a href="{% url 'finance:withdraw' %}">Withdraw</a></li>
+            <li><a href="{% url 'finance:transactions' %}">Transactions</a></li>
+            <li><a href="{% url 'finance:referrals' %}">Referrals</a></li>
+            <li><a href="{% url 'finance:invest' %}">Invest</a></li>
+            <li><a href="{% url 'finance:invest_tracking' %}">Track your Investment</a></li>
+            <li><a href="{% url 'home' %}">Logout</a></li>
+            <li><a href="{% url 'user:profile' %}">Profile</a></li>
+        </ul>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main">
+
+        <!-- Topbar -->
+        <div class="topbar">
+            <div class="menu-btn" onclick="toggleMenu()">☰</div>
+            <h2>Welcome Back, {{ user.username }}!</h2>
+        </div>
+
+        <hr>
+
+        <!-- Cards -->
+        <div class="cards">
+
+            <div class="card">
+                <h3>Wallet Balance</h3>
+                <p><strong>KSh {{ balance|floatformat:2|intcomma }}</strong></p>
+            </div>
+
+            <div class="card">
+                <h3>Total Deposits</h3>
+                <p><strong>KSh {{ total_deposits|floatformat:2|intcomma }}</strong></p>
+            </div>
+
+            <div class="card">
+                <h3>Total Withdrawals</h3>
+                <p><strong>KSh {{ total_withdrawals|floatformat:2|intcomma }}</strong></p>
+            </div>
+
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="actions">
+            <form action="{% url 'finance:deposit' %}">
+                <button type="submit" class="btn deposit">Deposit (M-Pesa)</button>
+            </form>
+            <form action="{% url 'finance:withdraw' %}">
+                <button type="submit" class="btn withdraw">Withdraw</button>
+            </form>
+            <form action="{% url 'finance:transactions' %}">
+                <button type="submit" class="btn reinvest">Transactions</button>
+            </form>
+            <form action="{% url 'finance:invest_tracking' %}">
+                <button type="submit" class="btn profile">Track your investment</button>
+            </form>
+            <form action="{% url 'finance:invest' %}">
+                <button type="submit" class="btn invest">Invest</button>
+            </form>
+            <form action="{% url 'user:profile' %}">
+                <button type="submit" class="btn profile">Profile</button>
+            </form>
+        </div>
+
+        <!-- Charts -->
+        <div class="chart-container">
+            <h3>Account Growth (Last 7 Days)</h3>
+
+            {% if growth_plot %}
+                {{ growth_plot|safe }}
+            {% else %}
+                <p style="color:white;">No data available yet</p>
+            {% endif %}
+        </div>
+
+        <div class="chart-container">
+            <h3>Transaction Status Overview</h3>
+
+            {% if status_plot %}
+                {{ status_plot|safe }}
+            {% else %}
+                <p style="color:white;">No transaction data yet</p>
+            {% endif %}
+        </div>
+
+    </div>
+
+    <!-- JS -->
+    <script>
+        function toggleMenu() {
+            const sidebar = document.getElementById("sidebar");
+            const main = document.querySelector(".main");
+
+            if (window.innerWidth <= 900) {
+                sidebar.classList.toggle("active");
+            } else {
+                sidebar.classList.toggle("slim");
+                main.classList.toggle("slim");
+            }
+        }
+    </script>
+
+</body>
+</html>
