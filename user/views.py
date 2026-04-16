@@ -25,6 +25,8 @@ from .utils import send_otp_email
 from user.utils import get_wallet_balance
 from django.utils import timezone
 from .models import PasswordResetOTP
+from django.db.models import Sum, Case, When, F, DecimalField
+from finance.models import LedgerEntry
 
 def register(request):
 
@@ -196,7 +198,17 @@ def dashboard(request):
     # 💰 REAL BALANCE (FROM LEDGER)
     # =========================
     wallet, _ = Wallet.objects.get_or_create(user=user)
-    balance = wallet.balance
+    balance = LedgerEntry.objects.filter(
+        user=user
+    ).aggregate(
+        total=Sum(
+            Case(
+                When(is_credit=True, then=F("amount")),
+                When(is_credit=False, then=-F("amount")),
+                output_field=DecimalField()
+            )
+        )
+    )["total"] or Decimal("0")
 
     # =========================
     # 📌 TRANSACTIONS
@@ -238,6 +250,7 @@ def dashboard(request):
     last_7_days = [today - datetime.timedelta(days=i) for i in range(6, -1, -1)]
 
     balance_by_day = []
+    running_balance = Decimal("0")
 
     for day in last_7_days:
         deposits = Transaction.objects.filter(
@@ -254,15 +267,11 @@ def dashboard(request):
             timestamp__date=day
         ).aggregate(total=Sum('amount'))['total'] or Decimal("0")
 
-        investments = Transaction.objects.filter(
-            user=user,
-            tx_type="invest",
-            status="completed",
-            timestamp__date=day
-        ).aggregate(total=Sum('amount'))['total'] or Decimal("0")
+        # 💰 wallet growth = deposits - withdrawals ONLY
+        daily_net = deposits - withdrawals
 
-        daily_net = deposits - withdrawals - investments
-        balance_by_day.append(daily_net)
+        running_balance += daily_net
+        balance_by_day.append(running_balance)
 
     # 🔥 Convert to cumulative balance
     cumulative = []

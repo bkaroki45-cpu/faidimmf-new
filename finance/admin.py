@@ -18,6 +18,7 @@ from datetime import timedelta
 from .models import Wallet, Transaction, InvestmentTracking, CompanyAccount
 from user.models import CustomUser, TransactionPIN
 from finance.models import LedgerEntry
+from user.utils import process_maturity, get_wallet_balance
 
 
 
@@ -145,14 +146,12 @@ class CompanyAccountAdmin(admin.ModelAdmin):
 
             credits = LedgerEntry.objects.filter(
                 account=obj,
-                is_credit=True,
-                tx_type__in=["deposit", "investment_return"]
+                is_credit=True
             ).aggregate(total=Sum("amount"))["total"] or 0
 
             debits = LedgerEntry.objects.filter(
                 account=obj,
-                is_credit=False,
-                tx_type__in=["invest", "withdraw"]
+                is_credit=False
             ).aggregate(total=Sum("amount"))["total"] or 0
 
             return credits - debits
@@ -217,9 +216,7 @@ class TransactionAdmin(admin.ModelAdmin):
     # WALLET BALANCE
     # -----------------------
     def wallet_balance(self, obj):
-        wallet = Wallet.objects.filter(user=obj.user).first()
-        return wallet.balance if wallet else 0
-    wallet_balance.short_description = "Wallet Balance"
+        return get_wallet_balance(obj.user)
 
     # -----------------------
     # STATUS BADGE (KEEP YOUR STYLE)
@@ -269,14 +266,14 @@ class TransactionAdmin(admin.ModelAdmin):
 
             amount = tx.amount
 
-            if wallet.balance < amount:
+            if get_wallet_balance() < amount:
                 continue
 
             if reserve_account.balance < amount:
                 continue
 
             # ✅ 1. Deduct wallet
-            wallet.balance -= amount
+            
             wallet.save()
 
             # ✅ 2. Deduct reserve

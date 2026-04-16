@@ -10,15 +10,11 @@ load_dotenv()
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # SECURITY WARNING: keep secret key in env in production
-SECRET_KEY = os.getenv("SECRET_KEY", "django-insecure-fallback-key")
+SECRET_KEY = os.get_env("SECRET_KEY")
 
-DEBUG = os.getenv("DEBUG", "True") == "True"
+DEBUG = os.getenv("DEBUG", "False").lower() == "true"
 
-ALLOWED_HOSTS = [
-    '127.0.0.1',
-    'localhost',
-    'ghostlier-cloudily-coleman.ngrok-free.dev',
-]
+ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "").split(",") if os.getenv("ALLOWED_HOSTS") else []
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -77,6 +73,13 @@ AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
 ]
 
+SECURE_BROWSER_XSS_FILTER = True
+SECURE_CONTENT_TYPE_NOSNIFF = True
+X_FRAME_OPTIONS = "DENY"
+
+CSRF_COOKIE_SECURE = not DEBUG
+SESSION_COOKIE_SECURE = not DEBUG
+
 LANGUAGE_CODE = 'en-us'
 
 TIME_ZONE = 'Africa/Nairobi'
@@ -93,29 +96,30 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # ======================
 # ENV VARIABLES (MPESA)
 # ======================
-CONSUMER_KEY = os.getenv("CONSUMER_KEY")
-CONSUMER_SECRET = os.getenv("CONSUMER_SECRET")
-MPESA_PASSKEY = os.getenv("MPESA_PASSKEY")
-MPESA_SHORTCODE = os.getenv("MPESA_SHORTCODE")
-MPESA_BASE_URL = os.getenv("MPESA_BASE_URL")
 
-MPESA_B2C_INITIATOR = os.getenv("MPESA_B2C_INITIATOR")
-MPESA_B2C_SECURITY_CREDENTIAL = os.getenv("MPESA_B2C_SECURITY_CREDENTIAL")
-MPESA_B2C_PARTYA = os.getenv("MPESA_B2C_PARTYA")
+import os
+from django.core.exceptions import ImproperlyConfigured
 
-PUBLIC_URL = os.getenv("PUBLIC_URL")
+def get_env(var_name):
+    value = os.getenv(var_name)
+    if not value:
+        raise ImproperlyConfigured(f"Missing environment variable: {var_name}")
+    return value
 
-CALLBACK_URL = f"{PUBLIC_URL}/finance/callback/"
-STK_CALLBACK_URL = os.getenv("STK_CALLBACK_URL")
-B2C_RESULT_URL = os.getenv("B2C_RESULT_URL")
-B2C_TIMEOUT_URL = os.getenv("B2C_TIMEOUT_URL")
 
-AUTH_USER_MODEL = 'user.CustomUser'
+CONSUMER_KEY = get_env("CONSUMER_KEY")
+CONSUMER_SECRET = get_env("CONSUMER_SECRET")
 
-CSRF_TRUSTED_ORIGINS = [
-    "https://ghostlier-cloudily-coleman.ngrok-free.dev"
-]
+MPESA_PASSKEY = get_env("MPESA_PASSKEY")
+MPESA_SHORTCODE = get_env("MPESA_SHORTCODE")
+MPESA_BASE_URL = get_env("MPESA_BASE_URL")
 
+STK_CALLBACK_URL = get_env("STK_CALLBACK_URL")
+
+PUBLIC_URL = get_env("PUBLIC_URL")
+
+AUTH_USER_MODEL = "user.CustomUser"
+STATIC_ROOT = BASE_DIR / "staticfiles"
 # ======================
 # EMAIL (FIXED SECURITY)
 # ======================

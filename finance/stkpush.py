@@ -25,9 +25,9 @@ def stk_push(request):
     if not access_token:
         return JsonResponse({"error": "Could not retrieve access token"}, status=500)
 
-    business_shortcode = '174379'
-    passkey = 'bfb279f9aa9bdbcf158e97dd71a467cd2e0c893059b10f78e6b72ada1ed2c919'
-    callback_url = 'https://ghostlier-cloudily-coleman.ngrok-free.dev/finance/callback/'
+    business_shortcode = settings.MPESA_SHORTCODE
+    passkey = settings.MPESA_PASSKEY
+    callback_url = settings.STK_CALLBACK_URL
 
     timestamp = datetime.now().strftime('%Y%m%d%H%M%S')
     password = base64.b64encode(f"{business_shortcode}{passkey}{timestamp}".encode()).decode('utf-8')
@@ -42,7 +42,7 @@ def stk_push(request):
         "PartyB": business_shortcode,
         "PhoneNumber": phone,
         "CallBackURL": settings.STK_CALLBACK_URL,
-        "AccountReference": "SMMF",
+        "AccountReference": "FMMF",
         "TransactionDesc": "Deposit"
     }
 

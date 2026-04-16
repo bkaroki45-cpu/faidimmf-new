@@ -5,7 +5,7 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>SMMF Dashboard</title>
+    <title>FMMF Dashboard</title>
     <link rel="stylesheet" href="{% static 'styles/dashboard.css' %}">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
@@ -21,7 +21,7 @@
     <!-- Sidebar -->
     <div class="sidebar" id="sidebar">
         <div class="close-btn" onclick="toggleMenu()">✖</div>
-        <h2 class="logo">SMMF</h2>
+        <h2 class="logo">Faidi MMF</h2>
         <ul>
             <li><a href="{% url 'user:dashboard' %}">Dashboard</a></li>
             <li><a href="{% url 'finance:deposit' %}">Deposit</a></li>
@@ -54,15 +54,7 @@
                 <p><strong>KSh {{ balance|floatformat:2|intcomma }}</strong></p>
             </div>
 
-            <div class="card">
-                <h3>Total Deposits</h3>
-                <p><strong>KSh {{ total_deposits|floatformat:2|intcomma }}</strong></p>
-            </div>
-
-            <div class="card">
-                <h3>Total Withdrawals</h3>
-                <p><strong>KSh {{ total_withdrawals|floatformat:2|intcomma }}</strong></p>
-            </div>
+            
 
         </div>
 

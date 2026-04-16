@@ -30,45 +30,23 @@ def send_otp_email(user_email):
 # ==============================
 # WALLET BALANCE CALCULATOR
 # ==============================
+from django.db.models import Sum
+from decimal import Decimal
+from finance.models import LedgerEntry
+
 def get_wallet_balance(user):
 
-    deposits = Transaction.objects.filter(
+    credits = LedgerEntry.objects.filter(
         user=user,
-        tx_type__iexact="deposit",
-        status__iexact="completed"
-    ).aggregate(total=Sum("amount"))["total"] or 0
+        is_credit=True
+    ).aggregate(total=Sum("amount"))["total"] or Decimal("0")
 
-    withdrawals = Transaction.objects.filter(
+    debits = LedgerEntry.objects.filter(
         user=user,
-        tx_type__iexact="withdraw",
-        status__iexact="completed"
-    ).aggregate(total=Sum("amount"))["total"] or 0
+        is_credit=False
+    ).aggregate(total=Sum("amount"))["total"] or Decimal("0")
 
-    investments = Transaction.objects.filter(
-        user=user,
-        tx_type__iexact="invest",
-        status__iexact="completed"
-    ).aggregate(total=Sum("amount"))["total"] or 0
-
-    referral_bonus = Transaction.objects.filter(
-        user=user,
-        tx_type__iexact="referral",
-        status__iexact="completed"
-    ).aggregate(total=Sum("amount"))["total"] or 0
-
-    investment_returns = Transaction.objects.filter(
-        user=user,
-        tx_type__iexact="investment_return",
-        status__iexact="completed"
-    ).aggregate(total=Sum("amount"))["total"] or 0
-
-    return (
-        deposits
-        + referral_bonus
-        + investment_returns
-        - withdrawals
-        - investments
-    )
+    return credits - debits
 
 
 
@@ -106,74 +84,65 @@ def credit_referral_bonus(user, ref_user):
     return bonus
 
 
-from django.db import transaction
+
+
 from decimal import Decimal
-import uuid
+from django.db import transaction
 
 def process_maturity(user, investment):
-
-    if investment.is_redeemed:
-        return Decimal("0")
 
     with transaction.atomic():
 
         investment = InvestmentTracking.objects.select_for_update().get(id=investment.id)
 
+        # ✅ HARD LOCK (MOST IMPORTANT)
         if investment.is_redeemed:
             return Decimal("0")
 
-        # 🔒 prevent duplicates properly
+        # ✅ GLOBAL GUARD (prevents duplicate runs)
         if LedgerEntry.objects.filter(
-            reference=f"MATURE-{investment.id}",
-            tx_type="investment_return"
+            reference=f"MATURE-{investment.id}"
         ).exists():
             return Decimal("0")
 
-        total_return = investment.total_return()
+        principal = investment.amount
         profit = investment.calculate_profit()
+        total = principal + profit
 
         investment.is_redeemed = True
         investment.save(update_fields=["is_redeemed"])
 
-        pool = CompanyAccount.objects.get(account_type="pool")
-        reserve = CompanyAccount.objects.get(account_type="reserve")
+        pool = CompanyAccount.objects.select_for_update().get(account_type="pool")
+        reserve = CompanyAccount.objects.select_for_update().get(account_type="reserve")
 
         # =========================
-        # 1. Pool decreases FULL return
+        # 1. POOL DEBIT
         # =========================
         LedgerEntry.objects.create(
             user=None,
             account=pool,
-            tx_type="investment_return",
-            amount=total_return,
+            tx_type="maturity_pool_debit",
+            amount=principal,
             is_credit=False,
             reference=f"MATURE-{investment.id}"
         )
 
+        
+
         # =========================
-        # 2. Reserve increases FULL return (IMPORTANT FIX)
+        # 3. USER WALLET CREDIT
         # =========================
         LedgerEntry.objects.create(
-            user=None,
+            user=user,
             account=reserve,
             tx_type="investment_return",
-            amount=total_return,
+            amount=total,
             is_credit=True,
             reference=f"MATURE-{investment.id}"
         )
 
-        # =========================
-        # 3. User wallet (ONLY ONCE via transaction)
-        # =========================
-        Transaction.objects.create(
-            user=user,
-            amount=total_return,
-            tx_type="investment_return",
-            status="completed",
-            checkout_id=f"MAT-{investment.id}"
-        )
-
-        return total_return
+        return total
+    
 
 def reset_daily_if_needed():
     state, _ = SystemState.objects.get_or_create(id=1)

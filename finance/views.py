@@ -18,14 +18,23 @@ import json
 from django.db import transaction
 from django.db.models import Sum
 from django.contrib.sites.shortcuts import get_current_site
-from user.utils import process_maturity
+from user.utils import process_maturity, get_wallet_balance
 from .stkpush import stk_push
 from user.decorators import profile_required
 from finance.models import LedgerEntry
+from django.db import transaction as db_transaction
+
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+from django.db import transaction as db_transaction
+from django.utils import timezone
+import json
+
+from finance.models import Transaction, CompanyAccount
 
 
 
-PUBLIC_URL = "https://ghostlier-cloudily-coleman.ngrok-free.dev"
+PUBLIC_URL = "https://faidii.com"
 
 
 
@@ -48,7 +57,7 @@ def set_pin(request):
     return render(request, 'user/set_pin.html', {'form': form})
 
 
-MIN_DEPOSIT = 5  # Minimum deposit amount in KSh
+MIN_DEPOSIT = 1  # Minimum deposit amount in KSh
 
 @login_required
 def deposit(request):
@@ -66,13 +75,13 @@ def deposit(request):
             amount = Decimal(amount)
         except:
             return render(request, "finance/deposit.html", {
-                "balance": wallet.balance,
+                "balance": get_wallet_balance(),
                 "message": {"title": "Error", "body": "Invalid amount"}
             })
 
         if amount < MIN_DEPOSIT:
             return render(request, "finance/deposit.html", {
-                "balance": wallet.balance,
+                "balance": get_wallet_balance(request.user),
                 "message": {"title": "Error", "body": f"Minimum deposit is KES {MIN_DEPOSIT}"}
             })
 
@@ -81,7 +90,7 @@ def deposit(request):
         # -----------------------------
         if method != "mpesa":
             return render(request, "finance/deposit.html", {
-                "balance": wallet.balance,
+                "balance": get_wallet_balance(),
                 "message": {"title": "Error", "body": "Only MPESA allowed"}
             })
 
@@ -97,7 +106,7 @@ def deposit(request):
         # -----------------------------
         if not res or res.get("ResponseCode") != "0":
             return render(request, "finance/deposit.html", {
-                "balance": wallet.balance,
+                "balance": get_wallet_balance(),
                 "message": {"title": "Error", "body": "STK Push failed"}
             })
 
@@ -149,74 +158,85 @@ def deposit(request):
         return redirect("finance:transactions")
 
     return render(request, "finance/deposit.html", {
-        "balance": wallet.balance
+        "balance": get_wallet_balance(request.user)
     })
 
 
 # -------------------------
 # MPESA CALLBACK
 # -------------------------
-from django.db import transaction as db_transaction
+
+
 
 @csrf_exempt
 def mpesa_callback(request):
     if request.method != "POST":
-        return JsonResponse({"ResultCode": 1, "ResultDesc": "Invalid request"}, status=400)
+        return JsonResponse({"ResultCode": 1, "ResultDesc": "Invalid method"}, status=400)
 
     try:
-        data = json.loads(request.body)
-        callback_data = data.get("Body", {}).get("stkCallback", {})
+        data = json.loads(request.body.decode("utf-8"))
+        print("🔥 CALLBACK RECEIVED:", data)
 
-        checkout_id = callback_data.get("CheckoutRequestID")
-        result_code = callback_data.get("ResultCode")
-        result_desc = callback_data.get("ResultDesc")
+        callback = data.get("Body", {}).get("stkCallback", {})
+        checkout_id = callback.get("CheckoutRequestID")
+        result_code = callback.get("ResultCode")
+        result_desc = callback.get("ResultDesc")
 
-        print("🔔 CALLBACK RECEIVED - Checkout ID:", checkout_id)
+        if not checkout_id:
+            print("❌ Missing CheckoutRequestID")
+            return JsonResponse({"ResultCode": 0, "ResultDesc": "No checkout id"})
 
         with db_transaction.atomic():
             try:
-                # 🔒 LOCK ROW (IMPORTANT)
                 tx = Transaction.objects.select_for_update().get(checkout_id=checkout_id)
             except Transaction.DoesNotExist:
-                return JsonResponse({"ResultCode": 0, "ResultDesc": "Accepted"})
+                print("❌ Transaction not found:", checkout_id)
+                return JsonResponse({"ResultCode": 0, "ResultDesc": "Transaction not found"})
 
-            # ✅ SAFE CHECK AFTER LOCK
+            # 🔒 Prevent double processing
             if tx.status == "completed":
-                print("✅ Already processed:", checkout_id)
+                print("⚠ Already processed:", checkout_id)
                 return JsonResponse({"ResultCode": 0, "ResultDesc": "Already processed"})
 
+            # =========================
+            # SUCCESS PAYMENT
+            # =========================
             if result_code == 0:
-                metadata = callback_data.get("CallbackMetadata", {}).get("Item", [])
+                metadata = callback.get("CallbackMetadata", {}).get("Item", [])
 
                 mpesa_receipt = None
-                mpesa_phone = None
+                phone = None
 
                 for item in metadata:
-                    if item.get("Name") == "MpesaReceiptNumber":
+                    name = item.get("Name")
+                    if name == "MpesaReceiptNumber":
                         mpesa_receipt = item.get("Value")
-                    elif item.get("Name") == "PhoneNumber":
-                        mpesa_phone = item.get("Value")
+                    elif name == "PhoneNumber":
+                        phone = item.get("Value")
 
-                # ✅ Update transaction FIRST
-                tx.mpesa_code = mpesa_receipt
-                tx.phone_number = mpesa_phone
+                # Update transaction
                 tx.status = "completed"
+                tx.mpesa_code = mpesa_receipt
+                tx.phone_number = phone
                 tx.result_desc = result_desc
                 tx.completed_at = timezone.now()
                 tx.save()
 
-                # 🔥 POST TO LEDGER ONCE
+                # 💰 POST TO LEDGER (ONLY ONCE)
                 CompanyAccount.post_transaction(tx)
 
-                print("✅ Transaction completed:", checkout_id)
+                print("✅ PAYMENT COMPLETED:", checkout_id)
 
+            # =========================
+            # FAILED PAYMENT
+            # =========================
             else:
                 tx.status = "failed"
                 tx.result_desc = result_desc
                 tx.completed_at = timezone.now()
                 tx.save(update_fields=["status", "result_desc", "completed_at"])
 
-                print("❌ Transaction failed:", checkout_id)
+                print("❌ PAYMENT FAILED:", checkout_id)
 
         return JsonResponse({"ResultCode": 0, "ResultDesc": "Accepted"})
 
@@ -232,6 +252,7 @@ def mpesa_callback(request):
 @login_required
 def invest(request):
     wallet, _ = Wallet.objects.get_or_create(user=request.user)
+    
 
     pin_obj = getattr(request.user, "transaction_pin", None)
     if not pin_obj:
@@ -239,14 +260,25 @@ def invest(request):
         return redirect("user:profile")
 
     if request.method == "POST":
+
         amount = Decimal(request.POST.get("amount"))
         pin = request.POST.get("pin", "").strip()
+
+        # 🔴 ADD THIS HERE (BEFORE ANY DATABASE ACTION)
+        checkout_id = request.POST.get("checkout_id") or str(uuid.uuid4())
+        if Transaction.objects.filter(
+            user=request.user,
+            tx_type="invest",
+            checkout_id=checkout_id
+        ).exists():
+            messages.error(request, "Duplicate investment blocked")
+            return redirect("finance:invest")
 
         if amount < 1:
             messages.error(request, "Min KES 100")
             return redirect("finance:invest")
 
-        if amount > wallet.balance:
+        if amount > get_wallet_balance(request.user):
             messages.error(request, "Insufficient balance")
             return redirect("finance:invest")
 
@@ -254,37 +286,31 @@ def invest(request):
             messages.error(request, "Invalid PIN")
             return redirect("finance:invest")
 
-        reserve = CompanyAccount.objects.select_for_update().get(account_type="reserve")
-        pool = CompanyAccount.objects.select_for_update().get(account_type="pool")
 
+        
         with transaction.atomic():
 
-            # 1. DEDUCT USER WALLET (THIS IS THE KEY FIX)
-            LedgerEntry.objects.create(
-                user=request.user,
-                account=reserve,   # or a dedicated "wallet ledger account" if you add one
-                tx_type="wallet_debit",
-                amount=amount,
-                is_credit=False
-            )
+            reserve = CompanyAccount.objects.select_for_update().get(account_type="reserve")
+            pool = CompanyAccount.objects.select_for_update().get(account_type="pool")
 
-            # 2. RESERVE ENTRY
+            # ✅ WALLET DEBIT (THIS REDUCES BALANCE)
             LedgerEntry.objects.create(
                 user=request.user,
-                account=reserve,
+                account=reserve,   # 🔥 REQUIRED
                 tx_type="invest",
                 amount=amount,
                 is_credit=False
             )
 
-            # 3. POOL ENTRY
+            # ✅ MOVE TO POOL (SYSTEM SIDE)
             LedgerEntry.objects.create(
-                user=request.user,
+                user=None,         # 🔥 IMPORTANT: not user wallet
                 account=pool,
                 tx_type="invest",
                 amount=amount,
                 is_credit=True
             )
+                    
 
             # 4. INVESTMENT RECORD
             InvestmentTracking.objects.create(
@@ -299,17 +325,20 @@ def invest(request):
                 amount=amount,
                 tx_type="invest",
                 status="completed",
-                checkout_id=str(uuid.uuid4())
+                checkout_id=checkout_id
             )
 
         messages.success(request, "Investment successful")
         return redirect("finance:invest_tracking")
 
-    return render(request, "finance/invest_form.html", {"wallet": wallet})
+    return render(request, "finance/invest_form.html", {
+        "wallet": wallet,
+        "wallet_balance": get_wallet_balance(request.user)
+    })
 
 @login_required
 def invest_tracking(request):
-    wallet, _ = Wallet.objects.get_or_create(user=request.user)
+    wallet= Wallet.objects.get_or_create(user=request.user)
 
     investments = InvestmentTracking.objects.filter(user=request.user)
     now = timezone.now()
@@ -344,10 +373,9 @@ def invest_tracking(request):
     )
 
     return render(request, "finance/invest_tracking.html", {
-        "wallet": wallet,
-        "investments": investments,
+        "wallet_balance": get_wallet_balance(request.user),
         "current_investment": current_investment,
-        "total_profit": total_profit,
+        "investments": investments,   # 🔥 ADD THIS
     })
 
 
@@ -441,7 +469,7 @@ def withdraw(request):
             return redirect("finance:withdraw")
 
         # balance check (READ ONLY property)
-        if wallet.balance < amount:
+        if get_wallet_balance(request.user) < amount:
             messages.error(request, "Insufficient balance")
             return redirect("finance:withdraw")
 
@@ -459,6 +487,14 @@ def withdraw(request):
                 is_credit=False,  # IMPORTANT: withdrawal reduces user equity
                 reference=f"WD-{timezone.now().timestamp()}",
                 metadata="Pending withdrawal"
+            )
+
+                # 2. ✅ CREATE TRANSACTION HISTORY
+            Transaction.objects.create(
+                user=request.user,
+                tx_type="withdraw",
+                amount=amount,
+                status="pending"
             )
 
         messages.success(request, "Withdrawal submitted (pending approval)")
@@ -508,7 +544,7 @@ def reject_withdrawal(ledger_id):
     wallet = Wallet.objects.get(user=ledger.user)
 
     # refund
-    wallet.balance += ledger.amount
+    
     wallet.save()
 
     ledger.metadata = "Rejected and refunded"
