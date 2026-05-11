@@ -25,7 +25,7 @@ from finance.models import LedgerEntry
 
 
 
-PUBLIC_URL = "https://ghostlier-cloudily-coleman.ngrok-free.dev"
+PUBLIC_URL = " https://ghostlier-cloudily-coleman.ngrok-free.dev"
 
 
 
@@ -276,7 +276,7 @@ def invest(request):
             inv = InvestmentTracking.objects.create(
                 user=request.user,
                 amount=amount,
-                interest_rate=Decimal("0.005")
+                interest_rate=Decimal("0.03")
             )
 
             # 5. USER HISTORY
@@ -399,19 +399,32 @@ def referrals(request):
   # your B2C helper function
 
 # finance/views.py
-MIN_WITHDRAWAL_AMOUNT = Decimal("10.00")  # Minimum withdrawal allowed
+MIN_WITHDRAWAL_AMOUNT = Decimal("2.00")  # Minimum withdrawal allowed
 
 @profile_required
 @login_required
 def withdraw(request):
-    wallet, _ = Wallet.objects.get_or_create(user=request.user)
+
+    wallet = Wallet.objects.get(user=request.user)
     reserve_account = CompanyAccount.objects.get(account_type="reserve")
 
     if request.method == "POST":
-        amount = Decimal(request.POST.get("amount"))
+
+        amount = request.POST.get("amount")
         pin = request.POST.get("pin")
 
-        # --- PIN CHECK ---
+        # -----------------------
+        # VALIDATE AMOUNT
+        # -----------------------
+        try:
+            amount = Decimal(amount)
+        except:
+            messages.error(request, "Invalid amount")
+            return redirect("finance:withdraw")
+
+        # -----------------------
+        # PIN CHECK
+        # -----------------------
         try:
             user_pin = request.user.transaction_pin
         except TransactionPIN.DoesNotExist:
@@ -422,17 +435,19 @@ def withdraw(request):
             messages.error(request, "Incorrect PIN")
             return redirect("finance:withdraw")
 
-        # --- VALIDATION ---
+        # -----------------------
+        # VALIDATION RULES
+        # -----------------------
         if amount <= 0:
             messages.error(request, "Invalid amount")
             return redirect("finance:withdraw")
 
-        # Minimum withdrawal
         if amount < MIN_WITHDRAWAL_AMOUNT:
-            messages.error(request, f"Amount must be at least KES {MIN_WITHDRAWAL_AMOUNT}")
+            messages.error(request, f"Minimum withdrawal is KES {MIN_WITHDRAWAL_AMOUNT}")
             return redirect("finance:withdraw")
 
-        # Balance checks
+        # IMPORTANT:
+        # wallet.balance MUST be computed from ledger (property)
         if amount > wallet.balance:
             messages.error(request, "Insufficient balance")
             return redirect("finance:withdraw")
@@ -441,22 +456,59 @@ def withdraw(request):
             messages.error(request, "Insufficient liquidity")
             return redirect("finance:withdraw")
 
+        # -----------------------
+        # LEDGER TRANSACTION (CORE LOGIC)
+        # -----------------------
         try:
-            # Create WITHDRAWAL REQUEST (NO AUTO PAYOUT)
-            tx = Transaction.objects.create(
-                user=request.user,
-                amount=amount,
-                tx_type="withdraw",
-                status="pending",
-                checkout_id=str(uuid.uuid4()),
-                result_desc=f"Withdrawal request of KES {amount} submitted"
-            )
+            with transaction.atomic():
 
-            messages.success(
-                request,
-                "Withdrawal request submitted successfully. It will be processed manually."
-            )
-            return redirect("finance:transactions")
+                wallet = Wallet.objects.select_for_update().get(user=request.user)
+                reserve_account = CompanyAccount.objects.select_for_update().get(account_type="reserve")
+
+                # FINAL SAFETY CHECK
+                if amount > wallet.balance:
+                    messages.error(request, "Insufficient balance")
+                    return redirect("finance:withdraw")
+
+                if amount > reserve_account.balance:
+                    messages.error(request, "Insufficient liquidity")
+                    return redirect("finance:withdraw")
+
+                # 🔥 LEDGER DEBIT (NO wallet update)
+                LedgerEntry.objects.create(
+                    user=request.user,
+                    account=reserve_account,
+                    tx_type="withdraw",
+                    amount=amount,
+                    is_credit=False
+                )
+
+                # OPTIONAL: reserve tracking (not real money movement)
+                reserve_account.pending_withdrawals = getattr(
+                    reserve_account,
+                    "pending_withdrawals",
+                    Decimal("0.00")
+                ) + amount
+                reserve_account.save()
+
+                # -----------------------
+                # TRANSACTION RECORD
+                # -----------------------
+                tx = Transaction.objects.create(
+                    user=request.user,
+                    amount=amount,
+                    tx_type="withdraw",
+                    status="pending",
+                    checkout_id=str(uuid.uuid4()),
+                    result_desc=f"Withdrawal request of KES {amount} submitted (ledger system)"
+                )
+
+                messages.success(
+                    request,
+                    "Withdrawal request submitted successfully. Awaiting admin approval."
+                )
+
+                return redirect("finance:transactions")
 
         except Exception as e:
             print("Withdraw error:", str(e))

@@ -1,123 +1,160 @@
 /* ------------------------------
-   ENHANCED LOGIN PAGE (MOBILE PERFECT)
+   SAFARICOM GREEN LOGIN PAGE
 -------------------------------- */
 * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
-    font-family: 'Arial', 'Helvetica', sans-serif;
+    font-family: 'Inter', 'Arial', sans-serif;
 }
 
-/* Page Background */
+/* PAGE BACKGROUND */
 body {
-    min-height: 100vh; /* better than fixed height */
+    min-height: 100vh;
     display: flex;
     justify-content: center;
     align-items: center;
-    background: linear-gradient(135deg, #4f7cff, #1a2bff);
-    padding: 15px; /* prevents touching screen edges */
+    background: #f3fff7;
+    padding: 15px;
 }
 
-/* Login Container */
+/* LOGIN CONTAINER */
 .container {
-    background: #1f1f2e;
-    padding: 30px 25px;
+    background: #ffffff;
+    padding: 32px 25px;
     width: 100%;
-    max-width: 350px; /* prevents overflow */
-    border-radius: 16px;
-    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4);
+    max-width: 360px;
+    border-radius: 18px;
+    box-shadow: 0 15px 40px rgba(0, 166, 81, 0.12);
     text-align: center;
     animation: fadeIn 0.8s ease forwards;
-    color: #fff;
+    border: 1px solid #d9f5e3;
 }
 
-/* Title */
+/* HEADER */
+.login-header h2,
 .container h2 {
-    margin-bottom: 20px;
-    color: #00ffd5;
-    font-size: 1.6rem;
+    margin-bottom: 8px;
+    color: #00a651;
+    font-size: 1.8rem;
+    font-weight: 700;
 }
 
-/* Form Group */
+.login-header p {
+    color: #666;
+    margin-bottom: 22px;
+    font-size: 0.95rem;
+}
+
+/* FORM GROUP */
 .form-group {
     display: flex;
     flex-direction: column;
     text-align: left;
 }
 
-/* Labels */
+/* LABELS */
 .form-group label {
-    margin-top: 10px;
+    margin-top: 12px;
     font-weight: 600;
     font-size: 13px;
-    color: #ccc;
+    color: #444;
 }
 
-/* Inputs */
+/* INPUTS */
 .form-group input {
-    margin-top: 5px;
-    padding: 11px;
-    border: 1px solid #333;
-    border-radius: 8px;
+    margin-top: 6px;
+    padding: 12px;
+    border: 1px solid #ccebd8;
+    border-radius: 10px;
     outline: none;
     font-size: 0.95rem;
-    background: #2a2a3d;
-    color: #fff;
-    transition: 0.3s;
+    background: #f8fffb;
+    color: #222;
+    transition: 0.3s ease;
 }
 
-/* Input focus */
+/* INPUT FOCUS */
 .form-group input:focus {
-    border-color: #00ffd5;
-    box-shadow: 0 0 8px rgba(0, 255, 213, 0.6);
+    border-color: #00a651;
+    box-shadow: 0 0 10px rgba(0, 166, 81, 0.18);
+    background: #ffffff;
 }
 
-/* Button */
+/* BUTTON */
 button {
-    margin-top: 18px;
-    padding: 11px;
-    background: #00ffd5;
-    color: #1f1f2e;
+    margin-top: 20px;
+    padding: 12px;
+    background: #00a651;
+    color: white;
     border: none;
-    border-radius: 8px;
-    font-size: 0.95rem;
-    font-weight: 600;
+    border-radius: 10px;
+    font-size: 0.97rem;
+    font-weight: 700;
     cursor: pointer;
-    transition: 0.3s;
+    transition: 0.3s ease;
 }
+
 button:hover {
-    background: #00bfa5;
+    background: #008f45;
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px rgba(0, 166, 81, 0.2);
 }
 
-/* Error Message */
+/* ERROR MESSAGE */
 .errormessage {
-    margin-top: 12px;
-    font-size: 13px;
+    margin-top: 15px;
+    font-size: 0.9rem;
     font-weight: 600;
-    color: #ff4d6d;
+    color: #d62828;
+    background: #ffeaea;
+    padding: 12px;
+    border-radius: 10px;
+    border: 1px solid #ffb3b3;
 }
 
-/* Register Link */
+/* LINKS */
+.links,
 .container p {
-    margin-top: 12px;
-    font-size: 13px;
+    margin-top: 15px;
+    font-size: 0.9rem;
+    color: #555;
 }
+
 .container a {
-    color: #00ffd5;
+    color: #00a651;
     text-decoration: none;
-    font-weight: 600;
+    font-weight: 700;
+    transition: 0.3s ease;
 }
 
-/* Animations */
+.container a:hover {
+    color: #008f45;
+}
+
+.forgot_password {
+    display: inline-block;
+    margin-top: 16px;
+}
+
+/* ANIMATIONS */
 @keyframes fadeIn {
-    from {opacity: 0; transform: translateY(15px);}
-    to {opacity: 1; transform: translateY(0);}
+    from {
+        opacity: 0;
+        transform: translateY(18px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
-/* ✅ SMALL PHONES FIX */
+/* SMALL PHONES FIX */
 @media (max-height: 600px) {
+
     body {
-        align-items: flex-start; /* allow scroll */
+        align-items: flex-start;
     }
 
     .container {
@@ -125,17 +162,19 @@ button:hover {
     }
 }
 
-/* ✅ EXTRA SMALL SCREENS */
+/* EXTRA SMALL DEVICES */
 @media (max-width: 360px) {
+
     .container {
-        padding: 20px;
+        padding: 22px;
     }
 
     .container h2 {
-        font-size: 1.4rem;
+        font-size: 1.5rem;
     }
-}
 
-.forgot_password{
-    margin-top: 20px;
+    .form-group input,
+    button {
+        font-size: 0.9rem;
+    }
 }

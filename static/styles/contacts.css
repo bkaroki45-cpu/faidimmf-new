@@ -7,7 +7,7 @@
 }
 
 body {
-    background: #f0f3ff;
+    background: #f4fff7;
     color: #333;
     line-height: 1.6;
     overflow-x: hidden;
@@ -20,7 +20,7 @@ header {
     top: 0;
     z-index: 100;
     background: rgba(255,255,255,0.95);
-    box-shadow: 0 2px 10px rgba(0,0,0,0.15);
+    box-shadow: 0 2px 10px rgba(0,0,0,0.12);
 }
 
 .navbar {
@@ -37,7 +37,7 @@ header {
     width: 62px;
     max-width: 150px;
     border-radius: 50%;
-    box-shadow: 3px 3px 10px rgba(0,0,0,0.3);
+    box-shadow: 3px 3px 10px rgba(0,0,0,0.25);
     animation: logo-bounce 2s infinite alternate ease-in-out;
     transition: transform 0.3s ease;
 }
@@ -61,32 +61,50 @@ header {
 
 .nav-links li a {
     text-decoration: none;
-    color: #1a1aff;
+    color: #008f39;
     font-weight: 600;
     transition: color 0.3s ease, transform 0.3s ease;
+    position: relative;
 }
 
 .nav-links li a:hover {
-    color: #ff6600;
-    transform: scale(1.1);
+    color: #00b140;
+    transform: scale(1.05);
+}
+
+.nav-links li a::after {
+    content: "";
+    position: absolute;
+    width: 0%;
+    height: 3px;
+    left: 0;
+    bottom: -5px;
+    background: #00c853;
+    border-radius: 10px;
+    transition: 0.3s;
+}
+
+.nav-links li a:hover::after {
+    width: 100%;
 }
 
 /* Buttons */
 .btn, .btn-hero {
     display: inline-block;
-    padding: 0.6rem 1.5rem;
+    padding: 0.65rem 1.5rem;
     border-radius: 50px;
     font-weight: 600;
     text-decoration: none;
     color: #fff;
-    background: linear-gradient(45deg, #1a1aff, #4d94ff);
+    background: #00b140;
     transition: all 0.3s ease;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    box-shadow: 0 4px 15px rgba(0,177,64,0.3);
+    border: none;
 }
 
 .btn:hover, .btn-hero:hover {
-    background: linear-gradient(45deg, #ff6600, #ff9933);
-    box-shadow: 0 6px 20px rgba(255,102,0,0.5);
+    background: #008f39;
+    box-shadow: 0 6px 20px rgba(0,177,64,0.45);
     transform: scale(1.05);
 }
 
@@ -102,7 +120,8 @@ header {
 .burger div {
     width: 25px;
     height: 3px;
-    background-color: #1a1aff;
+    background-color: #00b140;
+    border-radius: 10px;
 }
 
 /* Close button */
@@ -115,7 +134,7 @@ header {
     cursor: pointer;
     z-index: 1100;
     color: white;
-    background: #ff6600;
+    background: #00b140;
     border-radius: 50%;
     padding: 0.2rem 0.6rem;
     transition: transform 0.3s ease;
@@ -123,13 +142,14 @@ header {
 
 .close-btn:hover {
     transform: scale(1.2) rotate(90deg);
+    background: #008f39;
 }
 
 /* ===== Hero Section ===== */
 .contact-hero {
     padding: 8rem 5% 4rem 5%;
     text-align: center;
-    background: linear-gradient(135deg, #4d94ff, #1a1aff);
+    background: linear-gradient(135deg, #00b140, #007a33);
     color: #fff;
     overflow: hidden;
 }
@@ -143,11 +163,18 @@ header {
 .contact-hero p {
     font-size: 1.3rem;
     animation: slideFadeIn 1.5s ease forwards;
+    opacity: 0.95;
 }
 
 @keyframes slideFadeIn {
-    0% { opacity: 0; transform: translateY(50px);}
-    100% { opacity: 1; transform: translateY(0);}
+    0% { 
+        opacity: 0; 
+        transform: translateY(50px);
+    }
+    100% { 
+        opacity: 1; 
+        transform: translateY(0);
+    }
 }
 
 /* ===== Contact Main Section ===== */
@@ -173,16 +200,17 @@ header {
 .contact-form {
     flex: 1;
     min-width: 300px;
-    background: #fff;
+    background: #ffffff;
     padding: 2rem;
-    border-radius: 15px;
-    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+    border-radius: 18px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.08);
     animation: fadeIn 1s ease forwards;
+    border-top: 5px solid #00b140;
 }
 
 .contact-form h2 {
     margin-bottom: 1.5rem;
-    color: #1a1aff;
+    color: #008f39;
 }
 
 .contact-form .form-field {
@@ -192,18 +220,19 @@ header {
 .contact-form input, 
 .contact-form textarea {
     width: 100%;
-    padding: 0.8rem;
+    padding: 0.9rem;
     border-radius: 10px;
-    border: 1px solid #ccc;
+    border: 1px solid #d6eedd;
     font-size: 1rem;
     transition: all 0.3s ease;
+    background: #fafffb;
 }
 
 .contact-form input:focus, 
 .contact-form textarea:focus {
     outline: none;
-    border-color: #1a1aff;
-    box-shadow: 0 0 10px rgba(26,26,255,0.3);
+    border-color: #00b140;
+    box-shadow: 0 0 10px rgba(0,177,64,0.25);
 }
 
 .contact-form button {
@@ -216,9 +245,18 @@ header {
 
 /* Pulse animation */
 @keyframes pulse {
-    0% { transform: scale(1); box-shadow: 0 0 10px rgba(26,26,255,0.3);}
-    50% { transform: scale(1.05); box-shadow: 0 0 20px rgba(26,26,255,0.5);}
-    100% { transform: scale(1); box-shadow: 0 0 10px rgba(26,26,255,0.3);}
+    0% { 
+        transform: scale(1); 
+        box-shadow: 0 0 10px rgba(0,177,64,0.25);
+    }
+    50% { 
+        transform: scale(1.03); 
+        box-shadow: 0 0 20px rgba(0,177,64,0.4);
+    }
+    100% { 
+        transform: scale(1); 
+        box-shadow: 0 0 10px rgba(0,177,64,0.25);
+    }
 }
 
 /* Contact Info */
@@ -227,14 +265,15 @@ header {
     min-width: 250px;
     background: #fff;
     padding: 2rem;
-    border-radius: 15px;
-    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+    border-radius: 18px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.08);
     animation: fadeIn 1.2s ease forwards;
+    border-top: 5px solid #00b140;
 }
 
 .contact-info h2 {
     margin-bottom: 1.5rem;
-    color: #1a1aff;
+    color: #008f39;
 }
 
 .contact-info .info-item {
@@ -256,13 +295,19 @@ header {
 
 /* Fade In Animation */
 @keyframes fadeIn {
-    0% { opacity: 0; transform: translateY(20px);}
-    100% { opacity: 1; transform: translateY(0);}
+    0% { 
+        opacity: 0; 
+        transform: translateY(20px);
+    }
+    100% { 
+        opacity: 1; 
+        transform: translateY(0);
+    }
 }
 
 /* ===== Footer ===== */
 footer {
-    background: #1a1aff;
+    background: #007a33;
     color: #fff;
     padding: 2rem 5%;
     text-align: center;
@@ -272,15 +317,18 @@ footer {
 
 /* ===== Mobile Sidebar ===== */
 @media (max-width: 768px) {
-    .burger { display: flex; }
+
+    .burger { 
+        display: flex; 
+    }
 
     .nav-links {
         position: fixed;
         top: 0;
-        right: -200px;        /* hidden offscreen */
+        right: -200px;
         height: 100vh;
-        width: 180px;          /* thin sidebar */
-        background: #1a1aff;
+        width: 180px;
+        background: #008f39;
         flex-direction: column;
         padding: 5rem 1rem;
         gap: 2rem;
@@ -289,7 +337,9 @@ footer {
         z-index: 999;
     }
 
-    .nav-links.nav-active { right: 0; }
+    .nav-links.nav-active { 
+        right: 0; 
+    }
 
     .nav-links li a {
         color: white;
@@ -306,8 +356,14 @@ footer {
     .nav-links.nav-active li a:nth-child(5) { animation-delay: 0.5s; }
 
     @keyframes navSlideIn {
-        0% { opacity: 0; transform: translateX(30px); }
-        100% { opacity: 1; transform: translateX(0); }
+        0% { 
+            opacity: 0; 
+            transform: translateX(30px); 
+        }
+        100% { 
+            opacity: 1; 
+            transform: translateX(0); 
+        }
     }
 
     .contact-main {

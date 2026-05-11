@@ -62,7 +62,7 @@ header {
 
 .nav-links li a {
     text-decoration: none;
-    color: #1a1aff;
+    color: #07a507;
     font-weight: 600;
     transition: color 0.3s ease, transform 0.3s ease;
 }
@@ -80,7 +80,7 @@ header {
     font-weight: 600;
     text-decoration: none;
     color: #fff;
-    background: linear-gradient(45deg, #1a1aff, #4d94ff);
+    background: linear-gradient(270deg, #00b074, #00c853, #00e676, #00b074);
     transition: all 0.3s ease;
     box-shadow: 0 4px 15px rgba(0,0,0,0.2);
 }
@@ -103,7 +103,7 @@ header {
 .burger div {
     width: 25px;
     height: 3px;
-    background-color: #1a1aff;
+    background-color: #07a507;
 }
 
 /* Close button */
@@ -129,7 +129,7 @@ header {
 /* ===== Hero Section ===== */
 .hero {
     padding: 8rem 5% 4rem 5%;
-    background: linear-gradient(135deg, #4d94ff, #1a1aff);
+    background: linear-gradient(135deg, #07a507, #07a507);
     color: #fff;
     position: relative;
     overflow: hidden;
@@ -207,7 +207,7 @@ header {
 
 /* ===== Footer ===== */
 footer {
-    background: #1a1aff;
+    background: #07a507;
     color: #fff;
     padding: 2rem 5%;
     text-align: center;
@@ -224,7 +224,7 @@ footer {
         right: -200px;        /* hidden offscreen */
         height: 100vh;
         width: 180px;          /* thin sidebar */
-        background: #1a1aff;
+        background: #07a507;
         flex-direction: column;
         padding: 5rem 1rem;
         gap: 2rem;
@@ -269,7 +269,7 @@ footer {
     font-weight: 800;
     letter-spacing: clamp(1px, 0.5vw, 2px);
 
-    background: linear-gradient(270deg, #2563eb, #06b6d4, #9333ea, #2563eb);
+    background: linear-gradient(270deg, #00b074, #00c853, #00e676, #00b074);
     background-size: 600% 600%;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
@@ -319,7 +319,7 @@ footer {
     border-radius: 14px;
     padding: 2px;
 
-    background: linear-gradient(270deg, #2563eb, #06b6d4, #9333ea);
+    background: linear-gradient(270deg, #00b074, #00c853, #00e676, #00b074);
     background-size: 400%;
     animation: borderGlow 8s linear infinite;
 

@@ -7,147 +7,176 @@ body {
     margin: 0;
     padding: 0;
     font-family: 'Inter', sans-serif;
-    background: linear-gradient(135deg, #4f7cff, #1a2bff);
+    background: #eefaf3;
     display: flex;
     justify-content: center;
     align-items: center;
     min-height: 100vh;
-    color: #fff;
+    color: #1f2937;
 }
 
 /* Container */
 .deposit-page .deposit-container {
-    background: #1f1f2e;
-    padding: 30px;
-    border-radius: 16px;
+    background: #ffffff;
+    padding: 32px;
+    border-radius: 20px;
     width: 90%;
-    max-width: 420px;
-    box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+    max-width: 430px;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.08);
+    border-top: 6px solid #00a651;
     animation: fadeIn 1s ease forwards;
 }
 
 /* Headings */
 .deposit-container h1 {
     text-align: center;
-    font-size: 1.8rem;
-    margin-bottom: 20px;
-    color: #00ffd5;
-    letter-spacing: 1px;
-    text-shadow: 0 0 10px rgba(0,255,213,0.5);
+    font-size: 1.9rem;
+    margin-bottom: 22px;
+    color: #00a651;
+    letter-spacing: 0.5px;
+    font-weight: 700;
 }
 
 /* Current Balance Card */
 .current-balance {
-    background: linear-gradient(135deg, #667eea, #764ba2);
-    padding: 20px;
-    border-radius: 12px;
+    background: #00a651;
+    padding: 22px;
+    border-radius: 16px;
     text-align: center;
     margin-bottom: 25px;
     font-size: 1.3rem;
     font-weight: 600;
+    color: white;
     transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
+
 .current-balance:hover {
     transform: translateY(-5px);
-    box-shadow: 0 15px 25px rgba(0,0,0,0.5);
+    box-shadow: 0 15px 25px rgba(0,166,81,0.25);
 }
 
 /* Confirmation Message */
 .confirmation {
-    background: rgba(0, 255, 213, 0.1);
+    background: rgba(0, 166, 81, 0.08);
     padding: 15px 20px;
-    border-left: 4px solid #00ffd5;
-    border-radius: 8px;
-    margin-bottom: 20px;
+    border-left: 5px solid #00a651;
+    border-radius: 10px;
+    margin-bottom: 22px;
     animation: fadeIn 0.8s ease forwards;
 }
+
 .confirmation h2 {
-    margin: 0 0 5px 0;
-    font-size: 1.2rem;
-    color: #00ffd5;
+    margin: 0 0 6px 0;
+    font-size: 1.15rem;
+    color: #00a651;
 }
+
 .confirmation p {
     margin: 0;
-    font-size: 1rem;
+    font-size: 0.98rem;
+    color: #374151;
 }
 
 /* Form Styling */
 .deposit-form {
     display: flex;
     flex-direction: column;
-    gap: 15px;
+    gap: 16px;
 }
 
 .deposit-form label {
     font-weight: 600;
     font-size: 0.95rem;
+    color: #111827;
 }
 
 .deposit-form input,
 .deposit-form select {
-    padding: 12px 15px;
-    border-radius: 8px;
-    border: none;
+    padding: 13px 15px;
+    border-radius: 12px;
+    border: 1px solid #d1d5db;
     font-size: 1rem;
     outline: none;
+    background: #f9fafb;
     transition: all 0.3s ease;
 }
+
 .deposit-form input:focus,
 .deposit-form select:focus {
-    box-shadow: 0 0 10px rgba(0,255,213,0.7);
+    border-color: #00a651;
+    box-shadow: 0 0 0 4px rgba(0,166,81,0.12);
+    background: white;
 }
 
 /* Button */
 .deposit-form button {
-    padding: 12px 15px;
-    background: #00ffd5;
-    color: #1f1f2e;
+    padding: 14px 16px;
+    background: #00a651;
+    color: white;
     border: none;
-    border-radius: 8px;
+    border-radius: 12px;
     font-size: 1rem;
     font-weight: 600;
     cursor: pointer;
     transition: all 0.3s ease;
 }
+
 .deposit-form button:hover {
-    background: #00bfa5;
+    background: #008f47;
     transform: translateY(-3px);
-    box-shadow: 0 10px 20px rgba(0,0,0,0.4);
+    box-shadow: 0 12px 22px rgba(0,166,81,0.25);
 }
 
 /* Return to Dashboard */
 .return-dashboard {
     text-align: center;
-    margin-top: 20px;
+    margin-top: 22px;
 }
+
 .return-dashboard .btn-dashboard {
-    color: #00ffd5;
+    color: #00a651;
     text-decoration: none;
     font-weight: 600;
     transition: all 0.3s ease;
 }
+
 .return-dashboard .btn-dashboard:hover {
-    color: #00bfa5;
-    text-shadow: 0 0 8px rgba(0,255,213,0.5);
+    color: #008f47;
 }
 
 /* Animations */
 @keyframes fadeIn {
-    0% {opacity: 0; transform: translateY(20px);}
-    100% {opacity: 1; transform: translateY(0);}
+    0% {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 /* Responsive */
 @media (max-width: 480px) {
-    .deposit-container {
-        padding: 20px;
+
+    .deposit-page .deposit-container {
+        padding: 22px;
+        border-radius: 16px;
     }
+
     .current-balance {
         font-size: 1.1rem;
+        padding: 18px;
     }
+
     .deposit-form input,
     .deposit-form select,
     .deposit-form button {
         font-size: 0.95rem;
+    }
+
+    .deposit-container h1 {
+        font-size: 1.6rem;
     }
 }

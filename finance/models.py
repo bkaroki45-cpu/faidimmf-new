@@ -362,7 +362,7 @@ class InvestmentTracking(models.Model):
     interest_rate = models.DecimalField(
         max_digits=5,
         decimal_places=4,
-        default=Decimal('0.005')  # 0.5% daily
+        default=Decimal('0.03')  # 3% daily
     )
 
     invested_at = models.DateTimeField(default=timezone.now)

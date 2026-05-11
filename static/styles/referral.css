@@ -1,5 +1,6 @@
 /* ------------------------------
    ENHANCED REFERRAL/DASHBOARD
+   SAFARICOM GREEN THEME
 -------------------------------- */
 * {
     margin: 0;
@@ -9,26 +10,28 @@
 }
 
 body {
-    background: linear-gradient(135deg, #667eea, #764ba2);
+    background: #f3fff7;
     padding: 15px;
     display: flex;
     justify-content: center;
     min-height: 100vh;
 }
 
+/* MAIN CONTAINER */
 .container {
     max-width: 950px;
     width: 100%;
-    background: #fff;
+    background: #ffffff;
     padding: 25px 20px;
-    border-radius: 15px;
-    box-shadow: 0 15px 40px rgba(0,0,0,0.15);
+    border-radius: 18px;
+    box-shadow: 0 15px 40px rgba(0, 166, 81, 0.12);
+    border: 1px solid #d9f5e3;
 }
 
-/* Headings */
+/* HEADINGS */
 h2, h3 {
     text-align: center;
-    color: #1a2bff;
+    color: #00a651;
     margin-bottom: 15px;
 }
 
@@ -40,156 +43,208 @@ h2 {
 
 h2::after {
     content: "";
-    width: 50px;
-    height: 3px;
-    background: #4f7cff;
+    width: 55px;
+    height: 4px;
+    background: #00c853;
     display: block;
-    margin: 8px auto 0;
-    border-radius: 2px;
+    margin: 10px auto 0;
+    border-radius: 20px;
 }
 
-/* Referral Link */
+/* REFERRAL LINK */
 .referral-box p {
     font-weight: 600;
-    
+    color: #333;
 }
 
 .link-box {
     display: flex;
     gap: 10px;
     flex-wrap: wrap;
-    margin-top: 10px;
+    margin-top: 12px;
 }
 
 .link-box input {
     flex: 1;
-    padding: 12px;
-    border: 1px solid #ccc;
-    border-radius: 8px;
+    padding: 13px;
+    border: 1px solid #ccebd8;
+    border-radius: 10px;
+    background: #f8fffb;
+    transition: 0.3s ease;
+    font-size: 0.95rem;
 }
 
 .link-box input:focus {
-    border-color: #4f7cff;
+    border-color: #00a651;
     outline: none;
-    box-shadow: 0 4px 15px rgba(79,124,255,0.3);
+    box-shadow: 0 0 10px rgba(0, 166, 81, 0.2);
+    background: white;
 }
 
 .link-box button {
-    padding: 12px 20px;
-    background: linear-gradient(45deg,#4f7cff,#1a2bff);
+    padding: 13px 22px;
+    background: #00a651;
     color: white;
     border: none;
-    border-radius: 8px;
+    border-radius: 10px;
     cursor: pointer;
-    font-weight: bold;
-    box-shadow: 0 8px 20px rgba(79,124,255,0.3);
+    font-weight: 700;
     transition: all 0.3s ease;
+    box-shadow: 0 8px 20px rgba(0, 166, 81, 0.2);
 }
 
 .link-box button:hover {
-    transform: translateY(-3px) scale(1.05);
-    background: linear-gradient(45deg,#1a2bff,#4f7cff);
-    box-shadow: 0 12px 25px rgba(79,124,255,0.5);
+    transform: translateY(-3px);
+    background: #008f45;
+    box-shadow: 0 12px 25px rgba(0, 166, 81, 0.3);
 }
 
-/* Stats Cards */
+/* STATS CARDS */
 .stats {
     display: flex;
     gap: 20px;
     flex-wrap: wrap;
     justify-content: center;
     margin-bottom: 25px;
-    margin-top: 10px;
+    margin-top: 15px;
 }
 
 .card {
     flex: 1;
     min-width: 200px;
-    background: linear-gradient(135deg,#1a2bff,#4f7cff);
+    background: linear-gradient(135deg, #00a651, #00c853);
     color: white;
-    padding: 20px 15px;
-    border-radius: 12px;
+    padding: 22px 15px;
+    border-radius: 15px;
     text-align: center;
-    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+    box-shadow: 0 10px 25px rgba(0, 166, 81, 0.18);
+    transition: 0.3s ease;
 }
 
-.card h3 { font-size: 20px; margin-bottom: 8px; }
-.card p { font-size: 16px; font-weight: 500; }
+.card:hover {
+    transform: translateY(-5px);
+}
 
-/* Table wrapper */
+.card h3 {
+    font-size: 20px;
+    margin-bottom: 8px;
+    color: white;
+}
+
+.card p {
+    font-size: 16px;
+    font-weight: 500;
+}
+
+/* TABLE WRAPPER */
 .table-wrapper {
     width: 100%;
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
 }
 
-/* Desktop Table */
+/* TABLE */
 table {
     width: 100%;
     border-collapse: collapse;
     margin-top: 20px;
     min-width: 600px;
+    overflow: hidden;
+    border-radius: 12px;
 }
 
 th, td {
-    padding: 12px 8px;
+    padding: 14px 10px;
     text-align: center;
 }
 
 th {
-    background: linear-gradient(45deg,#4f7cff,#1a2bff);
+    background: #00a651;
     color: white;
+    font-weight: 700;
 }
 
-.active { color: #28a745; font-weight: bold; }
-.inactive { color: #ff9800; font-weight: bold; }
-.failed { color: #dc3545; font-weight: bold; }
+td {
+    border-bottom: 1px solid #e9f7ef;
+    color: #333;
+}
 
-/* Mobile Cards */
-.mobile-cards { display: none; }
+tr:hover {
+    background: #f5fff8;
+}
+
+/* STATUS */
+.active {
+    color: #00a651;
+    font-weight: bold;
+}
+
+.inactive {
+    color: #ff9800;
+    font-weight: bold;
+}
+
+.failed {
+    color: #dc3545;
+    font-weight: bold;
+}
+
+/* MOBILE CARDS */
+.mobile-cards {
+    display: none;
+}
 
 .table-card {
-    background: linear-gradient(135deg,#1a2bff,#4f7cff);
+    background: linear-gradient(135deg, #00a651, #00c853);
     color: white;
-    padding: 15px 12px;
-    margin-bottom: 12px;
-    border-radius: 12px;
-    box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+    padding: 16px 14px;
+    margin-bottom: 14px;
+    border-radius: 14px;
+    box-shadow: 0 8px 20px rgba(0, 166, 81, 0.18);
 }
 
 .table-card p {
-    margin: 5px 0;
-    font-size: 0.9rem;
+    margin: 6px 0;
+    font-size: 0.92rem;
 }
 
-.table-card .status { font-weight: bold; }
+.table-card .status {
+    font-weight: bold;
+}
 
-/* Return Dashboard Button */
+/* RETURN DASHBOARD BUTTON */
 .return-dashboard {
-    margin-top: 20px;
+    margin-top: 25px;
     text-align: center;
 }
 
 .btn-dashboard {
     display: inline-block;
-    padding: 10px 20px;
-    background: linear-gradient(45deg,#4f7cff,#1a2bff);
+    padding: 12px 24px;
+    background: #00a651;
     color: white;
     border-radius: 10px;
-    font-weight: bold;
+    font-weight: 700;
     text-decoration: none;
-    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 8px 20px rgba(0, 166, 81, 0.2);
 }
 
 .btn-dashboard:hover {
-    transform: translateY(-3px) scale(1.05);
-    background: linear-gradient(45deg,#1a2bff,#4f7cff);
+    transform: translateY(-3px);
+    background: #008f45;
 }
 
-/* Responsive */
+/* RESPONSIVE */
 @media(max-width:768px){
-    table { display: none; } /* hide table */
-    .mobile-cards { display: block; }
+
+    table {
+        display: none;
+    }
+
+    .mobile-cards {
+        display: block;
+    }
 
     .stats {
         flex-direction: column;
@@ -200,15 +255,30 @@ th {
         flex-direction: column;
     }
 
-    .link-box input, .link-box button {
+    .link-box input,
+    .link-box button {
         width: 100%;
     }
 }
 
-/* Extra small phones */
+/* EXTRA SMALL PHONES */
 @media(max-width:360px){
-    h2 { font-size: 1.4rem; }
-    .card h3 { font-size: 18px; }
-    .card p { font-size: 14px; }
-    .link-box input, .link-box button { font-size: 0.85rem; padding: 10px; }
+
+    h2 {
+        font-size: 1.4rem;
+    }
+
+    .card h3 {
+        font-size: 18px;
+    }
+
+    .card p {
+        font-size: 14px;
+    }
+
+    .link-box input,
+    .link-box button {
+        font-size: 0.85rem;
+        padding: 10px;
+    }
 }

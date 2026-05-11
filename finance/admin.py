@@ -241,6 +241,34 @@ def mark_withdrawal_paid(self, request, queryset):
             CompanyAccount.post_transaction(tx)
         except Exception as e:
             print("Ledger error:", e)
+from django.contrib import admin
+from django.utils.html import format_html
+from django.utils.safestring import mark_safe
+from django.utils import timezone
+
+from .models import Transaction, Wallet, CompanyAccount
+
+
+# =========================
+# HELPER BADGE
+# =========================
+def render_badge(color, text):
+    return mark_safe(
+        f'''
+        <span style="
+            background:{color};
+            color:white;
+            padding:4px 10px;
+            border-radius:20px;
+            font-size:12px;
+            font-weight:bold;
+        ">
+            {text}
+        </span>
+        '''
+    )
+
+
 # =========================
 # TRANSACTION ADMIN
 # =========================
@@ -260,15 +288,23 @@ class TransactionAdmin(admin.ModelAdmin):
     )
 
     list_filter = ('tx_type', 'status')
-    search_fields = ('user__username', 'user__phone')
 
-    actions = ['mark_withdrawal_paid', 'reject_withdrawals']
+    search_fields = (
+        'user__username',
+        'user__phone'
+    )
+
+    actions = [
+        'mark_withdrawal_paid',
+        'reject_withdrawals'
+    ]
 
     # -----------------------
     # PHONE NUMBER
     # -----------------------
     def phone_number(self, obj):
-        return obj.user.phone if hasattr(obj.user, 'phone') else "No phone"
+        return getattr(obj.user, 'phone', 'No phone')
+
     phone_number.short_description = "Phone"
 
     # -----------------------
@@ -277,12 +313,14 @@ class TransactionAdmin(admin.ModelAdmin):
     def wallet_balance(self, obj):
         wallet = Wallet.objects.filter(user=obj.user).first()
         return wallet.balance if wallet else 0
+
     wallet_balance.short_description = "Wallet Balance"
 
     # -----------------------
-    # STATUS BADGE (KEEP YOUR STYLE)
+    # STATUS BADGE
     # -----------------------
     def status_badge(self, obj):
+
         color = {
             'pending': '#f59e0b',
             'completed': '#10b981',
@@ -291,37 +329,58 @@ class TransactionAdmin(admin.ModelAdmin):
 
         return render_badge(color, obj.status)
 
-    status_badge.short_description = 'Status'
+    status_badge.short_description = "Status"
 
     # -----------------------
     # ACTION BUTTONS
     # -----------------------
     def action_buttons(self, obj):
+
         if obj.tx_type == "withdraw" and obj.status == "pending":
-            return format_html(
-                '<span style="color:orange;font-weight:bold;">Pending Approval</span>'
+
+            return mark_safe(
+                '''
+                <span style="
+                    color:orange;
+                    font-weight:bold;
+                ">
+                    Pending Approval
+                </span>
+                '''
             )
+
         return "—"
 
     action_buttons.short_description = "Action"
 
-    # -----------------------
-    # APPROVE WITHDRAWAL (MARK PAID)
-    # -----------------------
+    # =========================
+    # MARK WITHDRAWAL AS PAID
+    # =========================
     @admin.action(description="Mark selected withdrawals as PAID")
     def mark_withdrawal_paid(self, request, queryset):
 
-        reserve_account = CompanyAccount.objects.filter(account_type="reserve").first()
+        reserve_account = CompanyAccount.objects.filter(
+            account_type="reserve"
+        ).first()
 
         if not reserve_account:
+            self.message_user(
+                request,
+                "Reserve account missing."
+            )
             return
 
         for tx in queryset:
 
-            if tx.tx_type != "withdraw" or tx.status != "pending":
+            if tx.tx_type != "withdraw":
                 continue
 
-            wallet = Wallet.objects.filter(user=tx.user).first()
+            if tx.status != "pending":
+                continue
+
+            wallet = Wallet.objects.filter(
+                user=tx.user
+            ).first()
 
             if not wallet:
                 continue
@@ -338,71 +397,51 @@ class TransactionAdmin(admin.ModelAdmin):
                 continue
 
             # -----------------------
-            # 1. Deduct USER WALLET
-            # -----------------------
-            wallet.balance -= amount
-            wallet.save()
-
-            # -----------------------
-            # 2. Deduct RESERVE ACCOUNT
-            # -----------------------
-            reserve_account.balance -= amount
-            reserve_account.save()
-
-            # -----------------------
-            # 3. UPDATE TRANSACTION
+            # UPDATE TRANSACTION
             # -----------------------
             tx.status = "completed"
             tx.result_desc = "Paid manually via M-Pesa Till"
             tx.completed_at = timezone.now()
+
             tx.save()
 
             # -----------------------
-            # 4. LEDGER (optional safe call)
+            # LEDGER POST
             # -----------------------
             try:
                 CompanyAccount.post_transaction(tx)
+
             except Exception as e:
-                print("Ledger error:", e)
+                print("Ledger error:", str(e))
 
-    # -----------------------
-    # REJECT WITHDRAWAL
-    # -----------------------
+        self.message_user(
+            request,
+            "Selected withdrawals marked as paid."
+        )
+
+    # =========================
+    # REJECT WITHDRAWALS
+    # =========================
     @admin.action(description="Reject selected withdrawals")
     def reject_withdrawals(self, request, queryset):
 
+        updated = 0
+
         for tx in queryset:
+
             if tx.tx_type == "withdraw" and tx.status == "pending":
+
                 tx.status = "failed"
                 tx.result_desc = "Rejected by admin"
+
                 tx.save()
 
-    # -----------------------
-    # BULK APPROVE (MARK PAID)
-    # -----------------------
-    @admin.action(description="Mark selected withdrawals as PAID")
-    def mark_withdrawal_paid(self, request, queryset):
-        for tx in queryset:
-            if tx.tx_type == "withdraw" and tx.status == "pending":
-                tx.status = "completed"
-                tx.result_desc = "Paid manually via M-Pesa Till"
-                tx.completed_at = timezone.now()
-                tx.save()
+                updated += 1
 
-                CompanyAccount.post_transaction(tx)
-
-    # -----------------------
-    # BULK REJECT
-    # -----------------------
-    @admin.action(description="Reject selected withdrawals")
-    def reject_withdrawals(self, request, queryset):
-        for tx in queryset:
-            if tx.tx_type == "withdraw" and tx.status == "pending":
-                tx.status = "failed"
-                tx.result_desc = "Rejected by admin"
-                tx.save()
-
-
+        self.message_user(
+            request,
+            f"{updated} withdrawal(s) rejected."
+        )
 
 # =========================
 # INVESTMENT ADMIN
