@@ -1,5 +1,5 @@
 /* ------------------------------
-   ENHANCED FORM (MOBILE PERFECT)
+   ENHANCED FORM - SAFARICOM GREEN THEME
 -------------------------------- */
 *{
     margin:0;
@@ -10,32 +10,34 @@
 
 /* Background */
 body{
-    min-height:100vh; /* FIX */
+    min-height:100vh;
     display:flex;
     justify-content:center;
     align-items:center;
-    background: linear-gradient(135deg,#4f7cff,#1a2bff);
-    padding:15px; /* prevents edge touching */
+    background:#f1fdf5;
+    padding:15px;
 }
 
 /* Container */
 .container{
-    background: #1f1f2e;
-    padding: 30px 25px;
-    width: 100%;
-    max-width: 380px; /* FIX */
-    border-radius: 16px;
-    box-shadow: 0 15px 35px rgba(0,0,0,0.4);
-    text-align: center;
-    color: #fff;
-    animation: fadeIn 0.8s ease forwards;
+    background:#ffffff;
+    padding:30px 25px;
+    width:100%;
+    max-width:380px;
+    border-radius:18px;
+    border:1px solid #d8f5e3;
+    box-shadow:0 10px 35px rgba(0, 128, 55, 0.12);
+    text-align:center;
+    color:#1f2937;
+    animation:fadeIn 0.8s ease forwards;
 }
 
 /* Title */
 .container h2{
     margin-bottom:20px;
-    color:#00ffd5;
-    font-size:1.6rem;
+    color:#00a94f;
+    font-size:1.7rem;
+    font-weight:700;
 }
 
 /* Form */
@@ -49,78 +51,96 @@ form{
 /* Labels */
 label{
     font-weight:600;
-    color:#ccc;
+    color:#374151;
     font-size:0.85rem;
 }
 
 /* Inputs */
 input{
     width:100%;
-    padding:11px;
-    border:1px solid #333;
-    border-radius:8px;
+    padding:12px;
+    border:1px solid #cfe8d7;
+    border-radius:10px;
     outline:none;
     font-size:0.95rem;
-    background: #2a2a3d;
-    color:#fff;
-    transition: 0.3s;
+    background:#f9fffb;
+    color:#1f2937;
+    transition:0.3s ease;
 }
 
 /* Focus */
 input:focus{
-    border-color:#00ffd5;
-    box-shadow: 0 0 8px rgba(0,255,213,0.6);
+    border-color:#00a94f;
+    background:#ffffff;
+    box-shadow:0 0 0 4px rgba(0, 169, 79, 0.15);
 }
 
 /* Button */
 .btn{
     width:100%;
     margin-top:15px;
-    padding:11px;
-    background:#00ffd5;
-    color:#1f1f2e;
+    padding:12px;
+    background:#00a94f;
+    color:white;
     border:none;
-    border-radius:8px;
+    border-radius:10px;
     font-size:0.95rem;
     font-weight:600;
     cursor:pointer;
-    transition:0.3s;
+    transition:0.3s ease;
+    box-shadow:0 6px 18px rgba(0, 169, 79, 0.25);
 }
+
 .btn:hover{
-    background:#00bfa5;
+    background:#008f43;
+    transform:translateY(-2px);
+    box-shadow:0 10px 22px rgba(0, 143, 67, 0.35);
 }
 
 /* Help text */
 .helptext{
     font-size:11px;
-    color:#777;
+    color:#6b7280;
 }
 
 /* Errors */
 .errorlist{
-    color:#ff4d6d;
+    color:#e11d48;
     font-size:12px;
     list-style:none;
     margin-bottom:8px;
+    font-weight:600;
 }
 
 /* Login link */
 .login-link {
-    color: #00ffd5;
-    font-weight: 600;
-    text-decoration: underline;
+    color:#00a94f;
+    font-weight:600;
+    text-decoration:none;
+    transition:0.3s;
+}
+
+.login-link:hover{
+    color:#008f43;
+    text-decoration:underline;
 }
 
 /* Animations */
 @keyframes fadeIn {
-    from {opacity:0; transform: translateY(15px);}
-    to {opacity:1; transform: translateY(0);}
+    from {
+        opacity:0;
+        transform:translateY(15px);
+    }
+    to {
+        opacity:1;
+        transform:translateY(0);
+    }
 }
 
-/* ✅ VERY IMPORTANT FIX (SMALL HEIGHT PHONES) */
-@media (max-height: 650px){
+/* Small Height Phones */
+@media (max-height:650px){
     body{
-        align-items:flex-start; /* allows scroll */
+        align-items:flex-start;
     }
 
     .container{
@@ -128,11 +148,11 @@ input:focus{
     }
 }
 
-/* ✅ MOBILE WIDTH */
+/* Mobile Width */
 @media(max-width:480px){
     .container{
         padding:20px;
-        border-radius:12px;
+        border-radius:14px;
     }
 
     input,
@@ -141,7 +161,7 @@ input:focus{
     }
 }
 
-/* ✅ EXTRA SMALL PHONES */
+/* Extra Small Phones */
 @media (max-width:360px){
     .container{
         padding:15px;

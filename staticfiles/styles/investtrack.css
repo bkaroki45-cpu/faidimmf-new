@@ -1,11 +1,11 @@
 /* ------------------------------
-   DASHBOARD STYLING
+   DASHBOARD STYLING - SAFARICOM GREEN THEME
 -------------------------------- */
 
 /* GENERAL BODY */
 body {
     font-family: 'Arial', sans-serif;
-    background: linear-gradient(135deg, #667eea, #764ba2);
+    background: linear-gradient(135deg, #00a651, #007a33);
     margin: 0;
     padding: 20px 0;
     display: flex;
@@ -45,7 +45,7 @@ h2 {
 /* INDIVIDUAL CARD */
 .card {
     flex: 1 1 45%;
-    background: #fff;
+    background: #ffffff;
     padding: 25px;
     border-radius: 15px;
     box-shadow: 0px 8px 20px rgba(0,0,0,0.15);
@@ -53,34 +53,35 @@ h2 {
     transition: transform 0.3s ease, box-shadow 0.3s ease, background 0.3s ease;
     cursor: pointer;
     min-width: 200px;
+    border-top: 5px solid #00a651;
 }
 
 .card:hover {
     transform: translateY(-8px);
     box-shadow: 0px 12px 25px rgba(0,0,0,0.25);
-    background: #f0f4ff;
+    background: #f1fff7;
 }
 
 .card h3 {
     margin-bottom: 12px;
     font-size: 18px;
-    color: #333;
+    color: #007a33;
     transition: color 0.3s;
 }
 
 .card p {
     font-size: 26px;
     font-weight: bold;
-    color: #1a2bff;
+    color: #00a651;
     transition: color 0.3s;
 }
 
 .card:hover h3 {
-    color: #1a2bff;
+    color: #00a651;
 }
 
 .card:hover p {
-    color: #4a6cff;
+    color: #008c44;
 }
 
 /* HISTORY TABLE */
@@ -103,7 +104,8 @@ h2 {
     min-width: 600px;
 }
 
-.history th, .history td {
+.history th,
+.history td {
     padding: 15px;
     text-align: left;
     border-bottom: 1px solid #ddd;
@@ -111,13 +113,13 @@ h2 {
 }
 
 .history th {
-    background-color: #1a2bff;
+    background-color: #00a651;
     color: #fff;
     font-weight: 600;
 }
 
 .history tr:hover {
-    background-color: #e6f0ff;
+    background-color: #ecfff4;
     transform: scale(1.01);
 }
 
@@ -129,7 +131,7 @@ h2 {
 .no-data {
     text-align: center;
     padding: 25px;
-    color: #888;
+    color: #666;
     font-style: italic;
 }
 
@@ -142,7 +144,7 @@ h2 {
 .btn-dashboard {
     display: inline-block;
     padding: 12px 25px;
-    background-color: #4a90e2;
+    background-color: #00a651;
     color: white;
     text-decoration: none;
     border-radius: 8px;
@@ -152,7 +154,7 @@ h2 {
 }
 
 .btn-dashboard:hover {
-    background-color: #357ab7;
+    background-color: #007a33;
     transform: translateY(-3px);
     box-shadow: 0px 8px 15px rgba(0,0,0,0.3);
 }
@@ -161,14 +163,14 @@ h2 {
 .btn-redeem {
     display: inline-block;
     padding: 15px 35px;
-    background: linear-gradient(135deg, #ff7e5f, #feb47b);
+    background: #00a651;
     color: white;
     font-weight: 700;
     font-size: 1rem;
     border: none;
     border-radius: 50px;
     cursor: pointer;
-    box-shadow: 0 6px 20px rgba(255, 126, 95, 0.4);
+    box-shadow: 0 6px 20px rgba(0,166,81,0.4);
     transition: all 0.4s ease;
     position: relative;
     overflow: hidden;
@@ -183,7 +185,7 @@ h2 {
     left: -75%;
     width: 50%;
     height: 100%;
-    background: rgba(255, 255, 255, 0.3);
+    background: rgba(255,255,255,0.3);
     transform: skewX(-25deg);
     transition: all 0.5s ease;
 }
@@ -194,22 +196,23 @@ h2 {
 
 .btn-redeem:hover {
     transform: translateY(-5px) scale(1.05);
-    box-shadow: 0 10px 25px rgba(255, 126, 95, 0.5);
-    background: linear-gradient(135deg, #feb47b, #ff7e5f);
+    box-shadow: 0 10px 25px rgba(0,166,81,0.5);
+    background: #007a33;
 }
 
 .btn-redeem:active {
     transform: translateY(0px) scale(0.98);
-    box-shadow: 0 5px 15px rgba(255, 126, 95, 0.4);
+    box-shadow: 0 5px 15px rgba(0,166,81,0.4);
 }
 
+/* REDEEM NOTICE */
 .redeemed-notice {
-    background: #d4edda;
-    border-left: 5px solid #28a745;
+    background: #eafff1;
+    border-left: 5px solid #00a651;
     padding: 15px 20px;
     margin-bottom: 20px;
     border-radius: 8px;
-    color: #155724;
+    color: #007a33;
     animation: fadeIn 0.8s ease-in-out;
 }
 
@@ -225,28 +228,17 @@ h2 {
 
 /* RESPONSIVE */
 @media (max-width: 768px) {
-    .btn-redeem {
-        padding: 12px 28px;
-        font-size: 0.95rem;
-    }
-}
-
-@media (max-width: 400px) {
-    .btn-redeem {
-        padding: 10px 22px;
-        font-size: 0.9rem;
-    }
-}
-
-/* ------------------------------
-   RESPONSIVE
--------------------------------- */
-@media (max-width: 768px) {
     .wallet-investment {
         flex-direction: column;
     }
+
     .card {
         flex: 1 1 100%;
+    }
+
+    .btn-redeem {
+        padding: 12px 28px;
+        font-size: 0.95rem;
     }
 }
 
@@ -263,7 +255,8 @@ h2 {
         font-size: 22px;
     }
 
-    .history th, .history td {
+    .history th,
+    .history td {
         padding: 12px 8px;
     }
 
@@ -277,27 +270,36 @@ h2 {
     h2 {
         font-size: 1.4rem;
     }
+
     .card p {
         font-size: 20px;
     }
+
+    .btn-redeem {
+        padding: 10px 22px;
+        font-size: 0.9rem;
+    }
 }
 
-/* ------------------------------
-   ANIMATIONS
--------------------------------- */
+/* ANIMATIONS */
 @keyframes fadeIn {
     0% {opacity: 0;}
     100% {opacity: 1;}
 }
 
 @keyframes slideIn {
-    0% {opacity: 0; transform: translateY(-20px);}
-    100% {opacity: 1; transform: translateY(0);}
+    0% {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
-/* ------------------------------
-   MESSAGES STYLING
--------------------------------- */
+/* MESSAGES STYLING */
 .messages-container {
     margin-bottom: 20px;
     display: flex;
@@ -318,17 +320,17 @@ h2 {
 
 /* Success messages */
 .message.success {
-    background: linear-gradient(135deg, #6dd5ed, #2193b0);
+    background: #00a651;
 }
 
 /* Info messages */
 .message.info {
-    background: linear-gradient(135deg, #f6d365, #fda085);
+    background: #00994d;
 }
 
 /* Error messages */
 .message.error {
-    background: linear-gradient(135deg, #f85032, #e73827);
+    background: #d62828;
 }
 
 /* Hover effect */
@@ -347,6 +349,13 @@ h2 {
 
 /* Animation */
 @keyframes slideFadeIn {
-    0% { opacity: 0; transform: translateY(-10px); }
-    100% { opacity: 1; transform: translateY(0); }
+    0% {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }

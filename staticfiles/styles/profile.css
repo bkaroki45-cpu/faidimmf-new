@@ -7,13 +7,14 @@
 
 body {
     font-family: 'Poppins', sans-serif;
-    background: linear-gradient(to right, #6a11cb, #2575fc);
+    background: #eefaf3;
     margin: 0;
     padding: 15px;
     min-height: 100vh;
     display: flex;
     justify-content: center;
     align-items: center;
+    color: #1f2937;
 }
 
 /* ------------------------------
@@ -23,19 +24,22 @@ body {
     width: 100%;
     max-width: 500px;
     background: white;
-    border-radius: 15px;
-    padding: 25px;
-    box-shadow: 0 15px 25px rgba(0,0,0,0.2);
+    border-radius: 20px;
+    padding: 28px;
+    box-shadow: 0 15px 35px rgba(0,0,0,0.08);
+    border-top: 6px solid #00a651;
     animation: fadeIn 0.8s ease-in-out;
 }
 
 /* ------------------------------
    HEADINGS
 -------------------------------- */
-h2, h3 {
+h2,
+h3 {
     text-align: center;
-    color: #333;
-    margin-bottom: 10px;
+    color: #00a651;
+    margin-bottom: 12px;
+    font-weight: 700;
 }
 
 /* ------------------------------
@@ -43,17 +47,21 @@ h2, h3 {
 -------------------------------- */
 input {
     width: 100%;
-    padding: 11px 14px;
+    padding: 13px 15px;
     margin: 8px 0;
-    border-radius: 8px;
-    border: 1px solid #ccc;
+    border-radius: 12px;
+    border: 1px solid #d1d5db;
     font-size: 0.95rem;
-    transition: 0.3s;
+    background: #f9fafb;
+    transition: all 0.3s ease;
+    color: #111827;
 }
 
 input:focus {
-    border-color: #2575fc;
-    box-shadow: 0 0 5px rgba(37, 117, 252, 0.5);
+    outline: none;
+    border-color: #00a651;
+    box-shadow: 0 0 0 4px rgba(0,166,81,0.12);
+    background: white;
 }
 
 /* ------------------------------
@@ -61,68 +69,70 @@ input:focus {
 -------------------------------- */
 button {
     width: 100%;
-    padding: 11px;
-    margin-top: 10px;
-    background: #2575fc;
+    padding: 13px;
+    margin-top: 12px;
+    background: #00a651;
     color: white;
     border: none;
-    border-radius: 8px;
-    font-size: 0.95rem;
+    border-radius: 12px;
+    font-size: 0.96rem;
+    font-weight: 600;
     cursor: pointer;
-    transition: 0.3s;
+    transition: all 0.3s ease;
 }
 
 button:hover {
-    background: #6a11cb;
+    background: #008f47;
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px rgba(0,166,81,0.2);
 }
 
 /* ------------------------------
    PIN SECTION
 -------------------------------- */
 .pin-section {
-    margin-top: 20px;
+    margin-top: 24px;
+    padding-top: 15px;
+    border-top: 1px solid #e5e7eb;
 }
 
 /* ------------------------------
-   🔥 FIXED MESSAGES SYSTEM (IMPORTANT)
+   MESSAGES
 -------------------------------- */
-
-/* container */
 .messages {
     margin-bottom: 15px;
 }
 
-/* base message style */
 .message {
     padding: 14px;
     margin: 10px 0;
-    border-radius: 10px;
+    border-radius: 12px;
     font-size: 0.95rem;
-    font-weight: 700;
+    font-weight: 600;
     text-align: center;
     animation: fadeIn 0.4s ease;
     word-wrap: break-word;
 }
 
-/* success */
+/* Success */
 .message.success {
-    background: #d4edda;
-    color: #155724;
-    border: 1px solid #28a745;
+    background: #dcfce7;
+    color: #166534;
+    border: 1px solid #22c55e;
 }
 
-/* error */
+/* Error */
 .message.error {
-    background: #f8d7da;
-    color: #721c24;
-    border: 1px solid #dc3545;
+    background: #fee2e2;
+    color: #991b1b;
+    border: 1px solid #ef4444;
 }
 
-/* info */
+/* Info */
 .message.info {
-    background: #d1ecf1;
-    color: #0c5460;
-    border: 1px solid #17a2b8;
+    background: #d1fae5;
+    color: #065f46;
+    border: 1px solid #10b981;
 }
 
 /* ------------------------------
@@ -130,19 +140,18 @@ button:hover {
 -------------------------------- */
 .return-dashboard {
     text-align: center;
-    margin-top: 15px;
+    margin-top: 20px;
 }
 
 .return-dashboard .btn-dashboard {
-    color: #00bfa5;
+    color: #00a651;
     text-decoration: none;
     font-weight: 600;
     transition: 0.3s;
 }
 
 .return-dashboard .btn-dashboard:hover {
-    color: #2575fc;
-    text-shadow: 0 0 8px rgba(37,117,252,0.3);
+    color: #008f47;
 }
 
 /* ------------------------------
@@ -153,6 +162,7 @@ button:hover {
         opacity: 0;
         transform: translateY(-15px);
     }
+
     to {
         opacity: 1;
         transform: translateY(0);
@@ -163,13 +173,19 @@ button:hover {
    MOBILE
 -------------------------------- */
 @media (max-width: 600px) {
+
     .profile-container {
-        padding: 20px;
-        border-radius: 12px;
+        padding: 22px;
+        border-radius: 16px;
     }
 
-    input, button {
+    input,
+    button {
         font-size: 0.9rem;
-        padding: 10px 12px;
+        padding: 11px 13px;
+    }
+
+    h2 {
+        font-size: 1.5rem;
     }
 }

@@ -53,7 +53,7 @@ def stk_push(request):
         "PartyB": shortcode,
         "PhoneNumber": phone,
         "CallBackURL": settings.STK_CALLBACK_URL,
-        "AccountReference": "SMMF",
+        "AccountReference": "FMMF",
         "TransactionDesc": "Deposit"
     }
 
