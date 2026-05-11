@@ -26,7 +26,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.getenv("SECRET_KEY")
+SECRET_KEY = 'django-insecure-lmWGbj8GzUjoFo90YmL1Irer06JRWnACThVpWY4N8xguSFYkZgYbT9qIbTk9XjcgXd0'
+
+
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -35,6 +37,8 @@ ALLOWED_HOSTS = [
     '127.0.0.1',
     'localhost',
     'ghostlier-cloudily-coleman.ngrok-free.dev',
+    'faidii.com',
+
 ]
 
 
@@ -135,6 +139,7 @@ STATICFILES_DIRS = (
     os.path.join(BASE_DIR, "static"),  
 )
 
+STATIC_ROOT = BASE_DIR / 'staticfiles'
 LOGIN_URL = '/user/login/'
 LOGIN_REDIRECT_URL = 'user:profile'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
