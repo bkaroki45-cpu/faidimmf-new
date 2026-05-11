@@ -1,0 +1,141 @@
+/* ------------------------------
+   ENHANCED LOGIN PAGE (MOBILE PERFECT)
+-------------------------------- */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Arial', 'Helvetica', sans-serif;
+}
+
+/* Page Background */
+body {
+    min-height: 100vh; /* better than fixed height */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: linear-gradient(135deg, #4f7cff, #1a2bff);
+    padding: 15px; /* prevents touching screen edges */
+}
+
+/* Login Container */
+.container {
+    background: #1f1f2e;
+    padding: 30px 25px;
+    width: 100%;
+    max-width: 350px; /* prevents overflow */
+    border-radius: 16px;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4);
+    text-align: center;
+    animation: fadeIn 0.8s ease forwards;
+    color: #fff;
+}
+
+/* Title */
+.container h2 {
+    margin-bottom: 20px;
+    color: #00ffd5;
+    font-size: 1.6rem;
+}
+
+/* Form Group */
+.form-group {
+    display: flex;
+    flex-direction: column;
+    text-align: left;
+}
+
+/* Labels */
+.form-group label {
+    margin-top: 10px;
+    font-weight: 600;
+    font-size: 13px;
+    color: #ccc;
+}
+
+/* Inputs */
+.form-group input {
+    margin-top: 5px;
+    padding: 11px;
+    border: 1px solid #333;
+    border-radius: 8px;
+    outline: none;
+    font-size: 0.95rem;
+    background: #2a2a3d;
+    color: #fff;
+    transition: 0.3s;
+}
+
+/* Input focus */
+.form-group input:focus {
+    border-color: #00ffd5;
+    box-shadow: 0 0 8px rgba(0, 255, 213, 0.6);
+}
+
+/* Button */
+button {
+    margin-top: 18px;
+    padding: 11px;
+    background: #00ffd5;
+    color: #1f1f2e;
+    border: none;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: 0.3s;
+}
+button:hover {
+    background: #00bfa5;
+}
+
+/* Error Message */
+.errormessage {
+    margin-top: 12px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #ff4d6d;
+}
+
+/* Register Link */
+.container p {
+    margin-top: 12px;
+    font-size: 13px;
+}
+.container a {
+    color: #00ffd5;
+    text-decoration: none;
+    font-weight: 600;
+}
+
+/* Animations */
+@keyframes fadeIn {
+    from {opacity: 0; transform: translateY(15px);}
+    to {opacity: 1; transform: translateY(0);}
+}
+
+/* ✅ SMALL PHONES FIX */
+@media (max-height: 600px) {
+    body {
+        align-items: flex-start; /* allow scroll */
+    }
+
+    .container {
+        margin-top: 20px;
+    }
+}
+
+/* ✅ EXTRA SMALL SCREENS */
+@media (max-width: 360px) {
+    .container {
+        padding: 20px;
+    }
+
+    .container h2 {
+        font-size: 1.4rem;
+    }
+}
+
+.forgot_password{
+    margin-top: 20px;
+}

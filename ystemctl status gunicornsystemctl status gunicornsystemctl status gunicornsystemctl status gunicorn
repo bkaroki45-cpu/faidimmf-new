@@ -1,0 +1,20 @@
+[0;1;32m●[0m gunicorn.service - Gunicorn daemon for Django project
+     Loaded: loaded (]8;;file://vultr/etc/systemd/system/gunicorn.service/etc/systemd/system/gunicorn.service]8;;; [0;1;32menabled[0m; preset: [0;1;32menabled[0m)
+     Active: [0;1;32mactive (running)[0m since Fri 2026-04-17 09:30:44 UTC; 10s ago
+   Main PID: 38605 (gunicorn)
+      Tasks: 4 (limit: 2256)
+     Memory: 92.8M (peak: 92.9M)
+        CPU: 1.030s
+     CGroup: /system.slice/gunicorn.service
+             ├─[0;38;5;245m38605 /root/faidimmf-new/venv/bin/python3 /root/faidimmf-new/venv/bin/gunicorn mmf.wsgi:application --bind 127.0.0.1:8000 --workers 3[0m
+             ├─[0;38;5;245m38610 /root/faidimmf-new/venv/bin/python3 /root/faidimmf-new/venv/bin/gunicorn mmf.wsgi:application --bind 127.0.0.1:8000 --workers 3[0m
+             ├─[0;38;5;245m38611 /root/faidimmf-new/venv/bin/python3 /root/faidimmf-new/venv/bin/gunicorn mmf.wsgi:application --bind 127.0.0.1:8000 --workers 3[0m
+             └─[0;38;5;245m38612 /root/faidimmf-new/venv/bin/python3 /root/faidimmf-new/venv/bin/gunicorn mmf.wsgi:application --bind 127.0.0.1:8000 --workers 3[0m
+
+Apr 17 09:30:44 vultr systemd[1]: Started gunicorn.service - Gunicorn daemon for Django project.
+Apr 17 09:30:44 vultr gunicorn[38605]: [2026-04-17 09:30:44 +0000] [38605] [INFO] Starting gunicorn 21.2.0
+Apr 17 09:30:44 vultr gunicorn[38605]: [2026-04-17 09:30:44 +0000] [38605] [INFO] Listening at: http://127.0.0.1:8000 (38605)
+Apr 17 09:30:44 vultr gunicorn[38605]: [2026-04-17 09:30:44 +0000] [38605] [INFO] Using worker: sync
+Apr 17 09:30:44 vultr gunicorn[38610]: [2026-04-17 09:30:44 +0000] [38610] [INFO] Booting worker with pid: 38610
+Apr 17 09:30:44 vultr gunicorn[38611]: [2026-04-17 09:30:44 +0000] [38611] [INFO] Booting worker with pid: 38611
+Apr 17 09:30:44 vultr gunicorn[38612]: [2026-04-17 09:30:44 +0000] [38612] [INFO] Booting worker with pid: 38612

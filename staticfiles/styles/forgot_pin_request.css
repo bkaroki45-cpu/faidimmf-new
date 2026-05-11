@@ -1,0 +1,168 @@
+/* Reset & Basics */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Poppins', sans-serif;
+}
+
+body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    background: linear-gradient(135deg, #1e3c72, #2a5298);
+    color: #fff;
+    padding: 20px;
+}
+
+/* Wrapper & Card */
+.forgot-pin-wrapper {
+    width: 100%;
+    max-width: 450px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.forgot-pin-card {
+    background: rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(15px);
+    padding: 40px 30px;
+    border-radius: 20px;
+    text-align: center;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.forgot-pin-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.4);
+}
+
+/* Header */
+.forgot-pin-card h1 {
+    font-size: 2rem;
+    margin-bottom: 10px;
+    color: #ffd700;
+    letter-spacing: 1px;
+    animation: fadeIn 1s ease forwards;
+}
+
+.forgot-pin-card .subtitle {
+    font-size: 0.95rem;
+    margin-bottom: 25px;
+    color: #e0e0e0;
+    animation: fadeIn 1.2s ease forwards;
+}
+
+/* Messages */
+.messages p {
+    background: rgba(255, 255, 255, 0.12);
+    padding: 10px 15px;
+    border-radius: 12px;
+    margin-bottom: 10px;
+    font-size: 0.9rem;
+    color: #fff;
+    transition: transform 0.3s ease, background 0.3s ease;
+}
+
+.messages p:hover {
+    transform: scale(1.03);
+    background: rgba(255, 255, 255, 0.2);
+}
+
+/* Form */
+form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    animation: fadeIn 1.5s ease forwards;
+}
+
+input, select {
+    padding: 12px 15px;
+    border-radius: 12px;
+    border: none;
+    outline: none;
+    font-size: 1rem;
+    background: rgba(255, 255, 255, 0.15);
+    color: #fff;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(5px);
+}
+
+input::placeholder {
+    color: #e0e0e0;
+}
+
+input:focus, select:focus {
+    background: rgba(255, 255, 255, 0.3);
+    box-shadow: 0 0 10px #ffd700;
+    transform: scale(1.03);
+}
+
+/* Button */
+button {
+    padding: 12px;
+    border-radius: 12px;
+    border: none;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    background: linear-gradient(135deg, #ffd700, #ff8c00);
+    color: #000;
+    transition: all 0.3s ease;
+}
+
+button:hover {
+    transform: translateY(-3px) scale(1.05);
+    box-shadow: 0 8px 20px rgba(255, 215, 0, 0.5);
+}
+
+/* Back link / navigation */
+.back-link {
+    margin-top: 20px;
+    font-size: 0.85rem;
+    color: #e0e0e0;
+}
+
+.back-link a {
+    color: #ffd700;
+    text-decoration: none;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.back-link a:hover {
+    text-shadow: 0 0 10px #ffd700;
+    transform: scale(1.05);
+}
+
+/* Animations */
+@keyframes fadeIn {
+    0% {opacity: 0; transform: translateY(-10px);}
+    100% {opacity: 1; transform: translateY(0);}
+}
+
+/* Responsive */
+@media (max-width: 500px) {
+    .forgot-pin-card {
+        padding: 30px 20px;
+        border-radius: 15px;
+    }
+
+    input, select {
+        font-size: 0.95rem;
+        padding: 10px 12px;
+    }
+
+    button {
+        font-size: 0.95rem;
+        padding: 10px;
+    }
+
+    h1 {
+        font-size: 1.6rem;
+    }
+}

@@ -1,0 +1,240 @@
+/* ------------------------------
+   MODERN DASHBOARD STYLING
+-------------------------------- */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Arial', sans-serif;
+}
+
+/* BODY */
+body {
+    display: flex;
+    background: #eef2ff;
+    transition: all 0.3s ease;
+}
+
+/* SIDEBAR */
+.sidebar {
+    width: 230px;
+    height: 100vh;
+    background: linear-gradient(180deg, #4f7cff, #1a2bff);
+    color: white;
+    padding: 30px 20px;
+    position: fixed;
+    left: 0;
+    top: 0;
+    transition: all 0.3s ease;
+    overflow: hidden;
+    z-index: 1000;
+}
+
+.sidebar.slim {
+    width: 70px;
+    padding: 20px 10px;
+}
+
+.logo {
+    margin-bottom: 40px;
+    font-size: 1.5rem;
+    font-weight: bold;
+    text-align: center;
+}
+
+.sidebar ul {
+    list-style: none;
+}
+
+.sidebar ul li {
+    padding: 14px 10px;
+    margin-bottom: 10px;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    white-space: nowrap;
+}
+
+.sidebar ul li:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.sidebar ul li a {
+    text-decoration: none;
+    color: white;
+    display: block;
+    font-weight: 600;
+}
+
+/* MAIN CONTENT */
+.main {
+    margin-left: 230px;
+    flex: 1;
+    padding: 30px;
+    width: 100%;
+    transition: margin-left 0.3s ease;
+}
+
+.main.slim {
+    margin-left: 70px;
+}
+
+/* TOPBAR */
+.topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    margin-bottom: 30px;
+    background-color: #4194d8;
+    padding: 15px 20px;
+    border-radius: 12px;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+    color: white;
+}
+
+.menu-btn {
+    font-size: 24px;
+    cursor: pointer;
+}
+
+/* CARDS */
+.cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+    margin-bottom: 30px;
+    margin-top: 20px;
+}
+
+.card {
+    background: #4f9fff;
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+}
+
+.card h3 {
+    margin-bottom: 10px;
+    color: #fff;
+}
+
+.card p {
+    font-size: 24px;
+    font-weight: bold;
+    color: #fffb;
+}
+
+/* ACTION BUTTONS */
+.actions {
+    margin-bottom: 30px;
+    display: flex;
+    gap: 15px;
+    flex-wrap: wrap;
+}
+
+.btn {
+    padding: 12px 20px;
+    border: none;
+    border-radius: 10px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+}
+
+.deposit {background: #1a8f3c; color:white;}
+.deposit:hover {transform: translateY(-3px); box-shadow: 0 8px 20px rgba(0,0,0,0.2);}
+
+.withdraw {background: #e63946; color:white;}
+.withdraw:hover {transform: translateY(-3px); box-shadow: 0 8px 20px rgba(0,0,0,0.2);}
+
+.reinvest {background: #4f7cff; color:white;}
+.reinvest:hover {transform: translateY(-3px); box-shadow: 0 8px 20px rgba(0,0,0,0.2);}
+
+.invest {background: #f59e0b; color:white;}
+.invest:hover {transform: translateY(-3px); box-shadow: 0 8px 20px rgba(0,0,0,0.2);}
+
+.profile {background: #f50be5; color:white;}
+.profile:hover {transform: translateY(-3px); box-shadow: 0 8px 20px rgba(0,0,0,0.2);}
+
+/* CHARTS */
+.chart-container {
+    background: #5ea7f3;
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+    margin-bottom: 30px;
+    min-height: 400px; /* must have height */
+    transition: all 0.3s ease;
+}
+
+/* TRANSACTIONS TABLE */
+.transactions {
+    background: white;
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+    overflow-x: auto;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+table th, table td {
+    padding: 12px;
+    border-bottom: 1px solid #eee;
+}
+
+.success {color:green; font-weight:bold;}
+.pending {color:orange; font-weight:bold;}
+
+/* CLOSE BUTTON */
+.close-btn {
+    display: none;
+    font-size: 26px;
+    cursor: pointer;
+    margin-bottom: 20px;
+    text-align: right;
+}
+
+/* MOBILE RESPONSIVE */
+@media(max-width:900px){
+
+    .menu-btn {
+        display: block;
+    }
+
+    .close-btn {
+        display: block;
+    }
+
+    .sidebar {
+        position: fixed;
+        top: 0;
+        left: -250px;
+        width: 230px;
+        height: 100%;
+        z-index: 1000;
+        padding: 30px 20px;
+        transition: left 0.3s ease;
+    }
+
+    .sidebar.active {
+        left: 0;
+    }
+
+    .main {
+        margin-left: 0;
+        padding: 20px;
+    }
+}
+
