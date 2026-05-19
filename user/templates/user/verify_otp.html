@@ -15,9 +15,13 @@
 <div class="container">
 
     <div class="card">
+        <a class="otp-brand" href="{% url 'home' %}" aria-label="Faidii MMF home">
+            <img src="{% static 'images/favicon-192.png' %}" alt="Faidii MMF logo">
+            <span>Faidii MMF</span>
+        </a>
 
         <h2>OTP Verification</h2>
-        <p class="subtitle">Enter the 6-digit code sent to your email</p>
+        <p class="subtitle">Enter the 6-digit code sent to your email. Check your Inbox or Spam folder.</p>
 
         {% if error %}
             <div class="error">{{ error }}</div>

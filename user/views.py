@@ -4,7 +4,7 @@ from django.contrib.auth import login, logout, authenticate
 from django.urls import reverse
 from django.contrib.auth.decorators import login_required
 from django.db.models import Sum, Count
-from finance.models import Transaction, Wallet
+from finance.models import LedgerEntry, Transaction, Wallet
 import plotly.graph_objects as go
 from plotly.offline import plot
 from django.contrib.auth.mixins import LoginRequiredMixin
@@ -77,7 +77,7 @@ def login_view(request):
             request.session['login_2fa_otp'] = otp
             request.session['login_2fa_otp_time'] = time.time()
             request.session['login_2fa_next'] = next_url
-            messages.success(request, "Verification code sent to your registered email.")
+            messages.success(request, "Verification code sent to your registered email. Check your Inbox or Spam folder.")
             return redirect('user:login_verify_otp')
         else:
             error_message = 'Invalid credentials!'
@@ -158,7 +158,10 @@ def forgot_password(request):
         # Send email
         send_mail(
             "Faidii MMF Password Reset Code",
-            f"Your Faidii MMF password reset code is: {otp}. It will expire in 10 minutes.",
+            (
+                f"Your Faidii MMF password reset code is: {otp}. It will expire in 10 minutes.\n\n"
+                "If you do not see this email in your inbox, please check your Spam or Promotions folder."
+            ),
             settings.DEFAULT_FROM_EMAIL,
             [email],
             fail_silently=False,
@@ -284,53 +287,54 @@ def dashboard(request):
     today = timezone.localdate()
     last_7_days = [today - datetime.timedelta(days=i) for i in range(6, -1, -1)]
 
+    start_datetime = timezone.make_aware(
+        datetime.datetime.combine(last_7_days[0], datetime.time.min),
+        timezone.get_current_timezone()
+    )
+
+    prior_credits = LedgerEntry.objects.filter(
+        user=user,
+        is_credit=True,
+        created_at__lt=start_datetime
+    ).aggregate(total=Sum('amount'))['total'] or Decimal("0")
+
+    prior_debits = LedgerEntry.objects.filter(
+        user=user,
+        is_credit=False,
+        created_at__lt=start_datetime
+    ).aggregate(total=Sum('amount'))['total'] or Decimal("0")
+
+    running = prior_credits - prior_debits
     balance_by_day = []
 
     for day in last_7_days:
-        deposits = Transaction.objects.filter(
+        credits = LedgerEntry.objects.filter(
             user=user,
-            tx_type="deposit",
-            status="completed",
-            timestamp__date=day
+            is_credit=True,
+            created_at__date=day
         ).aggregate(total=Sum('amount'))['total'] or Decimal("0")
 
-        withdrawals = Transaction.objects.filter(
+        debits = LedgerEntry.objects.filter(
             user=user,
-            tx_type="withdraw",
-            status="completed",
-            timestamp__date=day
+            is_credit=False,
+            created_at__date=day
         ).aggregate(total=Sum('amount'))['total'] or Decimal("0")
 
-        investments = Transaction.objects.filter(
-            user=user,
-            tx_type="invest",
-            status="completed",
-            timestamp__date=day
-        ).aggregate(total=Sum('amount'))['total'] or Decimal("0")
-
-        daily_net = deposits - withdrawals - investments
-        balance_by_day.append(daily_net)
-
-    # 🔥 Convert to cumulative balance
-    cumulative = []
-    running = Decimal("0")
-
-    for value in balance_by_day:
-        running += value
-        cumulative.append(running)
+        running += credits - debits
+        balance_by_day.append(running)
 
     growth_chart = go.Figure()
     growth_chart.add_trace(go.Scatter(
         x=[d.strftime('%d %b') for d in last_7_days],
-        y=cumulative,
+        y=balance_by_day,
         mode='lines+markers',
-        name='Balance'
+        name='Wallet Balance'
     ))
 
     growth_chart.update_layout(
         title='Account Growth (Last 7 Days)',
         xaxis_title='Date',
-        yaxis_title='Balance (KSh)',
+        yaxis_title='Wallet Balance (KSh)',
         template='plotly_dark',
         paper_bgcolor='#0b0f19',
         plot_bgcolor='#0b0f19',

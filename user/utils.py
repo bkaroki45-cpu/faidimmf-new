@@ -20,7 +20,10 @@ from finance.models import InvestmentTracking, LedgerEntry, CompanyAccount, Tran
 def send_otp_email(user_email):
     otp = str(random.randint(100000, 999999))
     subject = "Your Faidii MMF Verification Code"
-    message = f"Your Faidii MMF verification code is: {otp}. It will expire in 5 minutes."
+    message = (
+        f"Your Faidii MMF verification code is: {otp}. It will expire in 5 minutes.\n\n"
+        "If you do not see this email in your inbox, please check your Spam or Promotions folder."
+    )
 
     send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [user_email])
     return otp
