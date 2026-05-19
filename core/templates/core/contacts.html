@@ -4,51 +4,83 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FAIDI Money Market Fund - Contact</title>
+    <meta name="developer" content="Brian Karoki Gitonga">
+    <meta name="author" content="Brian Karoki Gitonga">
+    <meta name="designer" content="Brian Karoki Gitonga">
+    <meta name="developer:location" content="Nyeri, Kenya">
+    <meta name="developer:whatsapp" content="+254746990630">
+    <meta name="developer:email" content="karokibrian748@gmail.com, bkaroki45@gmail.com">
+    <meta name="web_author" content="Brian Karoki Gitonga, Nyeri Kenya, WhatsApp +254746990630, karokibrian748@gmail.com, bkaroki45@gmail.com">
+    <title>FAIDII Money Market Fund - Contact</title>
     <link rel="stylesheet" href="{% static 'styles/contacts.css' %}">
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{% static 'styles/theme.css' %}">
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "ContactPage",
+        "name": "Contact FAIDII Money Market Fund",
+        "url": "{{ request.build_absolute_uri }}",
+        "creator": {
+            "@type": "Person",
+            "name": "Brian Karoki Gitonga",
+            "address": {
+                "@type": "PostalAddress",
+                "addressLocality": "Nyeri",
+                "addressCountry": "KE"
+            },
+            "email": [
+                "mailto:karokibrian748@gmail.com",
+                "mailto:bkaroki45@gmail.com"
+            ],
+            "telephone": "+254746990630",
+            "contactPoint": {
+                "@type": "ContactPoint",
+                "contactType": "developer WhatsApp",
+                "telephone": "+254746990630"
+            }
+        }
+    }
+    </script>
 </head>
 <body>
 
-    <!-- Navbar -->
-    <header>
+<header>
     <nav class="navbar">
-        <div class="logo">
-            <img src="{% static 'images/logo.png' %}" alt="Smart Money Growth">
-        </div>
-
-        <!-- Close button -->
-        <div class="close-btn">✖</div>
+        <a class="brand" href="{% url 'home' %}" aria-label="FAIDII MMF home">
+            <img src="{% static 'images/logo.png' %}" alt="FAIDII MMF logo">
+            <span class="name">FAIDII MMF</span>
+        </a>
 
         <ul class="nav-links">
-            <li class="nav"><a href="{% url 'home' %}">home</a></li>
-            <li class="nav"><a href="{% url 'about' %}">about</a></li>
-            <li class="nav"><a href="{% url 'contacts' %}">contacts</a></li>
-            <li class="nav"><a href="{% url 'user:login' %}">Login</a></li>
-            <li class="nav"><a href="{% url 'user:register' %}" class="btn">Sign up</a></li>
+            <li><a href="{% url 'home' %}">Home</a></li>
+            <li><a href="{% url 'about' %}">About</a></li>
+            <li><a href="{% url 'contacts' %}">Contacts</a></li>
+            <li><a href="{% url 'user:login' %}">Login</a></li>
+            <li><a href="{% url 'user:register' %}" class="btn">Sign up</a></li>
         </ul>
 
-        <!-- Burger -->
-        <div class="burger">
-            <div></div>
-            <div></div>
-            <div></div>
-        </div>
-</nav>
-    </header>
+        <button class="burger" aria-label="Open navigation" type="button">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
 
-    <!-- Hero Section -->
+        <button class="close-btn" aria-label="Close navigation" type="button">&times;</button>
+    </nav>
+</header>
+
+<main>
     <section class="contact-hero">
-        <h1>Contact Us</h1>
-        <p>We are here to help! Reach out to FAIDI Money Market Fund for inquiries, support, or investment questions.</p>
+        <div class="contact-hero-content">
+            <span class="eyebrow">Contact support</span>
+            <h1>Reach the FAIDII team when you need help.</h1>
+            <p>Send an investment question, account request, or support message and the team will guide you through the next step.</p>
+        </div>
     </section>
 
-    <!-- Contact Form & Info -->
     <section class="contact-main">
         <div class="contact-wrapper">
-
-            <!-- Contact Form -->
             <div class="contact-form">
                 <h2>Send Us a Message</h2>
                 <form action="{% url 'contacts' %}" method="POST">
@@ -61,7 +93,6 @@
                 </form>
             </div>
 
-            <!-- Contact Info -->
             <div class="contact-info">
                 <h2>Our Contact Details</h2>
                 <div class="info-item">
@@ -78,36 +109,34 @@
                 </div>
                 <div class="info-item">
                     <img src="{% static 'images/facebook.png' %}" alt="Facebook">
-                    <p>@FMMF / FAIDI Money Market Fund</p>
+                    <p>@FMMF / FAIDII Money Market Fund</p>
                 </div>
             </div>
-
         </div>
     </section>
+</main>
 
-    <!-- Footer -->
-    <footer>
-        <p>&copy; 2026 FAIDI Money Market Fund. All Rights Reserved.</p>
-    </footer>
+<footer>
+    <p>&copy; 2026 FAIDII Money Market Fund. All Rights Reserved.</p>
+</footer>
 
-    <!-- Scripts -->
-    <script>
-        const burger = document.querySelector('.burger');
-        const nav = document.querySelector('.nav-links');
-        const closeBtn = document.querySelector('.close-btn');
+<script>
+const burger = document.querySelector('.burger');
+const nav = document.querySelector('.nav-links');
+const closeBtn = document.querySelector('.close-btn');
 
-        burger.addEventListener('click', () => {
-            nav.classList.add('nav-active');  // sidebar slides in
-            burger.classList.add('toggle');   // transform burger to X
-            closeBtn.style.display = "block"; // show X
-        });
+burger.addEventListener('click', () => {
+    nav.classList.add('nav-active');
+    burger.style.display = 'none';
+    closeBtn.style.display = 'grid';
+});
 
-        closeBtn.addEventListener('click', () => {
-            nav.classList.remove('nav-active'); // sidebar slides out
-            burger.classList.remove('toggle');  // revert X to burger
-            closeBtn.style.display = "none";    // hide X
-        });
-    </script>
-    <script src="{% static 'js/theme.js' %}"></script>
+closeBtn.addEventListener('click', () => {
+    nav.classList.remove('nav-active');
+    closeBtn.style.display = 'none';
+    burger.style.display = 'flex';
+});
+</script>
+<script src="{% static 'js/theme.js' %}"></script>
 </body>
 </html>

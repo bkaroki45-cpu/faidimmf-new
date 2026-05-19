@@ -4,10 +4,44 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="developer" content="Brian Karoki Gitonga">
+<meta name="author" content="Brian Karoki Gitonga">
+<meta name="designer" content="Brian Karoki Gitonga">
+<meta name="developer:location" content="Nyeri, Kenya">
+<meta name="developer:whatsapp" content="+254746990630">
+<meta name="developer:email" content="karokibrian748@gmail.com, bkaroki45@gmail.com">
+<meta name="web_author" content="Brian Karoki Gitonga, Nyeri Kenya, WhatsApp +254746990630, karokibrian748@gmail.com, bkaroki45@gmail.com">
 <title>FAIDII Money Market Fund - Home</title>
 <link rel="stylesheet" href="{% static 'styles/home.css' %}">
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{% static 'styles/theme.css' %}">
+<script type="application/ld+json">
+{
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "name": "FAIDII Money Market Fund",
+    "url": "{{ request.build_absolute_uri }}",
+    "creator": {
+        "@type": "Person",
+        "name": "Brian Karoki Gitonga",
+        "address": {
+            "@type": "PostalAddress",
+            "addressLocality": "Nyeri",
+            "addressCountry": "KE"
+        },
+        "email": [
+            "mailto:karokibrian748@gmail.com",
+            "mailto:bkaroki45@gmail.com"
+        ],
+        "telephone": "+254746990630",
+        "contactPoint": {
+            "@type": "ContactPoint",
+            "contactType": "developer WhatsApp",
+            "telephone": "+254746990630"
+        }
+    }
+}
+</script>
 </head>
 <body>
 

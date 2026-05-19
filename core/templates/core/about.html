@@ -4,125 +4,162 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Faidi MMF - About</title>
+<meta name="developer" content="Brian Karoki Gitonga">
+<meta name="author" content="Brian Karoki Gitonga">
+<meta name="designer" content="Brian Karoki Gitonga">
+<meta name="developer:location" content="Nyeri, Kenya">
+<meta name="developer:whatsapp" content="+254746990630">
+<meta name="developer:email" content="karokibrian748@gmail.com, bkaroki45@gmail.com">
+<meta name="web_author" content="Brian Karoki Gitonga, Nyeri Kenya, WhatsApp +254746990630, karokibrian748@gmail.com, bkaroki45@gmail.com">
+<title>FAIDII Money Market Fund - About</title>
 <link rel="stylesheet" href="{% static 'styles/about.css' %}">
-<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="{% static 'styles/theme.css' %}">
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{% static 'styles/theme.css' %}">
+<script type="application/ld+json">
+{
+    "@context": "https://schema.org",
+    "@type": "AboutPage",
+    "name": "About FAIDII Money Market Fund",
+    "url": "{{ request.build_absolute_uri }}",
+    "creator": {
+        "@type": "Person",
+        "name": "Brian Karoki Gitonga",
+        "address": {
+            "@type": "PostalAddress",
+            "addressLocality": "Nyeri",
+            "addressCountry": "KE"
+        },
+        "email": [
+            "mailto:karokibrian748@gmail.com",
+            "mailto:bkaroki45@gmail.com"
+        ],
+        "telephone": "+254746990630",
+        "contactPoint": {
+            "@type": "ContactPoint",
+            "contactType": "developer WhatsApp",
+            "telephone": "+254746990630"
+        }
+    }
+}
+</script>
 </head>
 <body>
 
-<!-- Navbar -->
 <header>
     <nav class="navbar">
-        <div class="logo">
-            <a href="{% url 'home' %}">
-                <img src="{% static 'images/logo.png' %}" alt="Faidi MMF Logo" class="logo-img">
-            </a>
-        </div>
-        <div class="burger"><div></div><div></div><div></div></div>
+        <a class="brand" href="{% url 'home' %}" aria-label="FAIDII MMF home">
+            <img src="{% static 'images/logo.png' %}" alt="FAIDII MMF logo">
+            <span class="name">FAIDII MMF</span>
+        </a>
+
         <ul class="nav-links">
             <li><a href="{% url 'home' %}">Home</a></li>
             <li><a href="{% url 'about' %}">About</a></li>
             <li><a href="{% url 'contacts' %}">Contacts</a></li>
             <li><a href="{% url 'user:login' %}">Login</a></li>
-            <li><a href="{% url 'user:register' %}" class="btn">Sign Up</a></li>
+            <li><a href="{% url 'user:register' %}" class="btn">Sign up</a></li>
         </ul>
-        <div class="close-btn">✖</div>
+
+        <button class="burger" aria-label="Open navigation" type="button">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+
+        <button class="close-btn" aria-label="Close navigation" type="button">&times;</button>
     </nav>
 </header>
 
-<!-- Hero Section -->
-<section class="about-hero">
-    <div class="about-hero-wrapper">
-        <div class="about-text">
-            <h1>About Faidi MMF</h1>
-            <p>Faidi Money Market Fund (Faidi MMF) is Kenya’s premier investment platform. Our mission is to grow your money safely, consistently, and transparently. With daily returns of 0.05% (~15% monthly), we empower our investors to achieve financial freedom while maintaining full control and visibility over their funds.</p>
+<main>
+    <section class="about-hero">
+        <div class="about-hero-content">
+            <span class="eyebrow">About the fund</span>
+            <h1>Simple investing built around daily money growth.</h1>
+            <p>FAIDII Money Market Fund helps Kenyans start small, track every movement clearly, and keep savings working through a digital account connected to M-Pesa.</p>
             <a href="{% url 'user:register' %}" class="btn-hero">Start Investing</a>
         </div>
-        <div class="about-image">
-            <img src="{% static 'images/grow.jpg' %}" alt="About Faidi MMF">
+    </section>
+
+    <section class="story-section">
+        <div class="section-heading">
+            <span class="eyebrow">Our approach</span>
+            <h2>Clear deposits, visible records, and controlled withdrawals.</h2>
+            <p>Every part of the platform is designed to make the money journey understandable: deposit from your phone, invest from your wallet, monitor growth, and withdraw when eligible.</p>
         </div>
-    </div>
-</section>
-
-<!-- Mission & Vision -->
-<section class="mission-vision">
-    <div class="text-left">
-        <h2>Our Mission</h2>
-        <p>To provide Kenyans with safe, transparent, and high-growth investment opportunities that help them secure a better financial future.</p>
-        <h2>Our Vision</h2>
-        <p>To be the most trusted and innovative money market fund in Kenya, recognized for transparency, reliability, and exceptional customer service.</p>
-    </div>
-    <div class="illustration-right">
-        <img src="{% static 'images/two.jpg' %}" alt="Vision Illustration">
-    </div>
-</section>
-
-<!-- Core Principles -->
-<section class="principles">
-    <h2>Our Core Principles</h2>
-    <p><span class="highlight">Transparency:</span> Full visibility into how your money grows, daily updates, and honest reporting.</p>
-    <p><span class="highlight">Safety:</span> Investments are managed using low-risk financial instruments to protect your funds.</p>
-    <p><span class="highlight">Accessibility:</span> Easy deposits, withdrawals, and reinvestment options at your fingertips.</p>
-    <p><span class="highlight">Support:</span> Our expert team is available 24/7 to guide and assist you with your investments.</p>
-</section>
-
-<!-- Achievements -->
-<section class="achievements">
-    <h2>Our Achievements</h2>
-    <div class="stats-row">
-        <div class="stat"><h3 class="counter" data-target="5000">0</h3><p>Happy Investors</p></div>
-        <div class="stat"><h3 class="counter" data-target="15">0</h3><p>% Monthly Growth</p></div>
-        <div class="stat"><h3 class="counter" data-target="1200000">0</h3><p>Ksh Managed</p></div>
-    </div>
-</section>
-
-<!-- Testimonials / Investor Stories -->
-<section class="testimonials">
-    <h2>What Our Investors Say</h2>
-    <div class="testimonial-cards">
-        <div class="testimonial-card">
-            <p>"Investing with Faidi MMF has been life-changing. I see my money grow every day and the team is always helpful!"</p>
-            <h4>- James Mwangi</h4>
+        <div class="story-grid">
+            <article>
+                <h3>Mission</h3>
+                <p>To give everyday investors a transparent way to build a stronger financial habit from as little as KES 100.</p>
+            </article>
+            <article>
+                <h3>Vision</h3>
+                <p>To become a trusted digital money market experience for Kenyans who want clarity, discipline, and reliable support.</p>
+            </article>
+            <article>
+                <h3>Promise</h3>
+                <p>To keep the platform easy to use, honest in reporting, and focused on practical growth for members.</p>
+            </article>
         </div>
-        <div class="testimonial-card">
-            <p>"Safe, reliable, and transparent. I finally trust an investment platform completely."</p>
-            <h4>- Aisha Njeri</h4>
-        </div>
-        <div class="testimonial-card">
-            <p>"I love how easy it is to withdraw or reinvest. Faidi MMF truly empowers ordinary Kenyans."</p>
-            <h4>- Peter Otieno</h4>
-        </div>
-    </div>
-</section>
+    </section>
 
-<!-- Footer -->
+    <section class="principles">
+        <div class="principles-copy">
+            <span class="eyebrow">What guides us</span>
+            <h2>Built on transparent money management.</h2>
+            <p><strong>Transparency:</strong> Members can review wallet activity, investments, and transactions from their dashboard.</p>
+            <p><strong>Accessibility:</strong> Deposits and withdrawals are designed around familiar M-Pesa workflows.</p>
+            <p><strong>Support:</strong> The team keeps communication open for investment questions and account help.</p>
+        </div>
+        <div class="principles-panel">
+            <div><strong>KES 100</strong><span>Minimum deposit</span></div>
+            <div><strong>3%</strong><span>Daily growth target</span></div>
+            <div><strong>24/7</strong><span>Dashboard access</span></div>
+        </div>
+    </section>
+
+    <section class="testimonials">
+        <div class="section-heading">
+            <span class="eyebrow">Investor experience</span>
+            <h2>Confidence comes from seeing the details.</h2>
+        </div>
+        <div class="testimonial-cards">
+            <article>
+                <p>"I like seeing my deposits, wallet balance, and investment activity in one place."</p>
+                <h3>James Mwangi</h3>
+            </article>
+            <article>
+                <p>"The small starting amount makes it easier to build a saving habit without pressure."</p>
+                <h3>Aisha Njeri</h3>
+            </article>
+            <article>
+                <p>"M-Pesa deposits make the platform feel familiar and easy to use."</p>
+                <h3>Peter Otieno</h3>
+            </article>
+        </div>
+    </section>
+</main>
+
 <footer>
-    <p>&copy; 2026 Faidi MMF. All Rights Reserved.</p>
+    <p>&copy; 2026 FAIDII Money Market Fund. All Rights Reserved.</p>
 </footer>
 
-<!-- Scripts -->
 <script>
 const burger = document.querySelector('.burger');
 const nav = document.querySelector('.nav-links');
 const closeBtn = document.querySelector('.close-btn');
-burger.addEventListener('click', () => { nav.classList.add('nav-active'); closeBtn.style.display = 'block'; });
-closeBtn.addEventListener('click', () => { nav.classList.remove('nav-active'); closeBtn.style.display = 'none'; });
 
-// Counter Animation
-const counters = document.querySelectorAll('.counter');
-counters.forEach(counter => {
-    const updateCount = () => {
-        const target = +counter.getAttribute('data-target');
-        const count = +counter.innerText;
-        const increment = target / 200;
-        if(count < target){ counter.innerText = Math.ceil(count + increment); setTimeout(updateCount, 15); }
-        else { counter.innerText = target; }
-    };
-    updateCount();
+burger.addEventListener('click', () => {
+    nav.classList.add('nav-active');
+    burger.style.display = 'none';
+    closeBtn.style.display = 'grid';
+});
+
+closeBtn.addEventListener('click', () => {
+    nav.classList.remove('nav-active');
+    closeBtn.style.display = 'none';
+    burger.style.display = 'flex';
 });
 </script>
-
-    <script src="{% static 'js/theme.js' %}"></script>
+<script src="{% static 'js/theme.js' %}"></script>
 </body>
 </html>
