@@ -379,6 +379,8 @@ class InvestmentTracking(models.Model):
         super().save(*args, **kwargs)
 
     def is_matured(self):
+        if not self.maturity_date:
+            return False
         return timezone.now() >= self.maturity_date
 
     def calculate_profit(self):
