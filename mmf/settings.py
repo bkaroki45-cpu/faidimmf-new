@@ -38,6 +38,7 @@ ALLOWED_HOSTS = [
     'localhost',
     'ghostlier-cloudily-coleman.ngrok-free.dev',
     'faidii.com',
+    'www.faidii.com',
 
 ]
 
