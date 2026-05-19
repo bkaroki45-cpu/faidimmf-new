@@ -1,0 +1,135 @@
+:root {
+    color-scheme: light;
+}
+
+html[data-theme="dark"] {
+    color-scheme: dark;
+}
+
+.theme-toggle {
+    position: fixed;
+    right: 18px;
+    bottom: 18px;
+    z-index: 5000;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 44px;
+    padding: 0 14px;
+    border: 1px solid rgba(255, 255, 255, 0.22);
+    border-radius: 999px;
+    color: #ffffff;
+    background: linear-gradient(135deg, #07130e, #02733b);
+    box-shadow: 0 16px 40px rgba(7, 19, 14, 0.25);
+    cursor: pointer;
+    font-weight: 800;
+    font-size: 0.88rem;
+}
+
+.theme-toggle::before {
+    content: "☾";
+    display: inline-grid;
+    place-items: center;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    color: #07130e;
+    background: #ffffff;
+}
+
+html[data-theme="light"] .theme-toggle {
+    color: #07130e;
+    background: #ffffff;
+    border-color: rgba(7, 19, 14, 0.14);
+}
+
+html[data-theme="light"] .theme-toggle::before {
+    content: "☀";
+    color: #ffffff;
+    background: #00a651;
+}
+
+html[data-theme="dark"] body {
+    background-color: #07130e;
+    color: #f4fff7;
+}
+
+html[data-theme="dark"] input,
+html[data-theme="dark"] select,
+html[data-theme="dark"] textarea {
+    color: #f4fff7;
+    background-color: #102018;
+    border-color: rgba(255, 255, 255, 0.16);
+}
+
+html[data-theme="dark"] input::placeholder,
+html[data-theme="dark"] textarea::placeholder {
+    color: rgba(255, 255, 255, 0.56);
+}
+
+html[data-theme="dark"] header,
+html[data-theme="dark"] .navbar,
+html[data-theme="dark"] .container,
+html[data-theme="dark"] .card,
+html[data-theme="dark"] .summary-card,
+html[data-theme="dark"] .action-panel,
+html[data-theme="dark"] .chart-container,
+html[data-theme="dark"] .transactions,
+html[data-theme="dark"] .deposit-container,
+html[data-theme="dark"] .withdraw-container,
+html[data-theme="dark"] .investment-page,
+html[data-theme="dark"] .history,
+html[data-theme="dark"] .referral-box,
+html[data-theme="dark"] .profile-container,
+html[data-theme="dark"] .form-container,
+html[data-theme="dark"] .auth-container {
+    color: #f4fff7;
+    background-color: #102018;
+    border-color: rgba(255, 255, 255, 0.12);
+}
+
+html[data-theme="dark"] .main {
+    background:
+        radial-gradient(circle at top right, rgba(0, 166, 81, 0.15), transparent 28rem),
+        #07130e;
+}
+
+html[data-theme="dark"] h1,
+html[data-theme="dark"] h2,
+html[data-theme="dark"] h3,
+html[data-theme="dark"] label,
+html[data-theme="dark"] .card p,
+html[data-theme="dark"] .summary-card strong,
+html[data-theme="dark"] .summary-card span,
+html[data-theme="dark"] table td {
+    color: #f4fff7;
+}
+
+html[data-theme="dark"] table tr,
+html[data-theme="dark"] table td {
+    border-color: rgba(255, 255, 255, 0.12);
+}
+
+html[data-theme="dark"] table tr:hover,
+html[data-theme="dark"] .feature-grid article,
+html[data-theme="dark"] .faq-list details {
+    background-color: rgba(0, 166, 81, 0.12);
+}
+
+html[data-theme="dark"] .section-heading p,
+html[data-theme="dark"] .feature-grid p,
+html[data-theme="dark"] .faq-list p,
+html[data-theme="dark"] .empty-state,
+html[data-theme="dark"] .no-data {
+    color: #a8b8ad;
+}
+
+@media (max-width: 520px) {
+    .theme-toggle {
+        right: 12px;
+        bottom: 12px;
+        min-height: 40px;
+        padding: 0 12px;
+        font-size: 0.78rem;
+    }
+}

@@ -3,41 +3,50 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Withdraw Money</title>
-<link rel="stylesheet" href="{% static 'styles/withdraw.css' %}">
+<title>Withdraw Funds | FAIDII MMF</title>
+<link rel="stylesheet" href="{% static 'styles/finance.css' %}">
+<link rel="stylesheet" href="{% static 'styles/theme.css' %}">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
-<body>
+<body class="finance-page">
+<main class="finance-shell">
+    <section class="finance-hero">
+        <div>
+            <span class="eyebrow">Withdrawal request</span>
+            <h1>Withdraw from your wallet</h1>
+            <p>Submit a withdrawal request with your transaction PIN. Requests are checked before completion.</p>
+        </div>
+        <div class="hero-actions">
+            <a href="{% url 'user:dashboard' %}" class="btn secondary">Dashboard</a>
+        </div>
+    </section>
 
-<div class="withdraw-container">
+    <section class="finance-grid">
+        <div class="finance-card">
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="message {{ message.tags }}">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
 
-<h2>Withdraw Funds</h2>
+            <form class="finance-form" action="{% url 'finance:withdraw' %}" method="POST">
+                {% csrf_token %}
+                <label for="amount">Amount (KES)</label>
+                <input id="amount" type="number" name="amount" step="0.01" placeholder="Enter amount" required>
 
-<form action="{% url 'finance:withdraw' %}" method="POST">
-    {% csrf_token %}
-    <label>Amount (KES)</label>
-    <input type="number" name="amount" step="0.01" placeholder="Enter amount" required>
+                <label for="pin">Transaction PIN</label>
+                <input id="pin" type="password" name="pin" placeholder="Enter PIN" required>
 
-    <label>Transaction PIN</label>
-    <input type="password" name="pin" placeholder="Enter PIN" required>
+                <button type="submit" class="danger">Submit Withdrawal</button>
+            </form>
+        </div>
 
-    <button type="submit">Withdraw</button>
-</form>
-
-<!-- Messages -->
-{% if messages %}
-<ul class="messages">
-    {% for message in messages %}
-        <li class="{{ message.tags }}">{{ message }}</li>
-    {% endfor %}
-</ul>
-{% endif %}
-
-<div class="return-dashboard">
-    <a href="{% url 'user:dashboard' %}" class="btn-dashboard">← Return to Dashboard</a>
-</div>
-
-</div>
-
+        <aside class="finance-card">
+            <h3>Before you withdraw</h3>
+            <p class="empty-state">Use your current transaction PIN. Your request will appear in transactions after submission.</p>
+        </aside>
+    </section>
+</main>
+<script src="{% static 'js/theme.js' %}"></script>
 </body>
 </html>

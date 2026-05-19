@@ -5,6 +5,7 @@
     <title>Login</title>
     <link rel="stylesheet" href="{% static 'styles/login.css' %}">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{% static 'styles/theme.css' %}">
 </head>
 <body>
     <div class="container">
@@ -31,5 +32,6 @@
         <span class='forgot_password'><a href="{% url 'user:forgot_password' %}">Forgot Password</a></span>
 
     </div>
+    <script src="{% static 'js/theme.js' %}"></script>
 </body>
 </html>

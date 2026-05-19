@@ -3,66 +3,43 @@
 <html lang="en">
 
 <head>
-
 <meta charset="UTF-8">
-<title>M-Pesa Payment Status</title>
-
-<link rel="stylesheet" href="{% static 'styles/status.css' %}">
+<title>M-Pesa Payment Status | FAIDII MMF</title>
+<link rel="stylesheet" href="{% static 'styles/finance.css' %}">
+<link rel="stylesheet" href="{% static 'styles/theme.css' %}">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
 {% if refresh %}
 <meta http-equiv="refresh" content="5">
 {% endif %}
-
 </head>
 
-<body>
+<body class="finance-page">
+<main class="finance-shell">
+    <section class="finance-hero">
+        <div>
+            <span class="eyebrow">M-Pesa status</span>
+            <h1>Payment confirmation</h1>
+            <p>We are checking Safaricom for the latest result of your payment request.</p>
+        </div>
+    </section>
 
-<div class="status-container">
+    <section class="finance-card status-box">
+        {% if "Completed" in message %}
+            <div class="message success">Payment successful. Your deposit has been completed.</div>
+        {% elif "Cancelled" in message %}
+            <div class="message failed">Payment cancelled. You delayed entering your M-Pesa PIN.</div>
+        {% elif "Failed" in message %}
+            <div class="message failed">Payment failed. Please try again.</div>
+        {% else %}
+            <div class="message pending">Waiting for M-Pesa confirmation. Check your phone and enter your PIN.</div>
+        {% endif %}
 
-<h1>📲 M-Pesa Payment Status</h1>
-
-<div class="status-box">
-
-{% if "Completed" in message %}
-<div class="success">
-🎉 ✅ Payment Successful! <br><br>
-💰 Your deposit has been completed.
-</div>
-
-{% elif "Cancelled" in message %}
-<div class="failed">
-❌ Payment Cancelled <br><br>
-⌛ You delayed entering your M-Pesa PIN.
-</div>
-
-{% elif "Failed" in message %}
-<div class="failed">
-⚠️ Payment Failed <br><br>
-Please try again.
-</div>
-
-{% else %}
-<div class="pending">
-⏳ Waiting for M-Pesa Confirmation... <br><br>
-📱 Check your phone and enter your PIN.
-</div>
-{% endif %}
-
-</div>
-<div class="yes">
-    <form action="/finance/deposit/">
-    <button class="btn-home">💳 Make Another Deposit</button>
-    <div class="return-dashboard">
-        <a href="{% url 'user:dashboard' %}" class="btn-dashboard">← Return to Dashboard</a>
-    </div>
-</form>
-</div>
-
-
-</div>
-<!-- Return to Dashboard Button -->
-           
-
+        <div class="hero-actions">
+            <a href="{% url 'finance:deposit' %}" class="btn">Make Another Deposit</a>
+            <a href="{% url 'user:dashboard' %}" class="btn secondary">Dashboard</a>
+        </div>
+    </section>
+</main>
+<script src="{% static 'js/theme.js' %}"></script>
 </body>
 </html>

@@ -6,6 +6,7 @@
     <title>Verify OTP | MMF</title>
     <link rel="stylesheet" href="{% static 'styles/forgot_pin_verify.css' %}">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{% static 'styles/theme.css' %}">
 </head>
 <body>
     <div class="otp-container">
@@ -32,5 +33,6 @@
             Didn't receive the OTP? <a href="{% url 'user:forgot_pin_request' %}">Resend</a>
         </p>
     </div>
+    <script src="{% static 'js/theme.js' %}"></script>
 </body>
 </html>
