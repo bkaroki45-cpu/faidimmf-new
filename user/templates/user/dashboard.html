@@ -5,130 +5,114 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>FMMF Dashboard</title>
+    <title>FAIDII Dashboard</title>
     <link rel="stylesheet" href="{% static 'styles/dashboard.css' %}">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <!-- Plotly -->
     <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
-
-    <!-- Auto refresh -->
     <meta http-equiv="refresh" content="30">
 </head>
 
 <body>
+    <aside class="sidebar" id="sidebar">
+        <button class="close-btn" onclick="toggleMenu()" type="button" aria-label="Close menu">&times;</button>
 
-    <!-- Sidebar -->
-    <div class="sidebar" id="sidebar">
-        <div class="close-btn" onclick="toggleMenu()">✖</div>
-<<<<<<< HEAD
-        <h2 class="logo">FMMF</h2>
-=======
-        <h2 class="logo">F</h2>
->>>>>>> 1728b8d (Update from VS Code changes)
-        <ul>
-            <li><a href="{% url 'user:dashboard' %}">Dashboard</a></li>
-            <li><a href="{% url 'finance:deposit' %}">Deposit</a></li>
-            <li><a href="{% url 'finance:withdraw' %}">Withdraw</a></li>
-            <li><a href="{% url 'finance:transactions' %}">Transactions</a></li>
-            <li><a href="{% url 'finance:referrals' %}">Referrals</a></li>
-            <li><a href="{% url 'finance:invest' %}">Invest</a></li>
-            <li><a href="{% url 'finance:invest_tracking' %}">Track your Investment</a></li>
-            <li><a href="{% url 'home' %}">Logout</a></li>
-            <li><a href="{% url 'user:profile' %}">Profile</a></li>
-        </ul>
-    </div>
+        <a class="brand" href="{% url 'user:dashboard' %}" aria-label="FAIDII dashboard">
+            <img src="{% static 'images/logo.png' %}" alt="FAIDII MMF logo">
+            <span>FAIDII MMF</span>
+        </a>
 
-    <!-- Main Content -->
-    <div class="main">
+        <nav aria-label="Dashboard navigation">
+            <a class="active" href="{% url 'user:dashboard' %}">Dashboard</a>
+            <a href="{% url 'finance:deposit' %}">Deposit</a>
+            <a href="{% url 'finance:withdraw' %}">Withdraw</a>
+            <a href="{% url 'finance:transactions' %}">Transactions</a>
+            <a href="{% url 'finance:referrals' %}">Referrals</a>
+            <a href="{% url 'finance:invest' %}">Invest</a>
+            <a href="{% url 'finance:invest_tracking' %}">Track Investment</a>
+            <a href="{% url 'user:profile' %}">Profile</a>
+            <a href="{% url 'home' %}">Logout</a>
+        </nav>
+    </aside>
 
-        <!-- Topbar -->
-        <div class="topbar">
-            <div class="menu-btn" onclick="toggleMenu()">☰</div>
-            <h2>Welcome Back, {{ user.username }}!</h2>
-        </div>
+    <main class="main">
+        <section class="topbar">
+            <button class="menu-btn" onclick="toggleMenu()" type="button" aria-label="Toggle menu">☰</button>
+            <div>
+                <span class="eyebrow">Investor dashboard</span>
+                <h1>Welcome back, {{ user.username }}</h1>
+            </div>
+            <a class="profile-chip" href="{% url 'user:profile' %}">Profile</a>
+        </section>
 
-        <hr>
+        <section class="summary-grid" aria-label="Account summary">
+            <article class="summary-card highlight">
+                <span>Wallet Balance</span>
+                <strong>KSh {{ balance|floatformat:2|intcomma }}</strong>
+                <small>Available funds</small>
+            </article>
 
-        <!-- Cards -->
-        <div class="cards">
+            <article class="summary-card">
+                <span>Total Deposits</span>
+                <strong>KSh {{ total_deposits|floatformat:2|intcomma }}</strong>
+                <small>M-Pesa deposits</small>
+            </article>
 
-            <div class="card">
-                <h3>Wallet Balance</h3>
-                <p><strong>KSh {{ balance|floatformat:2|intcomma }}</strong></p>
+            <article class="summary-card">
+                <span>Total Withdrawals</span>
+                <strong>KSh {{ total_withdrawals|floatformat:2|intcomma }}</strong>
+                <small>Completed requests</small>
+            </article>
+        </section>
+
+        <section class="action-panel">
+            <div>
+                <span class="eyebrow">Quick actions</span>
+                <h2>Move money with confidence</h2>
             </div>
 
-            <div class="card">
-                <h3>Total Deposits</h3>
-                <p><strong>KSh {{ total_deposits|floatformat:2|intcomma }}</strong></p>
+            <div class="actions">
+                <a href="{% url 'finance:deposit' %}" class="btn deposit">Deposit</a>
+                <a href="{% url 'finance:withdraw' %}" class="btn withdraw">Withdraw</a>
+                <a href="{% url 'finance:invest' %}" class="btn invest">Invest</a>
+                <a href="{% url 'finance:transactions' %}" class="btn neutral">Transactions</a>
+                <a href="{% url 'finance:invest_tracking' %}" class="btn neutral">Track Investment</a>
             </div>
+        </section>
 
-            <div class="card">
-                <h3>Total Withdrawals</h3>
-                <p><strong>KSh {{ total_withdrawals|floatformat:2|intcomma }}</strong></p>
-            </div>
+        <section class="chart-grid">
+            <article class="chart-container">
+                <div class="chart-heading">
+                    <span class="eyebrow">Last 7 days</span>
+                    <h3>Account Growth</h3>
+                </div>
 
-        </div>
+                {% if growth_plot %}
+                    {{ growth_plot|safe }}
+                {% else %}
+                    <p class="empty-state">No account growth data available yet.</p>
+                {% endif %}
+            </article>
 
-        <!-- Action Buttons -->
-        <div class="actions">
-            <form action="{% url 'finance:deposit' %}">
-                <button type="submit" class="btn deposit">Deposit (M-Pesa)</button>
-            </form>
-            <form action="{% url 'finance:withdraw' %}">
-                <button type="submit" class="btn withdraw">Withdraw</button>
-            </form>
-            <form action="{% url 'finance:transactions' %}">
-                <button type="submit" class="btn reinvest">Transactions</button>
-            </form>
-            <form action="{% url 'finance:invest_tracking' %}">
-                <button type="submit" class="btn profile">Track your investment</button>
-            </form>
-            <form action="{% url 'finance:invest' %}">
-                <button type="submit" class="btn invest">Invest</button>
-            </form>
-            <form action="{% url 'user:profile' %}">
-                <button type="submit" class="btn profile">Profile</button>
-            </form>
-        </div>
+            <article class="chart-container">
+                <div class="chart-heading">
+                    <span class="eyebrow">Transactions</span>
+                    <h3>Status Overview</h3>
+                </div>
 
-        <!-- Charts -->
-        <div class="chart-container">
-            <h3>Account Growth (Last 7 Days)</h3>
+                {% if status_plot %}
+                    {{ status_plot|safe }}
+                {% else %}
+                    <p class="empty-state">No transaction data available yet.</p>
+                {% endif %}
+            </article>
+        </section>
+    </main>
 
-            {% if growth_plot %}
-                {{ growth_plot|safe }}
-            {% else %}
-                <p style="color:white;">No data available yet</p>
-            {% endif %}
-        </div>
-
-        <div class="chart-container">
-            <h3>Transaction Status Overview</h3>
-
-            {% if status_plot %}
-                {{ status_plot|safe }}
-            {% else %}
-                <p style="color:white;">No transaction data yet</p>
-            {% endif %}
-        </div>
-
-    </div>
-
-    <!-- JS -->
     <script>
         function toggleMenu() {
             const sidebar = document.getElementById("sidebar");
-            const main = document.querySelector(".main");
-
-            if (window.innerWidth <= 900) {
-                sidebar.classList.toggle("active");
-            } else {
-                sidebar.classList.toggle("slim");
-                main.classList.toggle("slim");
-            }
+            sidebar.classList.toggle("active");
         }
     </script>
-
 </body>
 </html>
