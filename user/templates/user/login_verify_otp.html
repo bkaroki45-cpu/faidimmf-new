@@ -1,0 +1,52 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Verify Login | Faidii MMF</title>
+    <link rel="stylesheet" href="{% static 'styles/verify_otp.css' %}">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{% static 'styles/theme.css' %}">
+</head>
+
+<body>
+
+<div class="container">
+
+    <div class="card">
+
+        <h2>Two-Step Verification</h2>
+        <p class="subtitle">Enter the 6-digit code sent to your registered email</p>
+
+        {% if messages %}
+            {% for message in messages %}
+                <div class="{{ message.tags }}">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+
+        {% if error %}
+            <div class="error">{{ error }}</div>
+        {% endif %}
+
+        <form method="POST">
+            {% csrf_token %}
+
+            <div class="otp-box">
+                <input type="text" name="otp" maxlength="6" inputmode="numeric" placeholder="Enter OTP" required>
+            </div>
+
+            <button type="submit">Verify & Login</button>
+        </form>
+
+        <div class="links">
+            <a href="{% url 'user:login' %}">Back to login</a>
+        </div>
+
+    </div>
+
+</div>
+
+    <script src="{% static 'js/theme.js' %}"></script>
+</body>
+</html>

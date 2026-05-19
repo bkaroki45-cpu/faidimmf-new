@@ -25,6 +25,7 @@ from .utils import mature_due_investments, send_otp_email
 from user.utils import get_wallet_balance
 from django.utils import timezone
 from .models import PasswordResetOTP
+from django.conf import settings
 
 def register(request):
 
@@ -69,18 +70,63 @@ def login_view(request):
         password = request.POST.get('password', '').strip()
         next_url = request.POST.get('next') or next_url
 
-        print(f"Trying login: {username!r} / {password!r}")  # Debug
-
         user = authenticate(request, username=username, password=password)
         if user is not None:
-            login(request, user)
-            print(f"Login successful: {user.username}")  # Debug
-            return redirect(next_url or reverse('user:dashboard'))
+            otp = send_otp_email(user.email)
+            request.session['login_2fa_user_id'] = user.id
+            request.session['login_2fa_otp'] = otp
+            request.session['login_2fa_otp_time'] = time.time()
+            request.session['login_2fa_next'] = next_url
+            messages.success(request, "Verification code sent to your registered email.")
+            return redirect('user:login_verify_otp')
         else:
-            print("Login failed!")  # Debug
             error_message = 'Invalid credentials!'
 
     return render(request, 'user/login.html', {'error': error_message, 'next': next_url})
+
+
+def login_verify_otp(request):
+    user_id = request.session.get('login_2fa_user_id')
+    session_otp = request.session.get('login_2fa_otp')
+    otp_time = request.session.get('login_2fa_otp_time')
+
+    if not user_id or not session_otp or not otp_time:
+        messages.error(request, "Login verification expired. Please log in again.")
+        return redirect('user:login')
+
+    try:
+        user = CustomUser.objects.get(id=user_id)
+    except CustomUser.DoesNotExist:
+        messages.error(request, "User account not found. Please log in again.")
+        return redirect('user:login')
+
+    if time.time() - otp_time > 300:
+        request.session.pop('login_2fa_user_id', None)
+        request.session.pop('login_2fa_otp', None)
+        request.session.pop('login_2fa_otp_time', None)
+        request.session.pop('login_2fa_next', None)
+        messages.error(request, "Verification code expired. Please log in again.")
+        return redirect('user:login')
+
+    if request.method == 'POST':
+        otp_input = request.POST.get('otp', '').strip()
+
+        if otp_input == session_otp:
+            next_url = request.session.get('login_2fa_next')
+
+            request.session.pop('login_2fa_user_id', None)
+            request.session.pop('login_2fa_otp', None)
+            request.session.pop('login_2fa_otp_time', None)
+            request.session.pop('login_2fa_next', None)
+
+            login(request, user)
+            return redirect(next_url or reverse('user:dashboard'))
+
+        return render(request, 'user/login_verify_otp.html', {
+            'error': 'Invalid verification code',
+        })
+
+    return render(request, 'user/login_verify_otp.html')
 
 def logout_view(request):
     if request.method == 'POST':
@@ -111,9 +157,9 @@ def forgot_password(request):
 
         # Send email
         send_mail(
-            "Password Reset OTP",
-            f"Your OTP code is: {otp}",
-            "noreply@yourapp.com",
+            "Faidii MMF Password Reset Code",
+            f"Your Faidii MMF password reset code is: {otp}. It will expire in 10 minutes.",
+            settings.DEFAULT_FROM_EMAIL,
             [email],
             fail_silently=False,
         )

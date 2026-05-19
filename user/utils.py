@@ -1,6 +1,7 @@
 # finance/utils.py
 
 from django.core.mail import send_mail
+from django.conf import settings
 from django.db.models import Sum
 import random
 from finance.models import Transaction, Wallet, CompanyAccount, SystemState, LedgerEntry
@@ -18,12 +19,10 @@ from finance.models import InvestmentTracking, LedgerEntry, CompanyAccount, Tran
 # ==============================
 def send_otp_email(user_email):
     otp = str(random.randint(100000, 999999))
-    subject = "Your OTP Code"
-    message = f"Your OTP code is: {otp}. It will expire in 5 minutes."
+    subject = "Your Faidii MMF Verification Code"
+    message = f"Your Faidii MMF verification code is: {otp}. It will expire in 5 minutes."
 
-    from_email = "Faidi MMF <your_email@gmail.com>"  # set EMAIL_HOST_USER in settings
-
-    send_mail(subject, message, from_email, [user_email])
+    send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [user_email])
     return otp
 
 
