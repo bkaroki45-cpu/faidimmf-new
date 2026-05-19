@@ -148,11 +148,11 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 load_dotenv()
 
 #access env variables
-CONSUMER_KEY = os.getenv("CONSUMER_KEY")
-CONSUMER_SECRET = os.getenv("CONSUMER_SECRET")
+CONSUMER_KEY = os.getenv("MPESA_PRODUCTION_CONSUMER_KEY") or os.getenv("CONSUMER_KEY")
+CONSUMER_SECRET = os.getenv("MPESA_PRODUCTION_CONSUMER_SECRET") or os.getenv("CONSUMER_SECRET")
 MPESA_PASSKEY = os.getenv("MPESA_PASSKEY")
 MPESA_SHORTCODE = os.getenv("MPESA_SHORTCODE")
-MPESA_BASE_URL = os.getenv("MPESA_BASE_URL")
+MPESA_BASE_URL = os.getenv("MPESA_BASE_URL", "https://sandbox.safaricom.co.ke")
 CALLBACK_URL = os.getenv("CALLBACK_URL")
 
 # B2C

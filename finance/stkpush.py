@@ -33,9 +33,14 @@ def stk_push(request):
             status=500
         )
 
-    shortcode = "174379"
+    shortcode = settings.MPESA_SHORTCODE
+    passkey = settings.MPESA_PASSKEY
 
-    passkey = "bfb279f9aa9bdbcf158e97dd71a467cd2e0c893059b10f78e6b72ada1ed2c919"
+    if not shortcode or not passkey:
+        return JsonResponse(
+            {"error": "M-Pesa shortcode or passkey is not configured"},
+            status=500
+        )
 
     timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
 
@@ -62,10 +67,8 @@ def stk_push(request):
         "Content-Type": "application/json"
     }
 
-    stk_url = "https://sandbox.safaricom.co.ke/mpesa/stkpush/v1/processrequest"
-
-    print("STK URL:", stk_url)
-    print("PAYLOAD:", payload)
+    base_url = settings.MPESA_BASE_URL or "https://sandbox.safaricom.co.ke"
+    stk_url = f"{base_url}/mpesa/stkpush/v1/processrequest"
 
     try:
 
@@ -76,13 +79,9 @@ def stk_push(request):
             timeout=30
         )
 
-        print("RAW RESPONSE:", response.text)
-
         return JsonResponse(response.json())
 
     except Exception as e:
-        print("STK ERROR:", str(e))
-
         return JsonResponse(
             {"error": str(e)},
             status=500

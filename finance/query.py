@@ -3,6 +3,7 @@ import json
 import base64
 from datetime import datetime
 from django.http import JsonResponse
+from django.conf import settings
 from .accesstoken import get_access_token_value  
 
 # Map MPESA response codes to friendly messages
@@ -37,8 +38,12 @@ def query_status(request):
     if not access_token:
         return JsonResponse({"error": "Could not get access token"}, status=500)
 
-    business_shortcode = '174379'  # Sandbox shortcode
-    passkey = 'bfb279f9aa9bdbcf158e97dd71a467cd2e0c893059b10f78e6b72ada1ed2c919'
+    business_shortcode = settings.MPESA_SHORTCODE
+    passkey = settings.MPESA_PASSKEY
+
+    if not business_shortcode or not passkey:
+        return JsonResponse({"error": "M-Pesa shortcode or passkey is not configured"}, status=500)
+
     timestamp = datetime.now().strftime('%Y%m%d%H%M%S')
     password_str = business_shortcode + passkey + timestamp
     password = base64.b64encode(password_str.encode()).decode('utf-8')
@@ -56,8 +61,9 @@ def query_status(request):
     }
 
     try:
+        base_url = settings.MPESA_BASE_URL or "https://sandbox.safaricom.co.ke"
         response = requests.post(
-            "https://sandbox.safaricom.co.ke/mpesa/stkpushquery/v1/query",
+            f"{base_url}/mpesa/stkpushquery/v1/query",
             json=payload,
             headers=headers,
             timeout=10

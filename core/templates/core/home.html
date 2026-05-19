@@ -4,71 +4,142 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>FAIDI Money Market Fund - Home</title>
+<title>FAIDII Money Market Fund - Home</title>
 <link rel="stylesheet" href="{% static 'styles/home.css' %}">
-<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 </head>
 <body>
 
-<!-- Navbar -->
 <header>
     <nav class="navbar">
-        <div class="logo">
-            <img src="{% static 'images/logo.png' %}" alt="Smart Money Growth">
-        </div>
-        <div>
-            <h1 class="name">FAIDI MMF</h1>
-        </div>
+        <a class="brand" href="{% url 'home' %}" aria-label="FAIDII MMF home">
+            <img src="{% static 'images/logo.png' %}" alt="FAIDII MMF logo">
+            <span class="name">FAIDII MMF</span>
+        </a>
 
-        <!-- Nav Links -->
         <ul class="nav-links">
-            <li class="nav"><a href="{% url 'home' %}">home</a></li>
-            <li class="nav"><a href="{% url 'about' %}">about</a></li>
-            <li class="nav"><a href="{% url 'contacts' %}">contacts</a></li>
-            <li class="nav"><a href="{% url 'user:login' %}">Login</a></li>
-            <li class="nav"><a href="{% url 'user:register' %}" class="btn">Sign up</a></li>
+            <li><a href="{% url 'home' %}">Home</a></li>
+            <li><a href="{% url 'about' %}">About</a></li>
+            <li><a href="{% url 'contacts' %}">Contacts</a></li>
+            <li><a href="{% url 'user:login' %}">Login</a></li>
+            <li><a href="{% url 'user:register' %}" class="btn">Sign up</a></li>
         </ul>
 
-        <!-- Burger menu -->
-        <div class="burger">
-            <div></div>
-            <div></div>
-            <div></div>
-        </div>
+        <button class="burger" aria-label="Open navigation" type="button">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
 
-        <!-- Close button -->
-        <div class="close-btn">✖</div>
+        <button class="close-btn" aria-label="Close navigation" type="button">&times;</button>
     </nav>
 </header>
 
-<!-- Hero Section -->
-<section class="hero">
-    <div class="hero-content-wrapper">
-        <div class="hero-text">
-            <h1>Grow Your Money Smartly</h1>
-            <p>Earn 3% daily (≈15% monthly) with FAIDI Money Market Fund. Safe, Reliable & Transparent.</p>
-            <a href="{% url 'user:register' %}" class="btn-hero">Start Investing</a>
-        </div>
-        <div class="hero-image">
-            <img src="{% static 'images/home.jpg' %}" alt="Smart Money Growth">
-        </div>
-    </div>
-</section>
+<main>
+    <section class="hero">
+        <div class="hero-overlay"></div>
+        <div class="hero-content-wrapper">
+            <div class="hero-text">
+                <span class="eyebrow">Smart daily money growth</span>
+                <h1>Grow your savings with FAIDII Money Market Fund</h1>
+                <p>Start from KES 100, track your wallet clearly, and use M-Pesa for fast deposits while your investment works every day.</p>
+                <div class="hero-actions">
+                    <a href="{% url 'user:register' %}" class="btn-hero">Start Investing</a>
+                    <a href="{% url 'about' %}" class="btn-ghost">Learn More</a>
+                </div>
+            </div>
 
-<section class="investment-info">
-    <h2>Investment Details</h2>
-    <p>Minimum Deposit: Ksh 100</p>
-    <p>Daily Growth: 3%</p>
-    <p>Minimum withdrawal: Ksh 50</p>
-    <p>Withdraw Anytime. Transparent and Safe.</p>
-    <a href="{% url 'user:register' %}" class="btn-hero">Invest Now</a>
-</section>
+            <div class="hero-panel" aria-label="FAIDII investment highlights">
+                <div>
+                    <span>Minimum deposit</span>
+                    <strong>KES 100</strong>
+                </div>
+                <div>
+                    <span>Daily growth</span>
+                    <strong>3%</strong>
+                </div>
+                <div>
+                    <span>Minimum withdrawal</span>
+                    <strong>KES 50</strong>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="investment-info">
+        <div class="section-heading">
+            <span class="eyebrow">Why FAIDII</span>
+            <h2>Built for simple, transparent investing</h2>
+            <p>FAIDII keeps the money journey clear: deposit, invest, track growth, and withdraw when eligible.</p>
+        </div>
+
+        <div class="feature-grid">
+            <article>
+                <span class="feature-icon">01</span>
+                <h3>Start small</h3>
+                <p>Begin with KES 100 and build your investment habit at your own pace.</p>
+            </article>
+            <article>
+                <span class="feature-icon">02</span>
+                <h3>Track clearly</h3>
+                <p>See wallet balances, pending deposits, investment records, and transaction history from your dashboard.</p>
+            </article>
+            <article>
+                <span class="feature-icon">03</span>
+                <h3>Move with M-Pesa</h3>
+                <p>Deposit through STK push and keep your money activity connected to the phone number you trust.</p>
+            </article>
+        </div>
+    </section>
+
+    <section class="stats-band">
+        <div>
+            <strong>3%</strong>
+            <span>Daily growth target</span>
+        </div>
+        <div>
+            <strong>24/7</strong>
+            <span>Dashboard access</span>
+        </div>
+        <div>
+            <strong>KES 50</strong>
+            <span>Minimum withdrawal</span>
+        </div>
+    </section>
+
+    <section class="faq-section">
+        <div class="section-heading">
+            <span class="eyebrow">FAQs</span>
+            <h2>Questions about FAIDII</h2>
+        </div>
+
+        <div class="faq-list">
+            <details open>
+                <summary>What is FAIDII MMF?</summary>
+                <p>FAIDII MMF is a digital investment platform that helps users deposit funds, invest, monitor growth, and view transaction records from one account.</p>
+            </details>
+            <details>
+                <summary>How much do I need to start?</summary>
+                <p>You can start with a minimum deposit of KES 100, then choose how much you want to invest from your available wallet balance.</p>
+            </details>
+            <details>
+                <summary>How do deposits work?</summary>
+                <p>Deposits are initiated through M-Pesa STK push. After confirmation, the deposit is recorded in your FAIDII transaction history.</p>
+            </details>
+            <details>
+                <summary>Can I withdraw my money?</summary>
+                <p>Yes. The minimum withdrawal is KES 50, subject to your available balance and the platform's withdrawal checks.</p>
+            </details>
+        </div>
+
+        <a href="{% url 'user:register' %}" class="btn-hero">Create Account</a>
+    </section>
+</main>
 
 <footer>
-    <p>&copy; 2026 FAIDI Money Market Fund. All Rights Reserved.</p>
+    <p>&copy; 2026 FAIDII Money Market Fund. All Rights Reserved.</p>
 </footer>
 
-<!-- Scripts -->
 <script>
 const burger = document.querySelector('.burger');
 const nav = document.querySelector('.nav-links');
@@ -77,7 +148,7 @@ const closeBtn = document.querySelector('.close-btn');
 burger.addEventListener('click', () => {
     nav.classList.add('nav-active');
     burger.style.display = 'none';
-    closeBtn.style.display = 'block';
+    closeBtn.style.display = 'grid';
 });
 
 closeBtn.addEventListener('click', () => {
