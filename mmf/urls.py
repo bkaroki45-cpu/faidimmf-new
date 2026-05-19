@@ -1,5 +1,6 @@
 from django.contrib import admin
 from django.urls import path, include
+from core.views import favicon
 from django.views.generic.base import RedirectView  # ✅ for redirect
 
 # Optional: preserve query string in redirect
@@ -10,7 +11,7 @@ class RegisterRedirectWithQuery(RedirectView):
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('favicon.ico', RedirectView.as_view(url='/static/images/favicon-48.png', permanent=True)),
+    path('favicon.ico', favicon),
     path('', include('core.urls')),  # Core pages
     path('user/', include(('user.urls', 'user'), namespace='user')),
     path('finance/', include(('finance.urls', 'finance'), namespace='finance')),

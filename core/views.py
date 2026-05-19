@@ -1,4 +1,6 @@
 from django.shortcuts import render, redirect
+from django.conf import settings
+from django.http import FileResponse
 from .forms import ContactForm
 from .models import Contact
 
@@ -34,3 +36,8 @@ def invest(request):
 
 def thank(request):
     return render(request, 'core/thank.html')
+
+
+def favicon(request):
+    icon_path = settings.BASE_DIR / 'static' / 'images' / 'favicon-48.png'
+    return FileResponse(open(icon_path, 'rb'), content_type='image/png')
