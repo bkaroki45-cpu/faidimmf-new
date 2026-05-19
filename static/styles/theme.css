@@ -7,46 +7,43 @@ html[data-theme="dark"] {
 }
 
 .theme-toggle {
-    position: fixed;
-    right: 18px;
-    bottom: 18px;
-    z-index: 5000;
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    min-height: 44px;
-    padding: 0 14px;
-    border: 1px solid rgba(255, 255, 255, 0.22);
+    min-height: 42px;
+    padding: 0 13px;
+    border: 1px solid rgba(7, 19, 14, 0.12);
     border-radius: 999px;
-    color: #ffffff;
-    background: linear-gradient(135deg, #07130e, #02733b);
-    box-shadow: 0 16px 40px rgba(7, 19, 14, 0.25);
+    color: #07130e;
+    background: #ffffff;
+    box-shadow: 0 16px 40px rgba(7, 19, 14, 0.2);
     cursor: pointer;
     font-weight: 800;
-    font-size: 0.88rem;
+    font-size: 0.84rem;
 }
 
 .theme-toggle::before {
-    content: "☾";
+    content: "";
     display: inline-grid;
     place-items: center;
-    width: 24px;
-    height: 24px;
+    width: 22px;
+    height: 22px;
     border-radius: 50%;
-    color: #07130e;
-    background: #ffffff;
+    background:
+        radial-gradient(circle at 50% 50%, #ffffff 0 30%, transparent 32%),
+        #00a651;
 }
 
-html[data-theme="light"] .theme-toggle {
-    color: #07130e;
-    background: #ffffff;
-    border-color: rgba(7, 19, 14, 0.14);
-}
-
-html[data-theme="light"] .theme-toggle::before {
-    content: "☀";
+html[data-theme="dark"] .theme-toggle {
     color: #ffffff;
-    background: #00a651;
+    background: linear-gradient(135deg, #07130e, #02733b);
+    border-color: rgba(255, 255, 255, 0.22);
+}
+
+html[data-theme="dark"] .theme-toggle::before {
+    background:
+        radial-gradient(circle at 64% 40%, #07130e 0 34%, transparent 36%),
+        #ffffff;
 }
 
 html[data-theme="dark"] body {
@@ -88,6 +85,89 @@ html[data-theme="dark"] .auth-container {
     border-color: rgba(255, 255, 255, 0.12);
 }
 
+html[data-theme="dark"] header {
+    background: rgba(8, 19, 14, 0.94);
+    box-shadow: 0 12px 34px rgba(0, 0, 0, 0.28);
+}
+
+html[data-theme="dark"] .hero,
+html[data-theme="dark"] .about-hero,
+html[data-theme="dark"] .contact-hero {
+    background:
+        linear-gradient(90deg, rgba(7, 19, 14, 0.96) 0%, rgba(7, 19, 14, 0.88) 52%, rgba(3, 107, 53, 0.42) 100%),
+        var(--dark-image, url("../images/finance-hero.jpg")) center / cover no-repeat;
+}
+
+html[data-theme="dark"] .hero::after,
+html[data-theme="dark"] .about-hero::after,
+html[data-theme="dark"] .contact-hero::after {
+    background: linear-gradient(180deg, rgba(7, 19, 14, 0), #07130e);
+}
+
+html[data-theme="dark"] .about-hero {
+    --dark-image: url("../images/grow.jpg");
+}
+
+html[data-theme="dark"] .contact-hero {
+    --dark-image: url("../images/support.jpg");
+}
+
+html[data-theme="dark"] .investment-info,
+html[data-theme="dark"] .story-section,
+html[data-theme="dark"] .testimonials,
+html[data-theme="dark"] .contact-main {
+    background: #07130e;
+}
+
+html[data-theme="dark"] .faq-section,
+html[data-theme="dark"] .principles {
+    background:
+        linear-gradient(180deg, rgba(7, 19, 14, 0.96), rgba(7, 19, 14, 0.98)),
+        url("../images/finance-hero.jpg") center / cover no-repeat;
+}
+
+html[data-theme="dark"] .principles {
+    background:
+        linear-gradient(90deg, rgba(7, 19, 14, 0.98), rgba(7, 19, 14, 0.9)),
+        url("../images/money.jpg") center / cover no-repeat;
+}
+
+html[data-theme="dark"] .feature-grid article,
+html[data-theme="dark"] .faq-list details,
+html[data-theme="dark"] .story-grid article,
+html[data-theme="dark"] .testimonial-cards article,
+html[data-theme="dark"] .contact-form,
+html[data-theme="dark"] .contact-info {
+    color: #f4fff7;
+    background: #102018;
+    border-color: rgba(255, 255, 255, 0.12);
+    box-shadow: 0 18px 45px rgba(0, 0, 0, 0.28);
+}
+
+html[data-theme="dark"] .section-heading h2,
+html[data-theme="dark"] .principles h2,
+html[data-theme="dark"] .faq-list summary,
+html[data-theme="dark"] .story-grid h3,
+html[data-theme="dark"] .testimonial-cards h3,
+html[data-theme="dark"] .contact-form h2,
+html[data-theme="dark"] .contact-info h2 {
+    color: #f4fff7;
+}
+
+html[data-theme="dark"] .name,
+html[data-theme="dark"] .nav-links a {
+    color: #78f095;
+}
+
+html[data-theme="dark"] .section-heading .eyebrow {
+    color: #78f095;
+}
+
+html[data-theme="dark"] .contact-form input,
+html[data-theme="dark"] .contact-form textarea {
+    background: #07130e;
+}
+
 html[data-theme="dark"] .main {
     background:
         radial-gradient(circle at top right, rgba(0, 166, 81, 0.15), transparent 28rem),
@@ -126,10 +206,8 @@ html[data-theme="dark"] .no-data {
 
 @media (max-width: 520px) {
     .theme-toggle {
-        right: 12px;
-        bottom: 12px;
         min-height: 40px;
-        padding: 0 12px;
+        padding: 0 10px;
         font-size: 0.78rem;
     }
 }

@@ -7,7 +7,7 @@
         if (saved === "light" || saved === "dark") {
             return saved;
         }
-        return "dark";
+        return "light";
     }
 
     function applyTheme(theme) {
@@ -15,8 +15,9 @@
         localStorage.setItem(storageKey, theme);
         const button = document.querySelector(".theme-toggle");
         if (button) {
-            button.textContent = theme === "dark" ? "Light mode" : "Dark mode";
+            button.textContent = theme === "dark" ? "Light" : "Dark";
             button.setAttribute("aria-label", `Switch to ${theme === "dark" ? "light" : "dark"} mode`);
+            button.setAttribute("title", `Switch to ${theme === "dark" ? "light" : "dark"} mode`);
         }
     }
 
@@ -31,7 +32,15 @@
             const nextTheme = root.getAttribute("data-theme") === "dark" ? "light" : "dark";
             applyTheme(nextTheme);
         });
-        document.body.appendChild(button);
+        const nav = document.querySelector(".navbar");
+        const burger = document.querySelector(".burger");
+        if (nav && burger) {
+            nav.insertBefore(button, burger);
+        } else if (nav) {
+            nav.appendChild(button);
+        } else {
+            document.body.appendChild(button);
+        }
         applyTheme(root.getAttribute("data-theme") || preferredTheme());
     }
 
