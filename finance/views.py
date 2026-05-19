@@ -48,7 +48,10 @@ def set_pin(request):
     return render(request, 'user/set_pin.html', {'form': form})
 
 
-MIN_DEPOSIT = 5  # Minimum deposit amount in KSh
+MIN_DEPOSIT = Decimal("100.00")  # Minimum deposit amount in KSh
+MIN_INVESTMENT = Decimal("100.00")  # Minimum investment amount in KSh
+MIN_DEPOSIT_LABEL = "KES 100"
+MIN_INVESTMENT_LABEL = "KES 100"
 
 @login_required
 def deposit(request):
@@ -74,7 +77,7 @@ def deposit(request):
         if amount < MIN_DEPOSIT:
             return render(request, "finance/deposit.html", {
                 "balance": wallet.balance,
-                "message": {"title": "Error", "body": f"Minimum deposit is KES {MIN_DEPOSIT}"}
+                "message": {"title": "Error", "body": f"Minimum deposit is {MIN_DEPOSIT_LABEL}"}
             })
 
         # -----------------------------
@@ -244,8 +247,8 @@ def invest(request):
         amount = Decimal(request.POST.get("amount"))
         pin = request.POST.get("pin", "").strip()
 
-        if amount < 3:
-            messages.error(request, "Min KES 100")
+        if amount < MIN_INVESTMENT:
+            messages.error(request, f"Minimum investment is {MIN_INVESTMENT_LABEL}")
             return redirect("finance:invest")
 
         if amount > wallet.balance:
@@ -399,7 +402,8 @@ def referrals(request):
   # your B2C helper function
 
 # finance/views.py
-MIN_WITHDRAWAL_AMOUNT = Decimal("2.00")  # Minimum withdrawal allowed
+MIN_WITHDRAWAL_AMOUNT = Decimal("50.00")  # Minimum withdrawal allowed
+MIN_WITHDRAWAL_LABEL = "KES 50"
 
 @profile_required
 @login_required
@@ -444,7 +448,7 @@ def withdraw(request):
             return redirect("finance:withdraw")
 
         if amount < MIN_WITHDRAWAL_AMOUNT:
-            messages.error(request, f"Minimum withdrawal is KES {MIN_WITHDRAWAL_AMOUNT}")
+            messages.error(request, f"Minimum withdrawal is {MIN_WITHDRAWAL_LABEL}")
             return redirect("finance:withdraw")
 
         # IMPORTANT:

@@ -15,7 +15,7 @@
         <div>
             <span class="eyebrow">Investment order</span>
             <h1>Put your wallet balance to work</h1>
-            <p>Choose an amount, confirm with your transaction PIN, and track the investment from your dashboard.</p>
+            <p>Invest from KES 100, confirm with your transaction PIN, and track the investment from your dashboard.</p>
         </div>
         <div class="hero-actions">
             <a href="{% url 'finance:invest_tracking' %}" class="btn secondary">Track Investment</a>
@@ -34,7 +34,7 @@
             <form class="finance-form" method="POST" action="{% url 'finance:invest' %}">
                 {% csrf_token %}
                 <label for="amount">Amount to invest</label>
-                <input id="amount" type="number" name="amount" placeholder="Enter amount to invest" required>
+                <input id="amount" type="number" name="amount" min="100" placeholder="Minimum KES 100" required>
 
                 <label for="pin">Transaction PIN</label>
                 <input id="pin" type="password" name="pin" placeholder="Enter your transaction PIN" required>

@@ -14,7 +14,7 @@
         <div>
             <span class="eyebrow">Withdrawal request</span>
             <h1>Withdraw from your wallet</h1>
-            <p>Submit a withdrawal request with your transaction PIN. Requests are checked before completion.</p>
+            <p>Submit a withdrawal request from KES 50 with your transaction PIN. Requests are checked before completion.</p>
         </div>
         <div class="hero-actions">
             <a href="{% url 'user:dashboard' %}" class="btn secondary">Dashboard</a>
@@ -32,7 +32,7 @@
             <form class="finance-form" action="{% url 'finance:withdraw' %}" method="POST">
                 {% csrf_token %}
                 <label for="amount">Amount (KES)</label>
-                <input id="amount" type="number" name="amount" step="0.01" placeholder="Enter amount" required>
+                <input id="amount" type="number" name="amount" min="50" step="0.01" placeholder="Minimum KES 50" required>
 
                 <label for="pin">Transaction PIN</label>
                 <input id="pin" type="password" name="pin" placeholder="Enter PIN" required>
@@ -43,7 +43,7 @@
 
         <aside class="finance-card">
             <h3>Before you withdraw</h3>
-            <p class="empty-state">Use your current transaction PIN. Your request will appear in transactions after submission.</p>
+            <p class="empty-state">Use your current transaction PIN. The minimum withdrawal is KES 50, and your request will appear in transactions after submission.</p>
         </aside>
     </section>
 </main>
