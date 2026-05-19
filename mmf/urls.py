@@ -10,6 +10,7 @@ class RegisterRedirectWithQuery(RedirectView):
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('favicon.ico', RedirectView.as_view(url='/static/images/favicon-48.png', permanent=True)),
     path('', include('core.urls')),  # Core pages
     path('user/', include(('user.urls', 'user'), namespace='user')),
     path('finance/', include(('finance.urls', 'finance'), namespace='finance')),
