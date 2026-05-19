@@ -21,7 +21,7 @@ import datetime
 from decimal import Decimal
 from django.shortcuts import render
 from django.utils import timezone
-from .utils import send_otp_email
+from .utils import mature_due_investments, send_otp_email
 from user.utils import get_wallet_balance
 from django.utils import timezone
 from .models import PasswordResetOTP
@@ -191,6 +191,7 @@ def reset_password(request):
 @login_required
 def dashboard(request):
     user = request.user
+    mature_due_investments(user)
 
     # =========================
     # 💰 REAL BALANCE (FROM LEDGER)

@@ -122,6 +122,9 @@ def process_maturity(user, investment):
         if investment.is_redeemed:
             return Decimal("0")
 
+        if not investment.is_matured():
+            return Decimal("0")
+
         # 🔒 prevent duplicates properly
         if LedgerEntry.objects.filter(
             reference=f"MATURE-{investment.id}",
@@ -130,40 +133,12 @@ def process_maturity(user, investment):
             return Decimal("0")
 
         total_return = investment.total_return()
-        profit = investment.calculate_profit()
-
         investment.is_redeemed = True
         investment.save(update_fields=["is_redeemed"])
 
-        pool = CompanyAccount.objects.get(account_type="pool")
-        reserve = CompanyAccount.objects.get(account_type="reserve")
-
         # =========================
-        # 1. Pool decreases FULL return
-        # =========================
-        LedgerEntry.objects.create(
-            user=None,
-            account=pool,
-            tx_type="investment_return",
-            amount=total_return,
-            is_credit=False,
-            reference=f"MATURE-{investment.id}"
-        )
-
-        # =========================
-        # 2. Reserve increases FULL return (IMPORTANT FIX)
-        # =========================
-        LedgerEntry.objects.create(
-            user=None,
-            account=reserve,
-            tx_type="investment_return",
-            amount=total_return,
-            is_credit=True,
-            reference=f"MATURE-{investment.id}"
-        )
-
-        # =========================
-        # 3. User wallet (ONLY ONCE via transaction)
+        # User wallet gets principal + 3% after 24 hours.
+        # The transaction signal posts the matching ledger entries once.
         # =========================
         Transaction.objects.create(
             user=user,
@@ -174,6 +149,25 @@ def process_maturity(user, investment):
         )
 
         return total_return
+
+
+def mature_due_investments(user):
+    """
+    Redeem every investment whose 24-hour maturity date has passed.
+    Returns the total amount credited to the user's wallet.
+    """
+    due_investments = InvestmentTracking.objects.filter(
+        user=user,
+        is_redeemed=False,
+        maturity_date__lte=timezone.now(),
+    )
+
+    total_credited = Decimal("0")
+
+    for investment in due_investments:
+        total_credited += process_maturity(user, investment)
+
+    return total_credited
 
 def reset_daily_if_needed():
     state, _ = SystemState.objects.get_or_create(id=1)

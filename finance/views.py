@@ -18,7 +18,7 @@ import json
 from django.db import transaction
 from django.db.models import Sum
 from django.contrib.sites.shortcuts import get_current_site
-from user.utils import process_maturity
+from user.utils import mature_due_investments
 from .stkpush import stk_push
 from user.decorators import profile_required
 from finance.models import LedgerEntry
@@ -52,6 +52,7 @@ MIN_DEPOSIT = 5  # Minimum deposit amount in KSh
 
 @login_required
 def deposit(request):
+    mature_due_investments(request.user)
     wallet, _ = Wallet.objects.get_or_create(user=request.user)
 
     if request.method == "POST":
@@ -231,6 +232,7 @@ def mpesa_callback(request):
 @profile_required
 @login_required
 def invest(request):
+    mature_due_investments(request.user)
     wallet, _ = Wallet.objects.get_or_create(user=request.user)
 
     pin_obj = getattr(request.user, "transaction_pin", None)
@@ -297,6 +299,7 @@ def invest(request):
 
 @login_required
 def invest_tracking(request):
+    mature_due_investments(request.user)
     wallet, _ = Wallet.objects.get_or_create(user=request.user)
 
     investments = InvestmentTracking.objects.filter(user=request.user)
@@ -304,10 +307,6 @@ def invest_tracking(request):
 
     for inv in investments:
         elapsed = (now - inv.invested_at).total_seconds()
-
-        # 🔥 AUTO REDEEM SAFELY
-        if elapsed >= 24 * 3600 and not inv.is_redeemed:
-            process_maturity(request.user, inv)
 
         # 🔥 CALCULATE (DISPLAY ONLY)
         inv.interest_display = inv.interest_rate * 100
@@ -343,6 +342,7 @@ def invest_tracking(request):
 @login_required
 def transactions(request):
     user = request.user
+    mature_due_investments(user)
     transactions = Transaction.objects.filter(user=user).order_by('-timestamp')
     return render(request, 'finance/transactions.html', {'transactions': transactions})
 
@@ -405,6 +405,7 @@ MIN_WITHDRAWAL_AMOUNT = Decimal("2.00")  # Minimum withdrawal allowed
 @login_required
 def withdraw(request):
 
+    mature_due_investments(request.user)
     wallet = Wallet.objects.get(user=request.user)
     reserve_account = CompanyAccount.objects.get(account_type="reserve")
 
