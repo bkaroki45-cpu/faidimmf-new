@@ -7,31 +7,36 @@ html[data-theme="dark"] {
 }
 
 .theme-toggle {
-    display: inline-flex;
+    position: fixed;
+    top: max(12px, env(safe-area-inset-top));
+    right: max(12px, env(safe-area-inset-right));
+    z-index: 9999;
+    display: inline-grid;
     align-items: center;
-    gap: 8px;
-    min-height: 42px;
-    padding: 0 13px;
+    justify-content: center;
+    width: 42px;
+    height: 42px;
+    padding: 0;
     border: 1px solid rgba(7, 19, 14, 0.12);
-    border-radius: 999px;
+    border-radius: 50%;
     color: #07130e;
     background: #ffffff;
     box-shadow: 0 16px 40px rgba(7, 19, 14, 0.2);
     cursor: pointer;
     font-weight: 800;
-    font-size: 0.84rem;
+    font-size: 1.25rem;
+    line-height: 1;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.theme-toggle svg {
+    width: 20px;
+    height: 20px;
+    display: block;
 }
 
 .theme-toggle::before {
-    content: "";
-    display: inline-grid;
-    place-items: center;
-    width: 22px;
-    height: 22px;
-    border-radius: 50%;
-    background:
-        radial-gradient(circle at 50% 50%, #ffffff 0 30%, transparent 32%),
-        #00a651;
+    content: none;
 }
 
 html[data-theme="dark"] .theme-toggle {
@@ -41,9 +46,7 @@ html[data-theme="dark"] .theme-toggle {
 }
 
 html[data-theme="dark"] .theme-toggle::before {
-    background:
-        radial-gradient(circle at 64% 40%, #07130e 0 34%, transparent 36%),
-        #ffffff;
+    content: none;
 }
 
 html[data-theme="dark"] body {
@@ -206,8 +209,8 @@ html[data-theme="dark"] .no-data {
 
 @media (max-width: 520px) {
     .theme-toggle {
-        min-height: 40px;
-        padding: 0 10px;
-        font-size: 0.78rem;
+        width: 38px;
+        height: 38px;
+        font-size: 1.08rem;
     }
 }

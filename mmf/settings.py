@@ -188,6 +188,11 @@ EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER', 'faidimmf@gmail.com')
 EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
 DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', f'Faidii MMF <{EMAIL_HOST_USER}>')
 
+# Public IndexNow key. This is not a password; search engines use it to verify
+# that URL submissions are authorized by this site.
+INDEXNOW_KEY = os.getenv('INDEXNOW_KEY', '483cd12deca649b1ad192d8f6118dbfa')
+INDEXNOW_KEY_PATH = f'{INDEXNOW_KEY}.txt'
+
 
 
 MESSAGE_STORAGE = 'django.contrib.messages.storage.session.SessionStorage'

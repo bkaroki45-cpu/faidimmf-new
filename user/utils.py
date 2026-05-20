@@ -1,6 +1,6 @@
 # finance/utils.py
 
-from django.core.mail import send_mail
+from django.core.mail import EmailMultiAlternatives
 from django.conf import settings
 from django.db.models import Sum
 import random
@@ -22,10 +22,18 @@ def send_otp_email(user_email):
     subject = "Your Faidii MMF Verification Code"
     message = (
         f"Your Faidii MMF verification code is: {otp}. It will expire in 5 minutes.\n\n"
-        "If you do not see this email in your inbox, please check your Spam or Promotions folder."
+        "If you did not request this code, you can ignore this email.\n\n"
+        "FAIDII Money Market Fund"
     )
 
-    send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [user_email])
+    email = EmailMultiAlternatives(
+        subject=subject,
+        body=message,
+        from_email=settings.DEFAULT_FROM_EMAIL,
+        to=[user_email],
+        headers={"List-Unsubscribe": "<mailto:faidimmf@gmail.com?subject=unsubscribe>"},
+    )
+    email.send(fail_silently=False)
     return otp
 
 

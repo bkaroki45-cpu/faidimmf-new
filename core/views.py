@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect
 from django.conf import settings
-from django.http import FileResponse
+from django.http import FileResponse, HttpResponse
 from .forms import ContactForm
 from .models import Contact
 
@@ -41,3 +41,36 @@ def thank(request):
 def favicon(request):
     icon_path = settings.BASE_DIR / 'static' / 'images' / 'favicon-48.png'
     return FileResponse(open(icon_path, 'rb'), content_type='image/png')
+
+
+def robots_txt(request):
+    base_url = f"{request.scheme}://{request.get_host()}"
+    lines = [
+        "User-agent: *",
+        "Allow: /",
+        f"Sitemap: {base_url}/sitemap.xml",
+    ]
+    return HttpResponse("\n".join(lines), content_type="text/plain")
+
+
+def sitemap_xml(request):
+    base_url = f"{request.scheme}://{request.get_host()}"
+    paths = ["", "about/", "contacts/"]
+    urls = "\n".join(
+        f"""  <url>
+    <loc>{base_url}/{path}</loc>
+    <changefreq>weekly</changefreq>
+    <priority>{'1.0' if path == '' else '0.8'}</priority>
+  </url>"""
+        for path in paths
+    )
+    xml = f"""<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+{urls}
+</urlset>
+"""
+    return HttpResponse(xml, content_type="application/xml")
+
+
+def indexnow_key(request):
+    return HttpResponse(settings.INDEXNOW_KEY, content_type="text/plain")

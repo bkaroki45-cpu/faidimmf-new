@@ -1,9 +1,27 @@
 (function () {
     const storageKey = "faidii-theme";
     const root = document.documentElement;
+    const darkIcon = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 14.7A8.5 8.5 0 0 1 9.3 3a7 7 0 1 0 11.7 11.7Z" fill="currentColor"/></svg>';
+    const lightIcon = '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.5" fill="currentColor"/><path d="M12 2v3M12 19v3M4.9 4.9 7 7M17 17l2.1 2.1M2 12h3M19 12h3M4.9 19.1 7 17M17 7l2.1-2.1" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>';
+
+    function safeStorageGet() {
+        try {
+            return localStorage.getItem(storageKey);
+        } catch (error) {
+            return null;
+        }
+    }
+
+    function safeStorageSet(theme) {
+        try {
+            localStorage.setItem(storageKey, theme);
+        } catch (error) {
+            // Some mobile/private browsers can block storage. Theme still works for this page.
+        }
+    }
 
     function preferredTheme() {
-        const saved = localStorage.getItem(storageKey);
+        const saved = safeStorageGet();
         if (saved === "light" || saved === "dark") {
             return saved;
         }
@@ -11,13 +29,15 @@
     }
 
     function applyTheme(theme) {
-        root.setAttribute("data-theme", theme);
-        localStorage.setItem(storageKey, theme);
+        const nextTheme = theme === "dark" ? "dark" : "light";
+        root.setAttribute("data-theme", nextTheme);
+        safeStorageSet(nextTheme);
         const button = document.querySelector(".theme-toggle");
         if (button) {
-            button.textContent = theme === "dark" ? "Light" : "Dark";
-            button.setAttribute("aria-label", `Switch to ${theme === "dark" ? "light" : "dark"} mode`);
-            button.setAttribute("title", `Switch to ${theme === "dark" ? "light" : "dark"} mode`);
+            const targetTheme = nextTheme === "dark" ? "light" : "dark";
+            button.innerHTML = nextTheme === "dark" ? lightIcon : darkIcon;
+            button.setAttribute("aria-label", `Switch to ${targetTheme} mode`);
+            button.setAttribute("title", `Switch to ${targetTheme} mode`);
         }
     }
 
@@ -32,15 +52,7 @@
             const nextTheme = root.getAttribute("data-theme") === "dark" ? "light" : "dark";
             applyTheme(nextTheme);
         });
-        const nav = document.querySelector(".navbar");
-        const burger = document.querySelector(".burger");
-        if (nav && burger) {
-            nav.insertBefore(button, burger);
-        } else if (nav) {
-            nav.appendChild(button);
-        } else {
-            document.body.appendChild(button);
-        }
+        document.body.appendChild(button);
         applyTheme(root.getAttribute("data-theme") || preferredTheme());
     }
 

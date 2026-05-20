@@ -136,7 +136,7 @@ def logout_view(request):
         return redirect('home')
     
     import random
-from django.core.mail import send_mail
+from django.core.mail import EmailMultiAlternatives
 
 def forgot_password(request):
     message = None
@@ -155,17 +155,19 @@ def forgot_password(request):
 
         PasswordResetOTP.objects.create(user=user, otp=otp)
 
-        # Send email
-        send_mail(
-            "Faidii MMF Password Reset Code",
-            (
+        # Send email with clear transactional content and stable headers.
+        reset_email = EmailMultiAlternatives(
+            subject="Faidii MMF Password Reset Code",
+            body=(
                 f"Your Faidii MMF password reset code is: {otp}. It will expire in 10 minutes.\n\n"
-                "If you do not see this email in your inbox, please check your Spam or Promotions folder."
+                "If you did not request this code, you can ignore this email.\n\n"
+                "FAIDII Money Market Fund"
             ),
-            settings.DEFAULT_FROM_EMAIL,
-            [email],
-            fail_silently=False,
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            to=[email],
+            headers={"List-Unsubscribe": "<mailto:faidimmf@gmail.com?subject=unsubscribe>"},
         )
+        reset_email.send(fail_silently=False)
 
         request.session["reset_user_id"] = user.id
         return redirect("user:verify_otp")

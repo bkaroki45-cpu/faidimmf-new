@@ -1,9 +1,18 @@
 {% load static %}
+<link rel="canonical" href="{{ request.scheme }}://{{ request.get_host }}{{ request.path }}">
+<meta name="robots" content="index, follow">
+<meta name="google-site-verification" content="oTCrdm0k2jUpjyMthYoMcCBhJEoPK-eNZEFA4SzDEl0">
 <link rel="icon" type="image/png" sizes="48x48" href="{% static 'images/favicon-48.png' %}">
 <link rel="icon" type="image/png" sizes="192x192" href="{% static 'images/favicon-192.png' %}">
+<link rel="shortcut icon" href="/favicon.ico">
 <link rel="apple-touch-icon" sizes="192x192" href="{% static 'images/favicon-192.png' %}">
 <link rel="manifest" href="{% static 'site.webmanifest' %}">
 <meta name="theme-color" content="#0b0b0b">
+<meta property="og:site_name" content="FAIDII Money Market Fund">
+<meta property="og:type" content="website">
+<meta property="og:image" content="https://www.faidii.com/static/images/search-logo-512.png">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://www.faidii.com/static/images/search-logo-512.png">
 <script type="application/ld+json">
 {
     "@context": "https://schema.org",
