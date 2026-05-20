@@ -39,8 +39,13 @@ def thank(request):
 
 
 def favicon(request):
-    icon_path = settings.BASE_DIR / 'static' / 'images' / 'favicon-48.png'
-    return FileResponse(open(icon_path, 'rb'), content_type='image/png')
+    icon_path = settings.BASE_DIR / 'static' / 'images' / 'favicon.ico'
+    return FileResponse(open(icon_path, 'rb'), content_type='image/x-icon')
+
+
+def site_webmanifest(request):
+    manifest_path = settings.BASE_DIR / 'static' / 'site.webmanifest'
+    return FileResponse(open(manifest_path, 'rb'), content_type='application/manifest+json')
 
 
 def robots_txt(request):

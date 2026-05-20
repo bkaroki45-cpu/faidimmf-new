@@ -6,6 +6,7 @@
 <head>
     <meta charset="UTF-8">
     <title>FAIDII Dashboard</title>
+    {% include 'core/partials/seo_icons.html' %}
     <link rel="stylesheet" href="{% static 'styles/dashboard.css' %}">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
@@ -13,7 +14,7 @@
     <link rel="stylesheet" href="{% static 'styles/theme.css' %}">
 </head>
 
-<body>
+<body class="dashboard-page">
     <aside class="sidebar" id="sidebar">
         <button class="close-btn" onclick="toggleMenu()" type="button" aria-label="Close menu">&times;</button>
 
