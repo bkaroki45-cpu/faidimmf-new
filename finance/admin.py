@@ -34,6 +34,12 @@ class WalletInline(admin.StackedInline):
     verbose_name_plural = "Wallet"
     classes = ('collapse',)
 
+    def has_add_permission(self, request, obj=None):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False
+
 
 class TransactionPINInline(admin.StackedInline):
     model = TransactionPIN
@@ -130,6 +136,13 @@ class CompanyAccountAdmin(admin.ModelAdmin):
         "display_balance",
         "created_at",
     )
+    readonly_fields = ("name", "account_type", "invested_today", "created_at", "display_balance")
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
 
     def get_queryset(self, request):
         """
@@ -301,6 +314,31 @@ class TransactionAdmin(admin.ModelAdmin):
         'reject_withdrawals'
     ]
 
+    readonly_fields = (
+        'user',
+        'amount',
+        'checkout_id',
+        'mpesa_code',
+        'conversation_id',
+        'originator_conversation_id',
+        'phone_number',
+        'status',
+        'tx_type',
+        'reference_user',
+        'result_desc',
+        'timestamp',
+        'completed_at',
+        'wallet_balance',
+        'status_badge',
+        'action_buttons',
+    )
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
     # -----------------------
     # PHONE NUMBER
     # -----------------------
@@ -451,6 +489,21 @@ class TransactionAdmin(admin.ModelAdmin):
 @admin.register(InvestmentTracking)
 class InvestmentTrackingAdmin(admin.ModelAdmin):
     list_display = ('user', 'amount', 'status_badge', 'invested_at', 'maturity_date', 'is_redeemed')
+    readonly_fields = (
+        'user',
+        'amount',
+        'interest_rate',
+        'invested_at',
+        'maturity_date',
+        'is_redeemed',
+        'status_badge',
+    )
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
 
     def status_badge(self, obj):
         if obj.is_redeemed:
@@ -470,6 +523,12 @@ class WalletAdmin(admin.ModelAdmin):
     list_display = ('user', 'balance')
     search_fields = ('user__username', 'user__email')
     readonly_fields = ('user', 'balance')
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
 
 
 # =========================
