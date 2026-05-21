@@ -16,12 +16,26 @@ body {
     padding: 20px;
 }
 
+body,
+.otp-container,
+.otp-container h2,
+.otp-container p,
+label,
+.message,
+.resend,
+.resend a,
+input[type="text"],
+button {
+    color-scheme: light;
+}
+
 /* Container */
 .otp-container {
-    background: rgba(255, 255, 255, 0.05);
+    background: rgba(22, 28, 45, 0.42);
     backdrop-filter: blur(15px);
     padding: 40px 30px;
-    border-radius: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    border-radius: 8px;
     width: 100%;
     max-width: 400px;
     text-align: center;
@@ -44,7 +58,7 @@ body {
 
 .otp-container p {
     font-size: 0.95rem;
-    color: #e0e0e0;
+    color: #f3f4f6;
     margin-bottom: 25px;
     animation: fadeIn 1.2s ease forwards;
 }
@@ -56,7 +70,7 @@ body {
 }
 
 .message {
-    background: rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.14);
     padding: 10px 15px;
     border-radius: 10px;
     margin-bottom: 10px;
@@ -87,8 +101,8 @@ label {
 
 input[type="text"] {
     padding: 12px 15px;
-    border-radius: 12px;
-    border: none;
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
     outline: none;
     font-size: 1rem;
     transition: all 0.3s ease;
@@ -129,7 +143,7 @@ button:hover {
 .resend {
     font-size: 0.85rem;
     margin-top: 15px;
-    color: #e0e0e0;
+    color: #f3f4f6;
 }
 
 .resend a {
@@ -142,6 +156,51 @@ button:hover {
 .resend a:hover {
     text-shadow: 0 0 10px #ffd700;
     transform: scale(1.05);
+}
+
+html[data-theme="dark"] body {
+    background:
+        linear-gradient(135deg, rgba(7, 19, 14, 0.98), rgba(2, 115, 59, 0.88)),
+        url("../images/finance-hero.jpg") center / cover no-repeat;
+    color: #f4fff7;
+}
+
+html[data-theme="dark"] .otp-container {
+    background: #102018;
+    border-color: rgba(255, 255, 255, 0.16);
+    box-shadow: 0 28px 70px rgba(0, 0, 0, 0.38);
+}
+
+html[data-theme="dark"] .otp-container h2,
+html[data-theme="dark"] label,
+html[data-theme="dark"] .resend a {
+    color: #78f095;
+}
+
+html[data-theme="dark"] .otp-container p,
+html[data-theme="dark"] .resend {
+    color: #b8c8bf;
+}
+
+html[data-theme="dark"] input[type="text"] {
+    color: #f4fff7;
+    background: #07130e;
+    border-color: rgba(255, 255, 255, 0.18);
+}
+
+html[data-theme="dark"] input[type="text"]::placeholder {
+    color: rgba(244, 255, 247, 0.62);
+}
+
+html[data-theme="dark"] input[type="text"]:focus {
+    background: #0b1812;
+    box-shadow: 0 0 0 4px rgba(120, 240, 149, 0.16);
+}
+
+html[data-theme="dark"] .message {
+    color: #f4fff7;
+    background: rgba(0, 166, 81, 0.16);
+    border: 1px solid rgba(120, 240, 149, 0.34);
 }
 
 /* Animations */

@@ -22,6 +22,7 @@ from user.utils import mature_due_investments
 from .stkpush import stk_push
 from user.decorators import profile_required
 from finance.models import LedgerEntry
+from .notifications import notify_withdrawal_request
 
 
 
@@ -505,7 +506,14 @@ def withdraw(request):
                     tx_type="withdraw",
                     status="pending",
                     checkout_id=str(uuid.uuid4()),
+                    phone_number=getattr(request.user, "phone", None),
                     result_desc=f"Withdrawal request of KES {amount} submitted (ledger system)"
+                )
+
+                transaction.on_commit(
+                    lambda tx_id=tx.id: notify_withdrawal_request(
+                        Transaction.objects.get(id=tx_id)
+                    )
                 )
 
                 messages.success(

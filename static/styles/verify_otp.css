@@ -158,6 +158,61 @@ button:hover {
     text-decoration: underline;
 }
 
+html[data-theme="dark"] body {
+    color: #f4fff7;
+    background:
+        linear-gradient(120deg, rgba(7, 19, 14, 0.96), rgba(2, 115, 59, 0.86)),
+        url("../images/finance-hero.jpg") center / cover no-repeat;
+}
+
+html[data-theme="dark"] .card {
+    color: #f4fff7;
+    background: #102018;
+    border-color: rgba(255, 255, 255, 0.16);
+}
+
+html[data-theme="dark"] .otp-brand,
+html[data-theme="dark"] h2 {
+    color: #f4fff7;
+}
+
+html[data-theme="dark"] .subtitle {
+    color: #b8c8bf;
+}
+
+html[data-theme="dark"] .otp-box input {
+    color: #f4fff7;
+    background: #07130e;
+    border-color: rgba(255, 255, 255, 0.18);
+}
+
+html[data-theme="dark"] .otp-box input::placeholder {
+    color: rgba(244, 255, 247, 0.62);
+}
+
+html[data-theme="dark"] .otp-box input:focus {
+    background: #0b1812;
+    border-color: #78f095;
+    box-shadow: 0 0 0 4px rgba(120, 240, 149, 0.16);
+}
+
+html[data-theme="dark"] .success,
+html[data-theme="dark"] .info {
+    color: #bcffd0;
+    background: rgba(0, 166, 81, 0.16);
+    border-color: rgba(120, 240, 149, 0.34);
+}
+
+html[data-theme="dark"] .error {
+    color: #ffd2cc;
+    background: rgba(216, 59, 49, 0.16);
+    border-color: rgba(255, 163, 153, 0.34);
+}
+
+html[data-theme="dark"] .links a {
+    color: #78f095;
+}
+
 @media (max-width: 480px) {
     body {
         padding: 16px;

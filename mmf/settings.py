@@ -193,6 +193,22 @@ DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', f'Faidii MMF <{EMAIL_HOST_U
 INDEXNOW_KEY = os.getenv('INDEXNOW_KEY', '483cd12deca649b1ad192d8f6118dbfa')
 INDEXNOW_KEY_PATH = f'{INDEXNOW_KEY}.txt'
 
+# Telegram notifications
+TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "")
+TELEGRAM_CHAT_ID = os.getenv("TELEGRAM_CHAT_ID", "-1003771732043")
+TELEGRAM_TIMEOUT_SECONDS = int(os.getenv("TELEGRAM_TIMEOUT_SECONDS", "5"))
+TELEGRAM_USE_CELERY = os.getenv("TELEGRAM_USE_CELERY", "False").lower() in (
+    "1",
+    "true",
+    "yes",
+    "on",
+)
+
+# Celery
+CELERY_BROKER_URL = os.getenv("CELERY_BROKER_URL", "redis://127.0.0.1:6379/0")
+CELERY_RESULT_BACKEND = os.getenv("CELERY_RESULT_BACKEND", CELERY_BROKER_URL)
+CELERY_TASK_IGNORE_RESULT = True
+
 
 
 MESSAGE_STORAGE = 'django.contrib.messages.storage.session.SessionStorage'
