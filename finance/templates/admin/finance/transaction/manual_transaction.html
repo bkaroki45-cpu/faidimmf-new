@@ -1,0 +1,44 @@
+{% extends "admin/base_site.html" %}
+{% load i18n static %}
+
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+    <a href="{% url 'admin:index' %}">{% translate 'Home' %}</a>
+    &rsaquo; <a href="{% url 'admin:app_list' app_label='finance' %}">Finance</a>
+    &rsaquo; <a href="{% url 'admin:finance_transaction_changelist' %}">Transactions</a>
+    &rsaquo; Create Transaction
+</div>
+{% endblock %}
+
+{% block content %}
+<div id="content-main">
+    <form method="post" novalidate>
+        {% csrf_token %}
+        <fieldset class="module aligned">
+            <h2>Create Transaction</h2>
+
+            {% if form.non_field_errors %}
+                <div class="errors">{{ form.non_field_errors }}</div>
+            {% endif %}
+
+            {% for field in form %}
+                <div class="form-row{% if field.errors %} errors{% endif %}">
+                    {{ field.errors }}
+                    <div>
+                        {{ field.label_tag }}
+                        {{ field }}
+                        {% if field.help_text %}
+                            <div class="help">{{ field.help_text }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+            {% endfor %}
+        </fieldset>
+
+        <div class="submit-row">
+            <input type="submit" value="Create Transaction" class="default">
+            <a href="{% url 'admin:finance_transaction_changelist' %}" class="closelink">Cancel</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

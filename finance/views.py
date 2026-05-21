@@ -545,9 +545,6 @@ def mark_withdrawal_completed(request, tx_id):
     tx.result_desc = "Paid manually via M-Pesa Till/Paybill"
     tx.save()
 
-    # Update wallet + company accounts
-    CompanyAccount.post_transaction(tx)
-
     messages.success(request, "Withdrawal marked as completed")
     return redirect("finance:admin_withdrawals")
 

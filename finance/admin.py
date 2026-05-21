@@ -1,15 +1,22 @@
 from django.contrib import admin
+from django import forms
+from django.contrib import messages
 from django.contrib.auth.admin import UserAdmin
+from django.shortcuts import redirect
+from django.template.response import TemplateResponse
+from django.urls import path, reverse
 from django.utils.html import format_html
 from django.utils.timezone import localdate
 from django.db.models import Sum
 from .models import CompanyAccount
 from datetime import timedelta
+from decimal import Decimal
 from django.utils import timezone
 from .models import Wallet, Transaction, InvestmentTracking, CompanyAccount
 from user.models import CustomUser, TransactionPIN
 from django.contrib.admin import SimpleListFilter
 from finance.models import LedgerEntry
+from .admin_services import AdminTransactionError, create_admin_transaction
 
 
 
@@ -287,8 +294,37 @@ def render_badge(color, text):
 # =========================
 # TRANSACTION ADMIN
 # =========================
+class ManualTransactionForm(forms.Form):
+    TRANSACTION_TYPES = (
+        ("deposit", "Deposit"),
+        ("withdraw", "Withdrawal"),
+        ("invest", "Investment"),
+    )
+
+    tx_type = forms.ChoiceField(
+        label="Transaction type",
+        choices=TRANSACTION_TYPES,
+    )
+    user = forms.ModelChoiceField(
+        queryset=CustomUser.objects.order_by("username"),
+        label="User",
+        help_text="Select the user whose wallet/history should receive this transaction.",
+    )
+    amount = forms.DecimalField(
+        max_digits=20,
+        decimal_places=2,
+        min_value=Decimal("0.01"),
+    )
+    note = forms.CharField(
+        label="Description / note",
+        required=False,
+        widget=forms.Textarea(attrs={"rows": 3}),
+    )
+
+
 @admin.register(Transaction)
 class TransactionAdmin(admin.ModelAdmin):
+    change_list_template = "admin/finance/transaction/change_list.html"
 
     list_display = (
         'id',
@@ -338,6 +374,79 @@ class TransactionAdmin(admin.ModelAdmin):
 
     def has_delete_permission(self, request, obj=None):
         return False
+
+    def get_urls(self):
+        urls = super().get_urls()
+        custom_urls = [
+            path(
+                "manual-create/",
+                self.admin_site.admin_view(self.manual_create_view),
+                name="finance_transaction_manual_create",
+            ),
+        ]
+        return custom_urls + urls
+
+    def manual_create_view(self, request):
+        if request.method == "POST":
+            form = ManualTransactionForm(request.POST)
+            if form.is_valid():
+                try:
+                    tx = create_admin_transaction(
+                        user=form.cleaned_data["user"],
+                        tx_type=form.cleaned_data["tx_type"],
+                        amount=form.cleaned_data["amount"],
+                        note=form.cleaned_data["note"],
+                        admin_user=request.user,
+                    )
+                except AdminTransactionError as exc:
+                    form.add_error(None, str(exc))
+                else:
+                    messages.success(
+                        request,
+                        f"Transaction {tx.checkout_id} created successfully.",
+                    )
+                    return redirect(reverse("admin:finance_transaction_changelist"))
+        else:
+            form = ManualTransactionForm()
+
+        context = {
+            **self.admin_site.each_context(request),
+            "opts": self.model._meta,
+            "title": "Create Transaction",
+            "form": form,
+        }
+        return TemplateResponse(
+            request,
+            "admin/finance/transaction/manual_transaction.html",
+            context,
+        )
+
+    def changelist_view(self, request, extra_context=None):
+        today = localdate()
+        month_start = today.replace(day=1)
+        completed = Transaction.objects.filter(status="completed")
+
+        totals = {
+            "total_deposited_today": completed.filter(
+                tx_type="deposit",
+                timestamp__date=today,
+            ).aggregate(total=Sum("amount"))["total"] or Decimal("0.00"),
+            "total_withdrawn_today": completed.filter(
+                tx_type="withdraw",
+                timestamp__date=today,
+            ).aggregate(total=Sum("amount"))["total"] or Decimal("0.00"),
+            "total_deposited_month": completed.filter(
+                tx_type="deposit",
+                timestamp__date__gte=month_start,
+            ).aggregate(total=Sum("amount"))["total"] or Decimal("0.00"),
+            "total_withdrawn_month": completed.filter(
+                tx_type="withdraw",
+                timestamp__date__gte=month_start,
+            ).aggregate(total=Sum("amount"))["total"] or Decimal("0.00"),
+        }
+        if extra_context:
+            totals.update(extra_context)
+        return super().changelist_view(request, extra_context=totals)
 
     # -----------------------
     # PHONE NUMBER
@@ -445,14 +554,8 @@ class TransactionAdmin(admin.ModelAdmin):
 
             tx.save()
 
-            # -----------------------
-            # LEDGER POST
-            # -----------------------
-            try:
-                CompanyAccount.post_transaction(tx)
-
-            except Exception as e:
-                print("Ledger error:", str(e))
+            # The withdrawal request already debited the user's wallet when it
+            # was created. Approval only marks the transaction as paid.
 
         self.message_user(
             request,
