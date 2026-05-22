@@ -132,6 +132,74 @@ button:hover {
     color: #008f45;
 }
 
+.google-auth-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    width: 100%;
+    min-height: 46px;
+    margin-top: 16px;
+    padding: 11px 14px;
+    border: 1px solid #d7dee8;
+    border-radius: 10px;
+    color: #1f2937;
+    background: #ffffff;
+    font-size: 0.95rem;
+    font-weight: 800;
+    text-decoration: none;
+    box-shadow: 0 8px 20px rgba(15, 23, 42, 0.08);
+}
+
+.google-auth-btn svg {
+    width: 20px;
+    height: 20px;
+    flex: 0 0 auto;
+}
+
+.google-auth-btn:hover {
+    color: #1f2937;
+    border-color: #b8c2cf;
+    background: #f8fafc;
+    transform: translateY(-1px);
+}
+
+.auth-divider {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 18px 0 4px;
+    color: #7a8699;
+    font-size: 0.78rem;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.auth-divider::before,
+.auth-divider::after {
+    content: "";
+    height: 1px;
+    flex: 1;
+    background: #dfe7ef;
+}
+
+.auth-message {
+    margin-top: 12px;
+    padding: 10px 12px;
+    border-radius: 10px;
+    color: #14532d;
+    background: #dcfce7;
+    border: 1px solid #bbf7d0;
+    font-size: 0.86rem;
+    font-weight: 700;
+}
+
+.auth-message.error {
+    color: #991b1b;
+    background: #fee2e2;
+    border-color: #fecaca;
+}
+
 .forgot_password {
     display: inline-block;
     margin-top: 16px;

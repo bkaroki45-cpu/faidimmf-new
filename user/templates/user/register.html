@@ -24,6 +24,24 @@
 <div class="container">
     <h2>Register</h2>
 
+    {% if messages %}
+        {% for message in messages %}
+            <p class="auth-message {{ message.tags }}">{{ message }}</p>
+        {% endfor %}
+    {% endif %}
+
+    <a class="google-auth-btn" href="{% url 'user:google_login' %}{% if ref_code_from_link %}?ref={{ ref_code_from_link|urlencode }}{% endif %}">
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <path fill="#4285F4" d="M23 12.2c0-.8-.1-1.6-.2-2.3H12v4.4h6.2c-.3 1.4-1.1 2.6-2.3 3.4v2.8h3.7c2.1-2 3.4-4.9 3.4-8.3Z"/>
+            <path fill="#34A853" d="M12 23c3.1 0 5.7-1 7.6-2.8l-3.7-2.8c-1 .7-2.3 1.1-3.9 1.1-3 0-5.5-2-6.4-4.7H1.8v2.9C3.7 20.4 7.6 23 12 23Z"/>
+            <path fill="#FBBC05" d="M5.6 13.9c-.2-.7-.4-1.4-.4-2.2s.1-1.5.4-2.2V6.6H1.8C1 8.1.6 9.8.6 11.7s.4 3.6 1.2 5.1l3.8-2.9Z"/>
+            <path fill="#EA4335" d="M12 4.9c1.7 0 3.2.6 4.4 1.7l3.3-3.3C17.7 1.5 15.1.4 12 .4 7.6.4 3.7 3 1.8 6.6l3.8 2.9C6.5 6.9 9 4.9 12 4.9Z"/>
+        </svg>
+        <span>Sign up with Google</span>
+    </a>
+
+    <div class="auth-divider"><span>or</span></div>
+
     <form method="POST">
         {% csrf_token %}
 

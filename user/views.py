@@ -1,7 +1,11 @@
 import datetime
+import secrets
+from urllib.parse import urlencode
+import requests
 from django.shortcuts import render, redirect
 from django.contrib.auth import login, logout, authenticate
 from django.urls import reverse
+from django.utils.http import url_has_allowed_host_and_scheme
 from django.contrib.auth.decorators import login_required
 from django.db import transaction as db_transaction
 from django.db.models import Sum, Count
@@ -28,6 +32,135 @@ from django.utils import timezone
 from .models import PasswordResetOTP
 from django.conf import settings
 from finance.notifications import notify_signup
+
+def _google_redirect_uri(request):
+    callback_path = reverse('user:google_callback')
+    if settings.PUBLIC_URL:
+        return f"{settings.PUBLIC_URL.rstrip('/')}{callback_path}"
+    return request.build_absolute_uri(callback_path)
+
+
+def _unique_google_username(email, full_name):
+    base = (email.split('@')[0] or full_name or 'googleuser').lower()
+    base = ''.join(char for char in base if char.isalnum() or char in ('_', '-'))[:24] or 'googleuser'
+    username = base
+    counter = 1
+
+    while CustomUser.objects.filter(username=username).exists():
+        suffix = str(counter)
+        username = f"{base[:30 - len(suffix)]}{suffix}"
+        counter += 1
+
+    return username
+
+
+def google_login(request):
+    if not settings.GOOGLE_OAUTH_CLIENT_ID or not settings.GOOGLE_OAUTH_CLIENT_SECRET:
+        messages.error(request, "Google sign in is not configured yet.")
+        return redirect('user:login')
+
+    state = secrets.token_urlsafe(32)
+    request.session['google_oauth_state'] = state
+    request.session['google_oauth_next'] = request.GET.get('next', '')
+    request.session['google_oauth_ref'] = request.GET.get('ref', '')
+
+    params = {
+        'client_id': settings.GOOGLE_OAUTH_CLIENT_ID,
+        'redirect_uri': _google_redirect_uri(request),
+        'response_type': 'code',
+        'scope': 'openid email profile',
+        'state': state,
+        'prompt': 'select_account',
+    }
+    return redirect(f"{settings.GOOGLE_OAUTH_AUTH_URL}?{urlencode(params)}")
+
+
+def google_callback(request):
+    expected_state = request.session.get('google_oauth_state')
+    received_state = request.GET.get('state')
+
+    if not expected_state or received_state != expected_state:
+        messages.error(request, "Google sign in could not be verified. Please try again.")
+        return redirect('user:login')
+
+    if request.GET.get('error'):
+        messages.error(request, "Google sign in was cancelled.")
+        return redirect('user:login')
+
+    code = request.GET.get('code')
+    if not code:
+        messages.error(request, "Google did not return a sign in code.")
+        return redirect('user:login')
+
+    try:
+        token_response = requests.post(
+            settings.GOOGLE_OAUTH_TOKEN_URL,
+            data={
+                'client_id': settings.GOOGLE_OAUTH_CLIENT_ID,
+                'client_secret': settings.GOOGLE_OAUTH_CLIENT_SECRET,
+                'code': code,
+                'grant_type': 'authorization_code',
+                'redirect_uri': _google_redirect_uri(request),
+            },
+            timeout=10,
+        )
+        token_response.raise_for_status()
+        access_token = token_response.json().get('access_token')
+
+        userinfo_response = requests.get(
+            settings.GOOGLE_OAUTH_USERINFO_URL,
+            headers={'Authorization': f'Bearer {access_token}'},
+            timeout=10,
+        )
+        userinfo_response.raise_for_status()
+        google_user = userinfo_response.json()
+    except requests.RequestException:
+        messages.error(request, "Google sign in is unavailable right now. Please try again.")
+        return redirect('user:login')
+
+    email = (google_user.get('email') or '').strip().lower()
+    if not email or not google_user.get('email_verified'):
+        messages.error(request, "Please use a verified Google email address.")
+        return redirect('user:login')
+
+    next_url = request.session.pop('google_oauth_next', '')
+    if not url_has_allowed_host_and_scheme(next_url, allowed_hosts={request.get_host()}):
+        next_url = reverse('user:dashboard')
+    ref_code = request.session.pop('google_oauth_ref', '')
+    request.session.pop('google_oauth_state', None)
+
+    user = CustomUser.objects.filter(email__iexact=email).first()
+    created = False
+
+    if user is None:
+        name = google_user.get('name') or email.split('@')[0]
+        user = CustomUser(
+            username=_unique_google_username(email, name),
+            email=email,
+            first_name=(google_user.get('given_name') or '')[:150],
+            last_name=(google_user.get('family_name') or '')[:150],
+        )
+        user.set_unusable_password()
+
+        if ref_code:
+            referrer = CustomUser.objects.filter(referral_code=ref_code).first()
+            if referrer:
+                user.referred_by = referrer
+
+        user.save()
+        created = True
+
+    login(request, user)
+
+    if created:
+        db_transaction.on_commit(lambda user_id=user.id: notify_signup(
+            CustomUser.objects.get(id=user_id)
+        ))
+        messages.success(request, f"Welcome, {user.username}! Your account was created with Google.")
+    else:
+        messages.success(request, f"Welcome back, {user.username}.")
+
+    return redirect(next_url)
 
 def register(request):
 
