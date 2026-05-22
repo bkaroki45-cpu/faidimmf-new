@@ -26,8 +26,12 @@ def parse_admin_amount(amount):
 def create_admin_transaction(*, user, tx_type, amount, note="", admin_user=None):
     amount = parse_admin_amount(amount)
     note = (note or "").strip()
-    admin_name = getattr(admin_user, "username", "admin")
-    result_desc = note or f"Manual {tx_type} created by admin {admin_name}"
+    default_descriptions = {
+        "deposit": "Deposit processed",
+        "withdraw": "Withdrawal processed",
+        "invest": "Investment processed",
+    }
+    result_desc = note or default_descriptions.get(tx_type, "Transaction processed")
 
     if tx_type not in {"deposit", "withdraw", "invest"}:
         raise AdminTransactionError("Unsupported transaction type.")

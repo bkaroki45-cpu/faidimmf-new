@@ -408,7 +408,7 @@ class TransactionAdmin(admin.ModelAdmin):
                 return redirect(reverse("admin:finance_transaction_changelist"))
 
             tx.status = "completed"
-            tx.result_desc = "Paid manually via admin action button"
+            tx.result_desc = "Withdrawal paid"
             tx.completed_at = timezone.now()
             tx.save(update_fields=["status", "result_desc", "completed_at"])
 
@@ -582,7 +582,7 @@ class TransactionAdmin(admin.ModelAdmin):
             if tx.tx_type == "withdraw" and tx.status == "pending":
 
                 tx.status = "failed"
-                tx.result_desc = "Rejected by admin"
+                tx.result_desc = "Withdrawal rejected"
 
                 tx.save()
 

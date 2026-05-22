@@ -552,7 +552,7 @@ def reject_withdrawal(request, tx_id):
         return redirect("finance:admin_withdrawals")
 
     tx.status = "failed"
-    tx.result_desc = "Rejected by admin"
+    tx.result_desc = "Withdrawal rejected"
     tx.save()
 
     messages.success(request, "Withdrawal rejected")
