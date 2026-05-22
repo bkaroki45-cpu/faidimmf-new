@@ -6,6 +6,46 @@ html[data-theme="dark"] {
     color-scheme: dark;
 }
 
+.telegram-support-link {
+    position: fixed;
+    right: max(12px, env(safe-area-inset-right));
+    bottom: max(76px, calc(env(safe-area-inset-bottom) + 76px));
+    z-index: 10000;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-width: 42px;
+    height: 42px;
+    padding: 0 14px;
+    border: 1px solid rgba(255, 255, 255, 0.24);
+    border-radius: 999px;
+    color: #ffffff;
+    background: #229ed9;
+    box-shadow: 0 16px 40px rgba(7, 19, 14, 0.22), 0 0 0 3px rgba(34, 158, 217, 0.18);
+    font-size: 0.92rem;
+    font-weight: 800;
+    line-height: 1;
+    text-decoration: none;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.telegram-support-link svg {
+    width: 20px;
+    height: 20px;
+    display: block;
+    fill: currentColor;
+    flex: 0 0 auto;
+}
+
+.telegram-support-link:hover,
+.telegram-support-link:focus-visible {
+    color: #ffffff;
+    background: #1687bd;
+    outline: none;
+    transform: translateY(-1px);
+}
+
 .theme-toggle {
     position: fixed;
     top: max(12px, env(safe-area-inset-top));
@@ -43,6 +83,11 @@ html[data-theme="dark"] .theme-toggle {
     color: #ffffff;
     background: linear-gradient(135deg, #07130e, #02733b);
     border-color: rgba(255, 255, 255, 0.22);
+}
+
+html[data-theme="dark"] .telegram-support-link {
+    border-color: rgba(255, 255, 255, 0.22);
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.32), 0 0 0 3px rgba(34, 158, 217, 0.22);
 }
 
 html[data-theme="dark"] .theme-toggle::before {
@@ -208,6 +253,32 @@ html[data-theme="dark"] .no-data {
 }
 
 @media (max-width: 520px) {
+    .telegram-support-link {
+        right: max(14px, env(safe-area-inset-right));
+        bottom: max(68px, calc(env(safe-area-inset-bottom) + 68px));
+        width: 38px;
+        min-width: 38px;
+        height: 38px;
+        padding: 0;
+        border-radius: 50%;
+    }
+
+    .telegram-support-link span {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+        border: 0;
+    }
+
+    .telegram-support-link svg {
+        width: 19px;
+        height: 19px;
+    }
+
     .theme-toggle {
         top: auto;
         right: max(14px, env(safe-area-inset-right));
