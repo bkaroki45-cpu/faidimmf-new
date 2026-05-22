@@ -2,6 +2,7 @@ import logging
 
 import requests
 from django.conf import settings
+from django.utils.html import escape
 from django.utils import timezone
 
 
@@ -97,6 +98,22 @@ def send_transaction_notification(transaction, event="updated"):
     return send_telegram_message(message)
 
 
+def send_signup_notification(user):
+    referrer = getattr(user, "referred_by", None)
+    referrer_name = getattr(referrer, "username", None) or "None"
+    phone = getattr(user, "phone", None) or "Not provided"
+    message = (
+        "<b>New Signup</b>\n\n"
+        f"User: {escape(getattr(user, 'username', 'Unknown'))}\n"
+        f"Email: {escape(getattr(user, 'email', 'Not provided'))}\n"
+        f"Phone: {escape(phone)}\n"
+        f"Referral: {escape(referrer_name)}\n"
+        f"Time: {timezone.localtime(timezone.now()).strftime('%Y-%m-%d %H:%M:%S')}"
+    )
+
+    return send_telegram_message(message)
+
+
 def send_withdrawal_request_notification(transaction):
     return send_transaction_notification(transaction, event="created")
 
@@ -141,3 +158,10 @@ def notify_transaction(transaction, event="updated"):
             )
 
     return send_transaction_notification(transaction, event=event)
+
+
+def notify_signup(user):
+    """
+    Dispatch a Telegram notification when a new account is registered.
+    """
+    return send_signup_notification(user)

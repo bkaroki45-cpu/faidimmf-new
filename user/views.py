@@ -3,6 +3,7 @@ from django.shortcuts import render, redirect
 from django.contrib.auth import login, logout, authenticate
 from django.urls import reverse
 from django.contrib.auth.decorators import login_required
+from django.db import transaction as db_transaction
 from django.db.models import Sum, Count
 from finance.models import LedgerEntry, Transaction, Wallet
 import plotly.graph_objects as go
@@ -26,6 +27,7 @@ from user.utils import get_wallet_balance
 from django.utils import timezone
 from .models import PasswordResetOTP
 from django.conf import settings
+from finance.notifications import notify_signup
 
 def register(request):
 
@@ -47,6 +49,9 @@ def register(request):
                     pass
 
             user.save()
+            db_transaction.on_commit(lambda user_id=user.id: notify_signup(
+                CustomUser.objects.get(id=user_id)
+            ))
             login(request, user)
             messages.success(request, f"Welcome, {user.username}! Your account was created.")
             return redirect('user:dashboard')
