@@ -1,7 +1,9 @@
 from decimal import Decimal
+from unittest.mock import patch
 
 from django.contrib.auth import get_user_model
-from django.test import TestCase
+from django.test import TestCase, override_settings
+from django.urls import reverse
 
 from .admin_services import AdminTransactionError, create_admin_transaction
 from .models import CompanyAccount, InvestmentTracking, LedgerEntry, Transaction, Wallet
@@ -106,3 +108,65 @@ class AdminTransactionCreationTests(TestCase):
         )
         self.pool.refresh_from_db()
         self.assertEqual(self.pool.invested_today, Decimal("150.00"))
+
+    @override_settings(TELEGRAM_BOT_TOKEN="", TELEGRAM_CHAT_ID="")
+    def test_admin_action_button_completes_pending_withdrawal(self):
+        create_admin_transaction(
+            user=self.user,
+            tx_type="deposit",
+            amount=Decimal("500.00"),
+            admin_user=self.admin,
+        )
+        LedgerEntry.objects.create(
+            user=self.user,
+            account=self.reserve,
+            tx_type="withdraw",
+            amount=Decimal("500.00"),
+            is_credit=False,
+        )
+        tx = Transaction.objects.create(
+            user=self.user,
+            tx_type="withdraw",
+            amount=Decimal("500.00"),
+            status="pending",
+            checkout_id="WITHDRAW-1",
+        )
+
+        self.client.force_login(self.admin)
+        url = reverse("admin:finance_transaction_complete_withdrawal", args=[tx.id])
+
+        with self.captureOnCommitCallbacks(execute=True):
+            response = self.client.get(url)
+
+        tx.refresh_from_db()
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(tx.status, "completed")
+        self.assertIsNotNone(tx.completed_at)
+        self.assertEqual(Wallet.objects.get(user=self.user).balance, Decimal("0.00"))
+
+    @override_settings(TELEGRAM_BOT_TOKEN="token", TELEGRAM_CHAT_ID="chat")
+    @patch("finance.notifications.send_telegram_message", return_value=True)
+    def test_telegram_tracks_created_and_status_changed_transactions(self, send_message):
+        with self.captureOnCommitCallbacks(execute=True):
+            tx = Transaction.objects.create(
+                user=self.user,
+                tx_type="invest",
+                amount=Decimal("100.00"),
+                status="completed",
+                checkout_id="INVEST-1",
+            )
+
+        self.assertEqual(send_message.call_count, 1)
+        self.assertIn("Investment", send_message.call_args.args[0])
+
+        send_message.reset_mock()
+        tx.status = "failed"
+        tx.result_desc = "Admin correction"
+
+        with self.captureOnCommitCallbacks(execute=True):
+            tx.save(update_fields=["status", "result_desc"])
+
+        self.assertEqual(send_message.call_count, 1)
+        message = send_message.call_args.args[0]
+        self.assertIn("Transaction Status Updated", message)
+        self.assertIn("Failed", message)

@@ -2,6 +2,7 @@ import logging
 
 import requests
 from django.conf import settings
+from django.utils import timezone
 
 
 logger = logging.getLogger(__name__)
@@ -43,20 +44,61 @@ def send_telegram_message(message):
     return True
 
 
-def send_withdrawal_request_notification(transaction):
+def send_transaction_notification(transaction, event="updated"):
     user = transaction.user
     username = getattr(user, "username", "Unknown")
     phone = transaction.phone_number or getattr(user, "phone", None) or "Not provided"
+    tx_labels = {
+        "deposit": "Deposit",
+        "withdraw": "Withdrawal",
+        "invest": "Investment",
+        "referral": "Referral Bonus",
+        "investment_return": "Investment Maturity Redeemed",
+    }
+    status_labels = {
+        "pending": "Pending",
+        "completed": "Completed",
+        "failed": "Failed",
+    }
+    event_labels = {
+        "created": "New Transaction",
+        "status_changed": "Transaction Status Updated",
+        "updated": "Transaction Updated",
+    }
+    tx_label = tx_labels.get(transaction.tx_type, transaction.tx_type.title())
+    status_label = status_labels.get(transaction.status, transaction.status.title())
+    identifier = (
+        transaction.checkout_id
+        or transaction.mpesa_code
+        or transaction.conversation_id
+        or f"TX-{transaction.id}"
+    )
+    title = event_labels.get(event, "Transaction Updated")
+
+    if transaction.tx_type == "withdraw" and transaction.status == "pending":
+        title = "NEW WITHDRAWAL REQUEST"
+    else:
+        title = f"{title}: {tx_label}"
 
     message = (
-        "<b>🚨 NEW WITHDRAWAL REQUEST</b>\n\n"
+        f"<b>{title}</b>\n\n"
         f"User: {username}\n"
         f"Amount: KES {transaction.amount}\n"
+        f"Type: {tx_label}\n"
+        f"Status: {status_label}\n"
         f"Phone: {phone}\n"
-        "Status: Pending Approval"
+        f"Reference: {identifier}\n"
+        f"Time: {timezone.localtime(timezone.now()).strftime('%Y-%m-%d %H:%M:%S')}"
     )
 
+    if transaction.result_desc:
+        message += f"\nNote: {transaction.result_desc}"
+
     return send_telegram_message(message)
+
+
+def send_withdrawal_request_notification(transaction):
+    return send_transaction_notification(transaction, event="created")
 
 
 def notify_withdrawal_request(transaction):
@@ -78,3 +120,24 @@ def notify_withdrawal_request(transaction):
             )
 
     return send_withdrawal_request_notification(transaction)
+
+
+def notify_transaction(transaction, event="updated"):
+    """
+    Dispatch a Telegram notification for any transaction type.
+
+    Uses Celery when TELEGRAM_USE_CELERY=True, otherwise sends immediately.
+    Falls back to immediate sending if the task cannot be queued.
+    """
+    if getattr(settings, "TELEGRAM_USE_CELERY", False):
+        try:
+            from .tasks import send_transaction_notification_task
+
+            send_transaction_notification_task.delay(transaction.id, event)
+            return True
+        except Exception:
+            logger.exception(
+                "Could not queue Telegram transaction notification; sending inline."
+            )
+
+    return send_transaction_notification(transaction, event=event)

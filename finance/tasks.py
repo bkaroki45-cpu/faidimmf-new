@@ -3,7 +3,10 @@ import logging
 from celery import shared_task
 
 from .models import Transaction
-from .notifications import send_withdrawal_request_notification
+from .notifications import (
+    send_transaction_notification,
+    send_withdrawal_request_notification,
+)
 
 
 logger = logging.getLogger(__name__)
@@ -36,3 +39,22 @@ def send_withdrawal_request_notification_task(self, transaction_id):
         return False
 
     return send_withdrawal_request_notification(transaction)
+
+
+@shared_task(
+    bind=True,
+    autoretry_for=(Exception,),
+    retry_backoff=True,
+    retry_kwargs={"max_retries": 3},
+)
+def send_transaction_notification_task(self, transaction_id, event="updated"):
+    try:
+        transaction = Transaction.objects.select_related("user").get(id=transaction_id)
+    except Transaction.DoesNotExist:
+        logger.warning(
+            "Telegram transaction notification skipped: transaction %s not found.",
+            transaction_id,
+        )
+        return False
+
+    return send_transaction_notification(transaction, event=event)

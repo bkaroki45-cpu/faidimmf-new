@@ -7,6 +7,7 @@ from django.template.response import TemplateResponse
 from django.urls import path, reverse
 from django.utils.html import format_html
 from django.utils.timezone import localdate
+from django.db import transaction as db_transaction
 from django.db.models import Sum
 from .models import CompanyAccount
 from datetime import timedelta
@@ -379,12 +380,40 @@ class TransactionAdmin(admin.ModelAdmin):
         urls = super().get_urls()
         custom_urls = [
             path(
+                "<int:transaction_id>/complete-withdrawal/",
+                self.admin_site.admin_view(self.complete_withdrawal_view),
+                name="finance_transaction_complete_withdrawal",
+            ),
+            path(
                 "manual-create/",
                 self.admin_site.admin_view(self.manual_create_view),
                 name="finance_transaction_manual_create",
             ),
         ]
         return custom_urls + urls
+
+    def complete_withdrawal_view(self, request, transaction_id):
+        with db_transaction.atomic():
+            tx = Transaction.objects.select_for_update().filter(
+                id=transaction_id,
+                tx_type="withdraw",
+            ).first()
+
+            if not tx:
+                messages.error(request, "Withdrawal transaction not found.")
+                return redirect(reverse("admin:finance_transaction_changelist"))
+
+            if tx.status != "pending":
+                messages.warning(request, "Withdrawal has already been processed.")
+                return redirect(reverse("admin:finance_transaction_changelist"))
+
+            tx.status = "completed"
+            tx.result_desc = "Paid manually via admin action button"
+            tx.completed_at = timezone.now()
+            tx.save(update_fields=["status", "result_desc", "completed_at"])
+
+        messages.success(request, "Withdrawal marked as completed.")
+        return redirect(reverse("admin:finance_transaction_changelist"))
 
     def manual_create_view(self, request):
         if request.method == "POST":
@@ -486,16 +515,17 @@ class TransactionAdmin(admin.ModelAdmin):
     def action_buttons(self, obj):
 
         if obj.tx_type == "withdraw" and obj.status == "pending":
+            url = reverse(
+                "admin:finance_transaction_complete_withdrawal",
+                args=[obj.id],
+            )
 
-            return mark_safe(
-                '''
-                <span style="
-                    color:orange;
-                    font-weight:bold;
-                ">
-                    Pending Approval
-                </span>
-                '''
+            return format_html(
+                '<a class="button" href="{}" '
+                'style="background:#10b981; color:#fff; padding:5px 10px; '
+                'border-radius:4px; font-weight:bold; text-decoration:none;">'
+                'Mark Completed</a>',
+                url,
             )
 
         return "—"
@@ -507,18 +537,6 @@ class TransactionAdmin(admin.ModelAdmin):
     # =========================
     @admin.action(description="Mark selected withdrawals as PAID")
     def mark_withdrawal_paid(self, request, queryset):
-
-        reserve_account = CompanyAccount.objects.filter(
-            account_type="reserve"
-        ).first()
-
-        if not reserve_account:
-            self.message_user(
-                request,
-                "Reserve account missing."
-            )
-            return
-
         for tx in queryset:
 
             if tx.tx_type != "withdraw":
@@ -532,17 +550,6 @@ class TransactionAdmin(admin.ModelAdmin):
             ).first()
 
             if not wallet:
-                continue
-
-            amount = tx.amount
-
-            # -----------------------
-            # SAFETY CHECKS
-            # -----------------------
-            if wallet.balance < amount:
-                continue
-
-            if reserve_account.balance < amount:
                 continue
 
             # -----------------------
