@@ -43,6 +43,16 @@ def favicon(request):
     return FileResponse(open(icon_path, 'rb'), content_type='image/x-icon')
 
 
+def favicon_48(request):
+    icon_path = settings.BASE_DIR / 'static' / 'images' / 'favicon-48.png'
+    return FileResponse(open(icon_path, 'rb'), content_type='image/png')
+
+
+def favicon_192(request):
+    icon_path = settings.BASE_DIR / 'static' / 'images' / 'favicon-192.png'
+    return FileResponse(open(icon_path, 'rb'), content_type='image/png')
+
+
 def site_webmanifest(request):
     manifest_path = settings.BASE_DIR / 'static' / 'site.webmanifest'
     return FileResponse(open(manifest_path, 'rb'), content_type='application/manifest+json')

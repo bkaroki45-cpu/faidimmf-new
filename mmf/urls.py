@@ -1,6 +1,14 @@
 from django.contrib import admin
 from django.urls import path, include
-from core.views import favicon, indexnow_key, robots_txt, site_webmanifest, sitemap_xml
+from core.views import (
+    favicon,
+    favicon_48,
+    favicon_192,
+    indexnow_key,
+    robots_txt,
+    site_webmanifest,
+    sitemap_xml,
+)
 from django.conf import settings
 from django.views.generic.base import RedirectView  # ✅ for redirect
 
@@ -13,6 +21,8 @@ class RegisterRedirectWithQuery(RedirectView):
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('favicon.ico', favicon),
+    path('favicon-48.png', favicon_48),
+    path('favicon-192.png', favicon_192),
     path('site.webmanifest', site_webmanifest),
     path('robots.txt', robots_txt),
     path('sitemap.xml', sitemap_xml),
