@@ -220,6 +220,10 @@ class CompanyAccount(models.Model):
     # =========================
     @property
     def balance(self):
+        return max(self.raw_balance, Decimal("0"))
+
+    @property
+    def raw_balance(self):
         credits = LedgerEntry.objects.filter(
             account=self,
             is_credit=True
@@ -231,6 +235,40 @@ class CompanyAccount(models.Model):
         ).aggregate(total=Sum("amount"))["total"] or Decimal("0")
 
         return credits - debits
+
+    @staticmethod
+    def _ledger_exists(*, reference, account, tx_type, is_credit, user=None):
+        if not reference:
+            return False
+
+        return LedgerEntry.objects.filter(
+            reference=reference,
+            account=account,
+            tx_type=tx_type,
+            is_credit=is_credit,
+            user=user,
+        ).exists()
+
+    @staticmethod
+    def _create_ledger_once(*, reference, user, account, tx_type, amount, is_credit, metadata=None):
+        if CompanyAccount._ledger_exists(
+            reference=reference,
+            account=account,
+            tx_type=tx_type,
+            is_credit=is_credit,
+            user=user,
+        ):
+            return
+
+        LedgerEntry.objects.create(
+            user=user,
+            account=account,
+            tx_type=tx_type,
+            amount=amount,
+            is_credit=is_credit,
+            reference=reference,
+            metadata=metadata,
+        )
 
     # =========================
     # POST TRANSACTION ENGINE
@@ -249,76 +287,113 @@ class CompanyAccount(models.Model):
             raise ValueError(f"Required company account missing: {e}")
 
         amount = tx.amount
+        reference = tx.checkout_id or tx.mpesa_code or tx.conversation_id or str(tx.pk)
+        metadata = tx.result_desc
 
         if tx.tx_type == "deposit":
             # User wallet entry
-            LedgerEntry.objects.create(
+            CompanyAccount._create_ledger_once(
+                reference=reference,
                 user=tx.user,       # Only this one affects wallet
                 account=reserve,
                 tx_type="deposit",
                 amount=amount,
-                is_credit=True
+                is_credit=True,
+                metadata=metadata,
             )
 
             # Only company accounting, no user
-            LedgerEntry.objects.create(
+            CompanyAccount._create_ledger_once(
+                reference=reference,
                 user=None,
                 account=system,
                 tx_type="deposit",
                 amount=amount,
-                is_credit=True
+                is_credit=True,
+                metadata=metadata,
             )
 
         elif tx.tx_type == "withdraw":
-            LedgerEntry.objects.create(
+            CompanyAccount._create_ledger_once(
+                reference=reference,
                 user=tx.user,
                 account=reserve,
                 tx_type="withdraw",
                 amount=amount,
-                is_credit=False
+                is_credit=False,
+                metadata=metadata,
             )
-            LedgerEntry.objects.create(
+            CompanyAccount._create_ledger_once(
+                reference=reference,
                 user=None,
                 account=system,
                 tx_type="withdraw",
                 amount=amount,
-                is_credit=False
+                is_credit=False,
+                metadata=metadata,
             )
 
         elif tx.tx_type == "invest":
-            LedgerEntry.objects.create(
+            CompanyAccount._create_ledger_once(
+                reference=reference,
                 user=None,
                 account=system,
                 tx_type="invest",
                 amount=amount,
-                is_credit=False
+                is_credit=False,
+                metadata=metadata,
             )
-            LedgerEntry.objects.create(
+            CompanyAccount._create_ledger_once(
+                reference=reference,
                 user=None,
                 account=pool,
                 tx_type="invest",
                 amount=amount,
-                is_credit=True
+                is_credit=True,
+                metadata=metadata,
             )
 
         elif tx.tx_type == "investment_return":
-            LedgerEntry.objects.create(
+            CompanyAccount._create_ledger_once(
+                reference=reference,
                 user=None,
                 account=pool,
                 tx_type="investment_return",
                 amount=amount,
-                is_credit=False
+                is_credit=False,
+                metadata=metadata,
             )
-            LedgerEntry.objects.create(
+            CompanyAccount._create_ledger_once(
+                reference=reference,
                 user=tx.user,   # Only the system-to-user return affects wallet
                 account=system,
                 tx_type="investment_return",
                 amount=amount,
-                is_credit=True
+                is_credit=True,
+                metadata=metadata,
             )
 
         else:
             raise ValueError(f"Unknown transaction type: {tx.tx_type}")
+
+    @staticmethod
+    def post_completed_withdrawal(tx):
+        """
+        Record the company-side payout for a withdrawal that was already
+        reserved from the user's wallet when the pending request was created.
+        """
+        system = CompanyAccount.objects.get(account_type="system")
+        reference = tx.checkout_id or tx.mpesa_code or tx.conversation_id or str(tx.pk)
+
+        CompanyAccount._create_ledger_once(
+            reference=reference,
+            user=None,
+            account=system,
+            tx_type="withdraw",
+            amount=tx.amount,
+            is_credit=False,
+            metadata=tx.result_desc,
+        )
         
     # In your CompanyAccount model or a transaction handler
     @staticmethod

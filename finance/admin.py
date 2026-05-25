@@ -160,57 +160,7 @@ class CompanyAccountAdmin(admin.ModelAdmin):
         return qs.filter(account_type__in=["reserve", "pool"])
 
     def display_balance(self, obj):
-        """
-        Compute balances differently for reserve and pool accounts
-        """
-        if obj.account_type == "reserve":
-
-            deposits = LedgerEntry.objects.filter(
-                account=obj,
-                tx_type="deposit",
-                is_credit=True
-            ).aggregate(total=Sum("amount"))["total"] or 0
-
-            matured = LedgerEntry.objects.filter(
-                account=obj,
-                tx_type="investment_return",
-                is_credit=True
-            ).aggregate(total=Sum("amount"))["total"] or 0
-
-            withdrawals = LedgerEntry.objects.filter(
-                account=obj,
-                tx_type="withdraw",
-                is_credit=False
-            ).aggregate(total=Sum("amount"))["total"] or 0
-
-            investments = LedgerEntry.objects.filter(
-                account=obj,
-                tx_type="invest",
-                is_credit=False
-            ).aggregate(total=Sum("amount"))["total"] or 0
-
-            return deposits + matured - withdrawals - investments
-
-        elif obj.account_type == "pool":
-
-            credits = LedgerEntry.objects.filter(
-                account=obj,
-                is_credit=True
-            ).aggregate(total=Sum("amount"))["total"] or 0
-
-            debits = LedgerEntry.objects.filter(
-                account=obj,
-                is_credit=False
-            ).aggregate(total=Sum("amount"))["total"] or 0
-
-            balance = credits - debits
-
-            # 🔥 FIX: prevent negative display
-        return max(balance, 0)
-
-        
-
-
+        return obj.balance
 
 @admin.action(description="Mark selected withdrawals as PAID")
 def mark_withdrawal_paid(self, request, queryset):
@@ -666,4 +616,5 @@ def get_queryset(self, request):
     for obj in qs:
         obj.sync_from_transactions()
     return qs
+
 

@@ -24,6 +24,13 @@ def handle_transaction(sender, instance, created, **kwargs):
 
     if instance.status == "completed" and created:
         CompanyAccount.post_transaction(instance)
+    elif (
+        instance.tx_type == "withdraw"
+        and instance.status == "completed"
+        and previous_status
+        and previous_status != "completed"
+    ):
+        CompanyAccount.post_completed_withdrawal(instance)
 
     if created:
         event = "created"

@@ -81,6 +81,40 @@ class AdminTransactionCreationTests(TestCase):
         self.assertFalse(Transaction.objects.exists())
         self.assertEqual(Wallet.objects.get(user=self.user).balance, Decimal("0"))
 
+    def test_admin_withdrawal_checks_wallet_not_reserve_liquidity(self):
+        LedgerEntry.objects.create(
+            user=self.user,
+            account=self.system,
+            tx_type="deposit",
+            amount=Decimal("500.00"),
+            is_credit=True,
+            reference="SYSTEM-WALLET-CREDIT",
+        )
+
+        tx = create_admin_transaction(
+            user=self.user,
+            tx_type="withdraw",
+            amount=Decimal("500.00"),
+            admin_user=self.admin,
+        )
+
+        self.assertEqual(tx.status, "completed")
+        self.assertEqual(Wallet.objects.get(user=self.user).balance, Decimal("0.00"))
+        self.assertEqual(self.reserve.balance, Decimal("0"))
+
+    def test_company_account_balance_never_displays_negative(self):
+        LedgerEntry.objects.create(
+            user=None,
+            account=self.pool,
+            tx_type="investment_return",
+            amount=Decimal("100.00"),
+            is_credit=False,
+            reference="POOL-NEGATIVE",
+        )
+
+        self.assertEqual(self.pool.raw_balance, Decimal("-100.00"))
+        self.assertEqual(self.pool.balance, Decimal("0"))
+
     def test_admin_investment_matches_user_investment_records(self):
         create_admin_transaction(
             user=self.user,
@@ -143,6 +177,15 @@ class AdminTransactionCreationTests(TestCase):
         self.assertEqual(tx.status, "completed")
         self.assertIsNotNone(tx.completed_at)
         self.assertEqual(Wallet.objects.get(user=self.user).balance, Decimal("0.00"))
+        self.assertEqual(
+            LedgerEntry.objects.filter(
+                user=None,
+                account=self.system,
+                tx_type="withdraw",
+                is_credit=False,
+            ).count(),
+            1,
+        )
 
     @override_settings(TELEGRAM_BOT_TOKEN="token", TELEGRAM_CHAT_ID="chat")
     @patch("finance.notifications.send_telegram_message", return_value=True)

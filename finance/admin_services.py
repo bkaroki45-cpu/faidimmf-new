@@ -43,9 +43,6 @@ def create_admin_transaction(*, user, tx_type, amount, note="", admin_user=None)
         if tx_type in {"withdraw", "invest"} and amount > wallet.balance:
             raise AdminTransactionError("Insufficient user wallet balance.")
 
-        if tx_type == "withdraw" and amount > reserve.balance:
-            raise AdminTransactionError("Insufficient reserve liquidity.")
-
         checkout_id = f"ADM-{uuid.uuid4()}"
 
         if tx_type == "invest":

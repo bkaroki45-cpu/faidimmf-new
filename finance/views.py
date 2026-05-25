@@ -411,8 +411,6 @@ def withdraw(request):
 
     mature_due_investments(request.user)
     wallet = Wallet.objects.get(user=request.user)
-    reserve_account = CompanyAccount.objects.get(account_type="reserve")
-
     if request.method == "POST":
 
         amount = request.POST.get("amount")
@@ -457,10 +455,6 @@ def withdraw(request):
             messages.error(request, "Insufficient balance")
             return redirect("finance:withdraw")
 
-        if amount > reserve_account.balance:
-            messages.error(request, "Insufficient liquidity")
-            return redirect("finance:withdraw")
-
         # -----------------------
         # LEDGER TRANSACTION (CORE LOGIC)
         # -----------------------
@@ -475,38 +469,27 @@ def withdraw(request):
                     messages.error(request, "Insufficient balance")
                     return redirect("finance:withdraw")
 
-                if amount > reserve_account.balance:
-                    messages.error(request, "Insufficient liquidity")
-                    return redirect("finance:withdraw")
-
                 # 🔥 LEDGER DEBIT (NO wallet update)
-                LedgerEntry.objects.create(
-                    user=request.user,
-                    account=reserve_account,
-                    tx_type="withdraw",
-                    amount=amount,
-                    is_credit=False
-                )
+                checkout_id = str(uuid.uuid4())
 
-                # OPTIONAL: reserve tracking (not real money movement)
-                reserve_account.pending_withdrawals = getattr(
-                    reserve_account,
-                    "pending_withdrawals",
-                    Decimal("0.00")
-                ) + amount
-                reserve_account.save()
-
-                # -----------------------
-                # TRANSACTION RECORD
-                # -----------------------
                 tx = Transaction.objects.create(
                     user=request.user,
                     amount=amount,
                     tx_type="withdraw",
                     status="pending",
-                    checkout_id=str(uuid.uuid4()),
+                    checkout_id=checkout_id,
                     phone_number=getattr(request.user, "phone", None),
-                    result_desc=f"Withdrawal request of KES {amount} submitted (ledger system)"
+                    result_desc=f"Withdrawal request of KES {amount} submitted"
+                )
+
+                LedgerEntry.objects.create(
+                    user=request.user,
+                    account=reserve_account,
+                    tx_type="withdraw",
+                    amount=amount,
+                    is_credit=False,
+                    reference=checkout_id,
+                    metadata=tx.result_desc,
                 )
 
                 messages.success(
