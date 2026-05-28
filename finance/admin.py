@@ -102,17 +102,33 @@ class InvestmentInline(admin.TabularInline):
 # =========================
 @admin.register(CustomUser)
 class CustomUserAdmin(UserAdmin):
-    list_display = ('username', 'email', 'phone', 'is_staff', 'is_active')
-    search_fields = ('username', 'email', 'phone')
-    list_filter = ('is_staff', 'is_superuser', 'is_active')
+    list_display = ('username', 'email', 'phone', 'is_staff', 'is_superuser', 'is_active')
+    search_fields = ('username', 'email', 'phone', 'referral_code')
+    list_filter = ('is_staff', 'is_superuser', 'is_active', 'groups')
+    readonly_fields = ('last_login', 'date_joined', 'referral_code')
 
     fieldsets = (
-        (None, {'fields': ('username', 'email', 'password', 'phone')}),
+        (None, {'fields': ('username', 'email', 'password', 'phone', 'referral_code', 'referred_by')}),
         ('Permissions', {'fields': ('is_staff', 'is_superuser', 'groups', 'user_permissions')}),
         ('Important dates', {'fields': ('last_login', 'date_joined')}),
     )
 
     inlines = [WalletInline, TransactionPINInline, TransactionInline, InvestmentInline]
+
+    def has_view_permission(self, request, obj=None):
+        return super().has_view_permission(request, obj) or request.user.has_perm("user.delete_customuser")
+
+    def has_delete_permission(self, request, obj=None):
+        if obj and obj == request.user:
+            return False
+        if obj and not request.user.is_superuser and (obj.is_staff or obj.is_superuser):
+            return False
+        return super().has_delete_permission(request, obj)
+
+    def delete_queryset(self, request, queryset):
+        if not request.user.is_superuser:
+            queryset = queryset.filter(is_staff=False, is_superuser=False).exclude(pk=request.user.pk)
+        super().delete_queryset(request, queryset)
 
 
 class DaysFilter(SimpleListFilter):
