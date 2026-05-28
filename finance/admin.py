@@ -115,6 +115,14 @@ class CustomUserAdmin(UserAdmin):
 
     inlines = [WalletInline, TransactionPINInline, TransactionInline, InvestmentInline]
 
+    user_owned_delete_models = {
+        "wallet",
+        "transaction",
+        "investment tracking",
+        "transaction pin",
+        "password reset otp",
+    }
+
     def has_view_permission(self, request, obj=None):
         return super().has_view_permission(request, obj) or request.user.has_perm("user.delete_customuser")
 
@@ -124,6 +132,18 @@ class CustomUserAdmin(UserAdmin):
         if obj and not request.user.is_superuser and (obj.is_staff or obj.is_superuser):
             return False
         return super().has_delete_permission(request, obj)
+
+    def get_deleted_objects(self, objs, request):
+        deleted_objects, model_count, perms_needed, protected = super().get_deleted_objects(objs, request)
+
+        if request.user.has_perm("user.delete_customuser"):
+            perms_needed = {
+                perm
+                for perm in perms_needed
+                if perm.lower() not in self.user_owned_delete_models
+            }
+
+        return deleted_objects, model_count, perms_needed, protected
 
     def delete_queryset(self, request, queryset):
         if not request.user.is_superuser:
