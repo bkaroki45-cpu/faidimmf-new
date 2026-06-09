@@ -34,6 +34,13 @@ class CustomUser(AbstractUser):
 
 
 
+class ReferralRelationship(CustomUser):
+    class Meta:
+        proxy = True
+        verbose_name = "Referral"
+        verbose_name_plural = "Referrals"
+
+
 class TransactionPIN(models.Model):
     user = models.OneToOneField(
         settings.AUTH_USER_MODEL,

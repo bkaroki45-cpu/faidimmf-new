@@ -14,45 +14,10 @@ from datetime import timedelta
 from decimal import Decimal
 from django.utils import timezone
 from .models import Wallet, Transaction, InvestmentTracking, CompanyAccount
-from user.models import CustomUser, TransactionPIN
+from user.models import CustomUser, ReferralRelationship, TransactionPIN
 from django.contrib.admin import SimpleListFilter
 from finance.models import LedgerEntry
 from .admin_services import AdminTransactionError, create_admin_transaction
-
-
-admin.site.index_template = "admin/referral_index.html"
-
-
-def referral_program_index(self, request, extra_context=None):
-    referral_rows = []
-    referrals = (
-        CustomUser.objects.filter(referred_by__isnull=False)
-        .select_related("referred_by")
-        .order_by("-date_joined")[:25]
-    )
-
-    for user in referrals:
-        referral_rows.append({
-            "referred_user": user,
-            "referred_user_url": reverse("admin:user_customuser_change", args=[user.pk]),
-            "referrer": user.referred_by,
-            "referrer_url": reverse("admin:user_customuser_change", args=[user.referred_by_id]),
-        })
-
-    context = {
-        "referral_rows": referral_rows,
-        "total_referrals": CustomUser.objects.filter(referred_by__isnull=False).count(),
-        "total_referrers": (
-            CustomUser.objects.filter(referrals__isnull=False).distinct().count()
-        ),
-    }
-    if extra_context:
-        context.update(extra_context)
-
-    return self.__class__.index(self, request, context)
-
-
-admin.site.index = referral_program_index.__get__(admin.site, admin.site.__class__)
 
 
 # =========================
@@ -236,6 +201,96 @@ class CustomUserAdmin(UserAdmin):
         return obj.referrals.count()
 
     referrals_count.short_description = "Referrals"
+
+
+@admin.register(ReferralRelationship)
+class ReferralRelationshipAdmin(admin.ModelAdmin):
+    list_display = (
+        "referred_user",
+        "referred_user_code",
+        "referred_by_user",
+        "referrer_code",
+        "date_joined",
+        "is_active",
+    )
+    search_fields = (
+        "username",
+        "email",
+        "phone",
+        "referral_code",
+        "referred_by__username",
+        "referred_by__email",
+        "referred_by__phone",
+        "referred_by__referral_code",
+    )
+    list_filter = ("is_active", "date_joined", "referred_by")
+    readonly_fields = (
+        "username",
+        "email",
+        "phone",
+        "referral_code",
+        "referred_by_link",
+        "date_joined",
+        "is_active",
+    )
+    fields = (
+        "username",
+        "email",
+        "phone",
+        "referral_code",
+        "referred_by_link",
+        "date_joined",
+        "is_active",
+    )
+    ordering = ("-date_joined",)
+
+    def get_queryset(self, request):
+        return (
+            super()
+            .get_queryset(request)
+            .filter(referred_by__isnull=False)
+            .select_related("referred_by")
+        )
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+    def referred_user(self, obj):
+        url = reverse("admin:user_customuser_change", args=[obj.pk])
+        return format_html('<a href="{}">{}</a>', url, obj.username)
+
+    referred_user.short_description = "Referred user"
+    referred_user.admin_order_field = "username"
+
+    def referred_user_code(self, obj):
+        return obj.referral_code
+
+    referred_user_code.short_description = "User code"
+    referred_user_code.admin_order_field = "referral_code"
+
+    def referred_by_user(self, obj):
+        url = reverse("admin:user_customuser_change", args=[obj.referred_by_id])
+        return format_html('<a href="{}">{}</a>', url, obj.referred_by.username)
+
+    referred_by_user.short_description = "Referred by"
+    referred_by_user.admin_order_field = "referred_by__username"
+
+    def referrer_code(self, obj):
+        return obj.referred_by.referral_code
+
+    referrer_code.short_description = "Referrer code"
+    referrer_code.admin_order_field = "referred_by__referral_code"
+
+    def referred_by_link(self, obj):
+        return self.referred_by_user(obj)
+
+    referred_by_link.short_description = "Referred by"
 
 
 class DaysFilter(SimpleListFilter):
