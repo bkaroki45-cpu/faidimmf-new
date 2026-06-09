@@ -97,15 +97,51 @@ class InvestmentInline(admin.TabularInline):
         return render_badge('#3b82f6', 'Active')
 
 
+class ReferralInline(admin.TabularInline):
+    model = CustomUser
+    fk_name = "referred_by"
+    fields = ("username", "email", "phone", "date_joined", "is_active")
+    readonly_fields = fields
+    extra = 0
+    can_delete = False
+    verbose_name = "Referred user"
+    verbose_name_plural = "Users referred by this account"
+    classes = ("collapse",)
+
+    def has_add_permission(self, request, obj=None):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False
+
+
 # =========================
 # CUSTOM USER ADMIN
 # =========================
 @admin.register(CustomUser)
 class CustomUserAdmin(UserAdmin):
-    list_display = ('username', 'email', 'phone', 'is_staff', 'is_superuser', 'is_active')
-    search_fields = ('username', 'email', 'phone', 'referral_code')
-    list_filter = ('is_staff', 'is_superuser', 'is_active', 'groups')
+    list_display = (
+        'username',
+        'email',
+        'phone',
+        'referred_by_user',
+        'referrals_count',
+        'is_staff',
+        'is_superuser',
+        'is_active',
+    )
+    search_fields = (
+        'username',
+        'email',
+        'phone',
+        'referral_code',
+        'referred_by__username',
+        'referred_by__email',
+        'referred_by__referral_code',
+    )
+    list_filter = ('is_staff', 'is_superuser', 'is_active', 'groups', 'referred_by')
     readonly_fields = ('last_login', 'date_joined', 'referral_code')
+    autocomplete_fields = ('referred_by',)
 
     fieldsets = (
         (None, {'fields': ('username', 'email', 'password', 'phone', 'referral_code', 'referred_by')}),
@@ -113,7 +149,7 @@ class CustomUserAdmin(UserAdmin):
         ('Important dates', {'fields': ('last_login', 'date_joined')}),
     )
 
-    inlines = [WalletInline, TransactionPINInline, TransactionInline, InvestmentInline]
+    inlines = [WalletInline, TransactionPINInline, ReferralInline, TransactionInline, InvestmentInline]
 
     user_owned_delete_models = {
         "wallet",
@@ -149,6 +185,23 @@ class CustomUserAdmin(UserAdmin):
         if not request.user.is_superuser:
             queryset = queryset.filter(is_staff=False, is_superuser=False).exclude(pk=request.user.pk)
         super().delete_queryset(request, queryset)
+
+    def get_queryset(self, request):
+        return super().get_queryset(request).select_related('referred_by').prefetch_related('referrals')
+
+    def referred_by_user(self, obj):
+        if not obj.referred_by:
+            return "-"
+        url = reverse("admin:user_customuser_change", args=[obj.referred_by_id])
+        return format_html('<a href="{}">{}</a>', url, obj.referred_by.username)
+
+    referred_by_user.short_description = "Referred by"
+    referred_by_user.admin_order_field = "referred_by__username"
+
+    def referrals_count(self, obj):
+        return obj.referrals.count()
+
+    referrals_count.short_description = "Referrals"
 
 
 class DaysFilter(SimpleListFilter):
