@@ -20,6 +20,40 @@ from finance.models import LedgerEntry
 from .admin_services import AdminTransactionError, create_admin_transaction
 
 
+admin.site.index_template = "admin/referral_index.html"
+
+
+def referral_program_index(self, request, extra_context=None):
+    referral_rows = []
+    referrals = (
+        CustomUser.objects.filter(referred_by__isnull=False)
+        .select_related("referred_by")
+        .order_by("-date_joined")[:25]
+    )
+
+    for user in referrals:
+        referral_rows.append({
+            "referred_user": user,
+            "referred_user_url": reverse("admin:user_customuser_change", args=[user.pk]),
+            "referrer": user.referred_by,
+            "referrer_url": reverse("admin:user_customuser_change", args=[user.referred_by_id]),
+        })
+
+    context = {
+        "referral_rows": referral_rows,
+        "total_referrals": CustomUser.objects.filter(referred_by__isnull=False).count(),
+        "total_referrers": (
+            CustomUser.objects.filter(referrals__isnull=False).distinct().count()
+        ),
+    }
+    if extra_context:
+        context.update(extra_context)
+
+    return self.__class__.index(self, request, context)
+
+
+admin.site.index = referral_program_index.__get__(admin.site, admin.site.__class__)
+
 
 # =========================
 # BADGE HELPER

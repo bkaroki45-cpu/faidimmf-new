@@ -1,0 +1,51 @@
+{% extends "admin/index.html" %}
+
+{% block content %}
+<div class="module">
+    <h2>Referral Program</h2>
+    <div style="display:flex; gap:16px; flex-wrap:wrap; margin:10px 0 14px;">
+        <div>
+            <strong>{{ total_referrals }}</strong><br>
+            <span>Total referred users</span>
+        </div>
+        <div>
+            <strong>{{ total_referrers }}</strong><br>
+            <span>Users who referred someone</span>
+        </div>
+    </div>
+
+    {% if referral_rows %}
+        <table>
+            <caption>Latest referral relationships</caption>
+            <thead>
+                <tr>
+                    <th scope="col">Referred user</th>
+                    <th scope="col">Referral code</th>
+                    <th scope="col">Referred by</th>
+                    <th scope="col">Referrer code</th>
+                    <th scope="col">Joined</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in referral_rows %}
+                    <tr>
+                        <td>
+                            <a href="{{ row.referred_user_url }}">{{ row.referred_user.username }}</a>
+                        </td>
+                        <td>{{ row.referred_user.referral_code }}</td>
+                        <td>
+                            <a href="{{ row.referrer_url }}">{{ row.referrer.username }}</a>
+                        </td>
+                        <td>{{ row.referrer.referral_code }}</td>
+                        <td>{{ row.referred_user.date_joined|date:"Y-m-d H:i" }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p>No referral relationships have been recorded yet.</p>
+    {% endif %}
+</div>
+
+{{ block.super }}
+{% endblock %}
