@@ -18,7 +18,6 @@ from .forms import CustomUserCreationForm
 from .forms import  ChangePINForm, SetNewPINForm, ForgotPINForm, TransactionPIN, VerifyOTPForm
 from .models import TransactionPIN
 from django.contrib import messages
-import random
 from .models import CustomUser
 import time
 from django.contrib.auth.hashers import make_password
@@ -210,17 +209,8 @@ def login_view(request):
 
         user = authenticate(request, username=username, password=password)
         if user is not None:
-            otp = send_otp_email(user.email)
-            if otp is None:
-                messages.error(request, "We could not send your verification code right now. Please try again later.")
-                return redirect('user:login')
-
-            request.session['login_2fa_user_id'] = user.id
-            request.session['login_2fa_otp'] = otp
-            request.session['login_2fa_otp_time'] = time.time()
-            request.session['login_2fa_next'] = next_url
-            messages.success(request, "Verification code sent to your registered email. Check your Inbox or Spam folder.")
-            return redirect('user:login_verify_otp')
+            login(request, user)
+            return redirect(next_url or reverse('user:dashboard'))
         else:
             error_message = 'Invalid credentials!'
 
@@ -228,47 +218,8 @@ def login_view(request):
 
 
 def login_verify_otp(request):
-    user_id = request.session.get('login_2fa_user_id')
-    session_otp = request.session.get('login_2fa_otp')
-    otp_time = request.session.get('login_2fa_otp_time')
-
-    if not user_id or not session_otp or not otp_time:
-        messages.error(request, "Login verification expired. Please log in again.")
-        return redirect('user:login')
-
-    try:
-        user = CustomUser.objects.get(id=user_id)
-    except CustomUser.DoesNotExist:
-        messages.error(request, "User account not found. Please log in again.")
-        return redirect('user:login')
-
-    if time.time() - otp_time > 300:
-        request.session.pop('login_2fa_user_id', None)
-        request.session.pop('login_2fa_otp', None)
-        request.session.pop('login_2fa_otp_time', None)
-        request.session.pop('login_2fa_next', None)
-        messages.error(request, "Verification code expired. Please log in again.")
-        return redirect('user:login')
-
-    if request.method == 'POST':
-        otp_input = request.POST.get('otp', '').strip()
-
-        if otp_input == session_otp:
-            next_url = request.session.get('login_2fa_next')
-
-            request.session.pop('login_2fa_user_id', None)
-            request.session.pop('login_2fa_otp', None)
-            request.session.pop('login_2fa_otp_time', None)
-            request.session.pop('login_2fa_next', None)
-
-            login(request, user)
-            return redirect(next_url or reverse('user:dashboard'))
-
-        return render(request, 'user/login_verify_otp.html', {
-            'error': 'Invalid verification code',
-        })
-
-    return render(request, 'user/login_verify_otp.html')
+    messages.info(request, "Login verification is no longer required. Please sign in with your username and password.")
+    return redirect('user:login')
 
 def logout_view(request):
     if request.method == 'POST':
@@ -277,9 +228,6 @@ def logout_view(request):
     else:
         return redirect('home')
     
-    import random
-from django.core.mail import EmailMultiAlternatives
-
 def forgot_password(request):
     message = None
 
@@ -292,25 +240,12 @@ def forgot_password(request):
             message = "Email not found. Please use your registered email."
             return render(request, "user/forgot_password.html", {"message": message})
 
-        # Generate OTP
-        otp = str(random.randint(100000, 999999))
+        otp = send_otp_email(user.email, purpose="password reset", expiry_minutes=10)
+        if otp is None:
+            messages.error(request, "We could not send your password reset code right now. Please try again later.")
+            return redirect("user:forgot_password")
 
         PasswordResetOTP.objects.create(user=user, otp=otp)
-
-        # Send email with clear transactional content and stable headers.
-        reset_email = EmailMultiAlternatives(
-            subject="Faidii MMF Password Reset Code",
-            body=(
-                f"Your Faidii MMF password reset code is: {otp}. It will expire in 10 minutes.\n\n"
-                "If you did not request this code, you can ignore this email.\n\n"
-                "FAIDII Money Market Fund"
-            ),
-            from_email=settings.DEFAULT_FROM_EMAIL,
-            to=[email],
-            headers={"List-Unsubscribe": "<mailto:faidimmf@gmail.com?subject=unsubscribe>"},
-        )
-        reset_email.send(fail_silently=False)
-
         request.session["reset_user_id"] = user.id
         return redirect("user:verify_otp")
 

@@ -18,11 +18,11 @@ logger = logging.getLogger(__name__)
 # ==============================
 # OTP FUNCTION
 # ==============================
-def send_otp_email(user_email):
+def send_otp_email(user_email, purpose="verification", expiry_minutes=5):
     otp = str(random.randint(100000, 999999))
     subject = "Your Faidii MMF Verification Code"
     message = (
-        f"Your Faidii MMF verification code is: {otp}. It will expire in 5 minutes.\n\n"
+        f"Your Faidii MMF {purpose} code is: {otp}. It will expire in {expiry_minutes} minutes.\n\n"
         "If you did not request this code, you can ignore this email.\n\n"
         "FAIDII Money Market Fund"
     )
