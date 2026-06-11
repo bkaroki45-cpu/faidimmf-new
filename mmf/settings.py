@@ -21,6 +21,9 @@ MESSAGE_STORAGE = 'django.contrib.messages.storage.session.SessionStorage'
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+# Load .env before reading environment-backed settings.
+load_dotenv(BASE_DIR / '.env')
+
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
@@ -31,7 +34,7 @@ SECRET_KEY = 'django-insecure-lmWGbj8GzUjoFo90YmL1Irer06JRWnACThVpWY4N8xguSFYkZg
 
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.getenv('DEBUG', 'False').lower() in ('1', 'true', 'yes', 'on')
 
 ALLOWED_HOSTS = [
     '127.0.0.1',
@@ -145,9 +148,6 @@ LOGIN_URL = '/user/login/'
 LOGIN_REDIRECT_URL = 'user:profile'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-#load .env file
-load_dotenv()
-
 #access env variables
 CONSUMER_KEY = os.getenv("MPESA_PRODUCTION_CONSUMER_KEY") or os.getenv("CONSUMER_KEY")
 CONSUMER_SECRET = os.getenv("MPESA_PRODUCTION_CONSUMER_SECRET") or os.getenv("CONSUMER_SECRET")
@@ -175,7 +175,9 @@ USE_TZ = True
 AUTH_USER_MODEL = 'user.CustomUser'
 
 CSRF_TRUSTED_ORIGINS = [
-    "https://ghostlier-cloudily-coleman.ngrok-free.dev"
+    "https://ghostlier-cloudily-coleman.ngrok-free.dev",
+    "https://faidii.com",
+    "https://www.faidii.com",
 ]
 
 # settings.py

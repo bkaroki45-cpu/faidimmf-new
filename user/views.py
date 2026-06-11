@@ -211,6 +211,10 @@ def login_view(request):
         user = authenticate(request, username=username, password=password)
         if user is not None:
             otp = send_otp_email(user.email)
+            if otp is None:
+                messages.error(request, "We could not send your verification code right now. Please try again later.")
+                return redirect('user:login')
+
             request.session['login_2fa_user_id'] = user.id
             request.session['login_2fa_otp'] = otp
             request.session['login_2fa_otp_time'] = time.time()
@@ -620,6 +624,9 @@ def forgot_pin_request(request):
 
             # Send OTP via email
             otp = send_otp_email(user.email)
+            if otp is None:
+                messages.error(request, "We could not send your verification code right now. Please try again later.")
+                return redirect('user:forgot_pin_request')
 
             # Store OTP and timing in session
             request.session['forgot_pin_user'] = user.id

@@ -1,9 +1,9 @@
-# finance/utils.py
-
 from django.core.mail import EmailMultiAlternatives
 from django.conf import settings
 from django.db.models import Sum
+import logging
 import random
+import smtplib
 from finance.models import Transaction, Wallet, CompanyAccount, SystemState, LedgerEntry
 from decimal import Decimal
 from django.utils import timezone
@@ -12,6 +12,7 @@ from datetime import date
 import uuid
 from finance.models import InvestmentTracking, LedgerEntry, CompanyAccount, Transaction
 
+logger = logging.getLogger(__name__)
 
 
 # ==============================
@@ -33,7 +34,12 @@ def send_otp_email(user_email):
         to=[user_email],
         headers={"List-Unsubscribe": "<mailto:faidimmf@gmail.com?subject=unsubscribe>"},
     )
-    email.send(fail_silently=False)
+    try:
+        email.send(fail_silently=False)
+    except (smtplib.SMTPException, OSError):
+        logger.exception("Unable to send OTP email to %s", user_email)
+        return None
+
     return otp
 
 
