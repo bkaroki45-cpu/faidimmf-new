@@ -54,7 +54,7 @@ def send_transaction_notification(transaction, event="updated"):
         "withdraw": "Withdrawal",
         "invest": "Investment",
         "referral": "Referral Bonus",
-        "investment_return": "Investment Maturity Redeemed",
+        "investment_return": "Investment Wallet Credit",
     }
     status_labels = {
         "pending": "Pending",

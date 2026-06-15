@@ -1,12 +1,15 @@
 from decimal import Decimal
+from datetime import timedelta
 from unittest.mock import patch
 
 from django.contrib.auth import get_user_model
 from django.test import TestCase, override_settings
 from django.urls import reverse
+from django.utils import timezone
 
 from .admin_services import AdminTransactionError, create_admin_transaction
 from .models import CompanyAccount, InvestmentTracking, LedgerEntry, Transaction, Wallet
+from user.utils import mature_due_investments
 
 
 class AdminTransactionCreationTests(TestCase):
@@ -142,6 +145,45 @@ class AdminTransactionCreationTests(TestCase):
         )
         self.pool.refresh_from_db()
         self.assertEqual(self.pool.invested_today, Decimal("150.00"))
+
+    def test_maturity_credits_daily_profit_without_unlocking_principal(self):
+        investment = InvestmentTracking.objects.create(
+            user=self.user,
+            amount=Decimal("2500.00"),
+            interest_rate=Decimal("0.025"),
+            invested_at=timezone.now() - timedelta(days=1, minutes=1),
+        )
+
+        credited = mature_due_investments(self.user)
+        investment.refresh_from_db()
+
+        self.assertEqual(credited, Decimal("62.50"))
+        self.assertFalse(investment.is_redeemed)
+        self.assertEqual(Wallet.objects.get(user=self.user).balance, Decimal("62.50"))
+        self.assertTrue(Transaction.objects.filter(checkout_id=f"PROFIT-{investment.id}-1").exists())
+        self.assertFalse(Transaction.objects.filter(checkout_id=f"PRINCIPAL-{investment.id}").exists())
+
+    def test_maturity_returns_principal_after_week_without_duplicates(self):
+        investment = InvestmentTracking.objects.create(
+            user=self.user,
+            amount=Decimal("2500.00"),
+            interest_rate=Decimal("0.025"),
+            invested_at=timezone.now() - timedelta(days=7, minutes=1),
+        )
+
+        credited = mature_due_investments(self.user)
+        credited_again = mature_due_investments(self.user)
+        investment.refresh_from_db()
+
+        self.assertEqual(credited, Decimal("2937.50"))
+        self.assertEqual(credited_again, Decimal("0"))
+        self.assertTrue(investment.is_redeemed)
+        self.assertEqual(Wallet.objects.get(user=self.user).balance, Decimal("2937.50"))
+        self.assertEqual(
+            Transaction.objects.filter(checkout_id__startswith=f"PROFIT-{investment.id}-").count(),
+            7,
+        )
+        self.assertEqual(Transaction.objects.filter(checkout_id=f"PRINCIPAL-{investment.id}").count(), 1)
 
     @override_settings(TELEGRAM_BOT_TOKEN="", TELEGRAM_CHAT_ID="")
     def test_admin_action_button_completes_pending_withdrawal(self):

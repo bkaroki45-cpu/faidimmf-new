@@ -3,7 +3,14 @@ from .forms import  TransactionPIN, PINForm
 from .accesstoken import get_access_token_value
 import base64
 import requests
-from finance.models import Transaction, Wallet, InvestmentTracking, CompanyAccount
+from finance.models import (
+    INVESTMENT_DAILY_INTEREST_RATE,
+    INVESTMENT_LOCK_DAYS,
+    Transaction,
+    Wallet,
+    InvestmentTracking,
+    CompanyAccount,
+)
 import json
 from django.views.decorators.csrf import csrf_exempt
 from django.http import JsonResponse
@@ -48,10 +55,10 @@ def set_pin(request):
     return render(request, 'user/set_pin.html', {'form': form})
 
 
-MIN_DEPOSIT = Decimal("100.00")  # Minimum deposit amount in KSh
-MIN_INVESTMENT = Decimal("100.00")  # Minimum investment amount in KSh
-MIN_DEPOSIT_LABEL = "KES 100"
-MIN_INVESTMENT_LABEL = "KES 100"
+MIN_DEPOSIT = Decimal("2500.00")  # Minimum deposit amount in KSh
+MIN_INVESTMENT = Decimal("2500.00")  # Minimum investment amount in KSh
+MIN_DEPOSIT_LABEL = "KES 2,500"
+MIN_INVESTMENT_LABEL = "KES 2,500"
 
 @login_required
 def deposit(request):
@@ -244,7 +251,11 @@ def invest(request):
         return redirect("user:profile")
 
     if request.method == "POST":
-        amount = Decimal(request.POST.get("amount"))
+        try:
+            amount = Decimal(request.POST.get("amount"))
+        except (InvalidOperation, TypeError, ValueError):
+            messages.error(request, "Invalid amount")
+            return redirect("finance:invest")
         pin = request.POST.get("pin", "").strip()
 
         if amount < MIN_INVESTMENT:
@@ -281,7 +292,7 @@ def invest(request):
             inv = InvestmentTracking.objects.create(
                 user=request.user,
                 amount=amount,
-                interest_rate=Decimal("0.03")
+                interest_rate=INVESTMENT_DAILY_INTEREST_RATE
             )
 
             # 5. USER HISTORY
@@ -313,14 +324,15 @@ def invest_tracking(request):
 
         # 🔥 CALCULATE (DISPLAY ONLY)
         inv.interest_display = inv.interest_rate * 100
-        inv.profit = inv.amount * inv.interest_rate
-        inv.total = inv.amount + inv.profit
+        inv.profit = inv.calculate_profit()
+        inv.weekly_profit = inv.profit * INVESTMENT_LOCK_DAYS
+        inv.total = inv.amount + inv.weekly_profit
 
         # 🔥 STATUS
         if inv.is_redeemed:
-            inv.status = "Redeemed"
-        elif elapsed >= 24 * 3600:
-            inv.status = "Matured"
+            inv.status = "Principal returned"
+        elif inv.is_matured():
+            inv.status = "Principal due"
         else:
             inv.status = "Active"
 

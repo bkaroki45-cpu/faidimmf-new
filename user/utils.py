@@ -4,7 +4,14 @@ from django.db.models import Sum
 import logging
 import random
 import smtplib
-from finance.models import Transaction, Wallet, CompanyAccount, SystemState, LedgerEntry
+from finance.models import (
+    INVESTMENT_LOCK_DAYS,
+    Transaction,
+    Wallet,
+    CompanyAccount,
+    SystemState,
+    LedgerEntry,
+)
 from decimal import Decimal
 from django.utils import timezone
 from django.db import transaction
@@ -135,47 +142,58 @@ def process_maturity(user, investment):
 
         investment = InvestmentTracking.objects.select_for_update().get(id=investment.id)
 
-        if investment.is_redeemed:
-            return Decimal("0")
-
-        if not investment.is_matured():
-            return Decimal("0")
+        total_credited = Decimal("0")
+        now = timezone.now()
+        elapsed_days = int((now - investment.invested_at).total_seconds() // 86400)
+        payable_days = min(elapsed_days, INVESTMENT_LOCK_DAYS)
+        daily_profit = investment.calculate_profit()
 
         # 🔒 prevent duplicates properly
-        if LedgerEntry.objects.filter(
-            reference=f"MATURE-{investment.id}",
-            tx_type="investment_return"
-        ).exists():
-            return Decimal("0")
+        for day_number in range(1, payable_days + 1):
+            reference = f"PROFIT-{investment.id}-{day_number}"
+            if Transaction.objects.filter(checkout_id=reference).exists():
+                continue
 
-        total_return = investment.total_return()
+            Transaction.objects.create(
+                user=user,
+                amount=daily_profit,
+                tx_type="investment_return",
+                status="completed",
+                checkout_id=reference,
+                result_desc=f"Daily investment profit day {day_number} for investment #{investment.id}",
+            )
+            total_credited += daily_profit
+
+        if investment.is_redeemed or not investment.is_matured():
+            return total_credited
+
+        principal_reference = f"PRINCIPAL-{investment.id}"
+        if not Transaction.objects.filter(checkout_id=principal_reference).exists():
+            Transaction.objects.create(
+                user=user,
+                amount=investment.amount,
+                tx_type="investment_return",
+                status="completed",
+                checkout_id=principal_reference,
+                result_desc=f"Investment principal returned for investment #{investment.id}",
+            )
+            total_credited += investment.amount
+
         investment.is_redeemed = True
         investment.save(update_fields=["is_redeemed"])
 
-        # =========================
-        # User wallet gets principal + 3% after 24 hours.
-        # The transaction signal posts the matching ledger entries once.
-        # =========================
-        Transaction.objects.create(
-            user=user,
-            amount=total_return,
-            tx_type="investment_return",
-            status="completed",
-            checkout_id=f"MAT-{investment.id}"
-        )
-
-        return total_return
+        return total_credited
 
 
 def mature_due_investments(user):
     """
-    Redeem every investment whose 24-hour maturity date has passed.
+    Credit due daily profits and return principal after the 7-day lock.
     Returns the total amount credited to the user's wallet.
     """
     due_investments = InvestmentTracking.objects.filter(
         user=user,
         is_redeemed=False,
-        maturity_date__lte=timezone.now(),
+        invested_at__lte=timezone.now(),
     )
 
     total_credited = Decimal("0")

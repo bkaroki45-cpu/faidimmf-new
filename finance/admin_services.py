@@ -4,7 +4,14 @@ from decimal import Decimal, InvalidOperation
 from django.db import transaction
 from django.utils import timezone
 
-from .models import CompanyAccount, InvestmentTracking, LedgerEntry, Transaction, Wallet
+from .models import (
+    INVESTMENT_DAILY_INTEREST_RATE,
+    CompanyAccount,
+    InvestmentTracking,
+    LedgerEntry,
+    Transaction,
+    Wallet,
+)
 
 
 class AdminTransactionError(ValueError):
@@ -67,7 +74,7 @@ def create_admin_transaction(*, user, tx_type, amount, note="", admin_user=None)
             InvestmentTracking.objects.create(
                 user=user,
                 amount=amount,
-                interest_rate=Decimal("0.03"),
+                interest_rate=INVESTMENT_DAILY_INTEREST_RATE,
             )
 
             tx = Transaction.objects.create(

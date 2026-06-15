@@ -16,7 +16,7 @@
         <div>
             <span class="eyebrow">Portfolio tracking</span>
             <h1>Track every active investment</h1>
-            <p>Investments mature automatically after 24 hours and are added back to your wallet when redeemed.</p>
+            <p>Daily 2.5% profits are added to your wallet automatically. Principal stays locked for 7 days, then returns to your wallet.</p>
         </div>
         <div class="hero-actions">
             <a href="{% url 'finance:invest' %}" class="btn secondary">Invest More</a>
@@ -35,7 +35,7 @@
         </article>
     </section>
 
-    <div class="auto-note">Investments are automatically redeemed after 24 hours and added to your wallet.</div>
+    <div class="auto-note">Daily profits are withdrawable from your wallet. Principal is automatically returned after the 7-day lock.</div>
 
     {% if messages %}
     <div>
@@ -55,8 +55,8 @@
                         <th>Date & Time</th>
                         <th>Amount</th>
                         <th>Interest Rate</th>
-                        <th>Profit</th>
-                        <th>Total with Interest</th>
+                        <th>Daily Profit</th>
+                        <th>7-Day Return</th>
                         <th>Status</th>
                     </tr>
                 </thead>
@@ -70,9 +70,9 @@
                         <td>KES {{ inv.total|floatformat:2 }}</td>
                         <td>
                             {% if inv.is_redeemed %}
-                                <span class="success">Redeemed</span>
-                            {% elif inv.status == "Matured" %}
-                                <span class="pending">Matured</span>
+                                <span class="success">Principal returned</span>
+                            {% elif inv.status == "Principal due" %}
+                                <span class="pending">Principal due</span>
                             {% else %}
                                 <span class="active">Active</span>
                             {% endif %}

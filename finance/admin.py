@@ -88,11 +88,11 @@ class InvestmentInline(admin.TabularInline):
 
     def status_badge(self, obj):
         if obj.is_redeemed:
-            return render_badge('#6b7280', 'Redeemed')
+            return render_badge('#6b7280', 'Principal returned')
         elif not obj.maturity_date:
             return render_badge('#f59e0b', 'Missing maturity date')
         elif obj.is_matured():
-            return render_badge('#10b981', 'Matured')
+            return render_badge('#10b981', 'Principal due')
         return render_badge('#3b82f6', 'Active')
 
 
@@ -745,11 +745,11 @@ class InvestmentTrackingAdmin(admin.ModelAdmin):
 
     def status_badge(self, obj):
         if obj.is_redeemed:
-            return render_badge('#6b7280', 'Redeemed')
+            return render_badge('#6b7280', 'Principal returned')
         elif not obj.maturity_date:
             return render_badge('#f59e0b', 'Missing maturity date')
         elif obj.is_matured():
-            return render_badge('#10b981', 'Matured')
+            return render_badge('#10b981', 'Principal due')
         return render_badge('#3b82f6', 'Active')
 
 

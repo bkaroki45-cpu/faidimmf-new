@@ -356,6 +356,7 @@ def dashboard(request):
     daily_profit = Transaction.objects.filter(
         user=user,
         tx_type__iexact="investment_return",  # ✅ FIXED
+        result_desc__icontains="Daily investment profit",
         timestamp__date=timezone.localdate(),
         status="completed"
     ).aggregate(total=Sum('amount'))['total'] or Decimal("0")
@@ -666,3 +667,4 @@ def change_pin(request):
         form = ChangePINForm()
 
     return render(request, 'user/change_pin.html', {'form': form})
+

@@ -8,6 +8,9 @@ from decimal import Decimal, ROUND_DOWN
 from django.db.models import Sum
 from django.db.models.signals import post_save
 
+INVESTMENT_DAILY_INTEREST_RATE = Decimal("0.025")
+INVESTMENT_LOCK_DAYS = 7
+
 # =========================
 # TRANSACTIONS
 # =========================
@@ -437,7 +440,7 @@ class InvestmentTracking(models.Model):
     interest_rate = models.DecimalField(
         max_digits=5,
         decimal_places=4,
-        default=Decimal('0.03')  # 3% daily
+        default=INVESTMENT_DAILY_INTEREST_RATE  # 2.5% daily
     )
 
     invested_at = models.DateTimeField(default=timezone.now)
@@ -449,7 +452,7 @@ class InvestmentTracking(models.Model):
             self.invested_at = timezone.now()
 
         if not self.maturity_date:
-            self.maturity_date = self.invested_at + timedelta(hours=24)
+            self.maturity_date = self.invested_at + timedelta(days=INVESTMENT_LOCK_DAYS)
 
         super().save(*args, **kwargs)
 
@@ -465,7 +468,7 @@ class InvestmentTracking(models.Model):
         )
 
     def total_return(self):
-        return (self.amount + self.calculate_profit()).quantize(
+        return (self.amount + (self.calculate_profit() * INVESTMENT_LOCK_DAYS)).quantize(
             Decimal('0.01'),
             rounding=ROUND_DOWN
         )
