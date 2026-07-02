@@ -55,9 +55,9 @@ def set_pin(request):
     return render(request, 'user/set_pin.html', {'form': form})
 
 
-MIN_DEPOSIT = Decimal("2500.00")  # Minimum deposit amount in KSh
+MIN_DEPOSIT = Decimal("100.00")  # Minimum deposit amount in KSh
 MIN_INVESTMENT = Decimal("2500.00")  # Minimum investment amount in KSh
-MIN_DEPOSIT_LABEL = "KES 2,500"
+MIN_DEPOSIT_LABEL = "KES 100"
 MIN_INVESTMENT_LABEL = "KES 2,500"
 
 @login_required
