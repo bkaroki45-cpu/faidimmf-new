@@ -85,8 +85,35 @@ def create_admin_transaction(*, user, tx_type, amount, note="", admin_user=None)
                 checkout_id=checkout_id,
                 phone_number=getattr(user, "phone", None),
                 result_desc=result_desc,
+                origin="admin_manual",
+                created_by_admin=admin_user,
                 completed_at=timezone.now(),
             )
+            return tx
+
+        if tx_type == "withdraw":
+            tx = Transaction.objects.create(
+                user=user,
+                amount=amount,
+                tx_type="withdraw",
+                status="pending",
+                checkout_id=checkout_id,
+                phone_number=getattr(user, "phone", None),
+                result_desc=result_desc,
+                origin="admin_manual",
+                created_by_admin=admin_user,
+            )
+
+            LedgerEntry.objects.create(
+                user=user,
+                account=reserve,
+                tx_type="withdraw",
+                amount=amount,
+                is_credit=False,
+                reference=checkout_id,
+                metadata=result_desc,
+            )
+
             return tx
 
         tx = Transaction.objects.create(
@@ -97,6 +124,8 @@ def create_admin_transaction(*, user, tx_type, amount, note="", admin_user=None)
             checkout_id=checkout_id,
             phone_number=getattr(user, "phone", None),
             result_desc=result_desc,
+            origin="admin_manual",
+            created_by_admin=admin_user,
             completed_at=timezone.now(),
         )
 

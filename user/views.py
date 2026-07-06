@@ -148,6 +148,9 @@ def google_callback(request):
 
         user.save()
         created = True
+    elif not user.is_active:
+        messages.error(request, "Your account has been suspended. Contact support.")
+        return redirect('user:login')
 
     login(request, user)
 
@@ -212,7 +215,11 @@ def login_view(request):
             login(request, user)
             return redirect(next_url or reverse('user:dashboard'))
         else:
-            error_message = 'Invalid credentials!'
+            suspended_user = CustomUser.objects.filter(username=username, is_active=False).first()
+            if suspended_user and suspended_user.check_password(password):
+                error_message = 'Your account has been suspended. Contact support.'
+            else:
+                error_message = 'Invalid credentials!'
 
     return render(request, 'user/login.html', {'error': error_message, 'next': next_url})
 

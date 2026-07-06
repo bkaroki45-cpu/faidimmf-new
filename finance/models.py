@@ -34,6 +34,11 @@ class Transaction(models.Model):
         ('failed', 'Failed'),
     ]
 
+    ORIGIN_TYPES = [
+        ('normal', 'Normal Transaction'),
+        ('admin_manual', 'Manual Transaction by Admin'),
+    ]
+
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
@@ -97,6 +102,21 @@ class Transaction(models.Model):
         related_name="referral_source"
     )
 
+    origin = models.CharField(
+        max_length=20,
+        choices=ORIGIN_TYPES,
+        default='normal',
+        db_index=True,
+    )
+
+    created_by_admin = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="manual_transactions",
+    )
+
     # ======================
     # EXTRA INFO
     # ======================
@@ -143,6 +163,10 @@ class Transaction(models.Model):
 
     def __str__(self):
         return f"{self.tx_type} - {self.amount} KES - {self.status}"
+
+    @property
+    def is_admin_manual(self):
+        return self.origin == "admin_manual"
 
     # ======================
     # METHODS

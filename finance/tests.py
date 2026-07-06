@@ -49,7 +49,7 @@ class AdminTransactionCreationTests(TestCase):
         self.assertEqual(self.reserve.balance, Decimal("500.00"))
         self.assertEqual(self.system.balance, Decimal("500.00"))
 
-    def test_admin_withdrawal_debits_wallet_once(self):
+    def test_admin_withdrawal_debits_wallet_and_stays_pending_until_completion(self):
         create_admin_transaction(
             user=self.user,
             tx_type="deposit",
@@ -65,7 +65,9 @@ class AdminTransactionCreationTests(TestCase):
             admin_user=self.admin,
         )
 
-        self.assertEqual(tx.status, "completed")
+        self.assertEqual(tx.status, "pending")
+        self.assertEqual(tx.origin, "admin_manual")
+        self.assertEqual(tx.created_by_admin, self.admin)
         self.assertEqual(Wallet.objects.get(user=self.user).balance, Decimal("300.00"))
         self.assertEqual(
             LedgerEntry.objects.filter(user=self.user, tx_type="withdraw", is_credit=False).count(),
@@ -101,7 +103,7 @@ class AdminTransactionCreationTests(TestCase):
             admin_user=self.admin,
         )
 
-        self.assertEqual(tx.status, "completed")
+        self.assertEqual(tx.status, "pending")
         self.assertEqual(Wallet.objects.get(user=self.user).balance, Decimal("0.00"))
         self.assertEqual(self.reserve.balance, Decimal("0"))
 
@@ -135,6 +137,8 @@ class AdminTransactionCreationTests(TestCase):
         )
 
         self.assertEqual(tx.status, "completed")
+        self.assertEqual(tx.origin, "admin_manual")
+        self.assertEqual(tx.created_by_admin, self.admin)
         self.assertEqual(Wallet.objects.get(user=self.user).balance, Decimal("350.00"))
         self.assertTrue(
             InvestmentTracking.objects.filter(user=self.user, amount=Decimal("150.00")).exists()
@@ -243,6 +247,7 @@ class AdminTransactionCreationTests(TestCase):
 
         self.assertEqual(send_message.call_count, 1)
         self.assertIn("Investment", send_message.call_args.args[0])
+        self.assertIn("Source: Normal Transaction", send_message.call_args.args[0])
 
         send_message.reset_mock()
         tx.status = "failed"
@@ -255,3 +260,19 @@ class AdminTransactionCreationTests(TestCase):
         message = send_message.call_args.args[0]
         self.assertIn("Transaction Status Updated", message)
         self.assertIn("Failed", message)
+
+    @override_settings(TELEGRAM_BOT_TOKEN="token", TELEGRAM_CHAT_ID="chat")
+    @patch("finance.notifications.send_telegram_message", return_value=True)
+    def test_telegram_marks_admin_manual_transactions_with_admin_name(self, send_message):
+        with self.captureOnCommitCallbacks(execute=True):
+            create_admin_transaction(
+                user=self.user,
+                tx_type="deposit",
+                amount=Decimal("100.00"),
+                note="Manual correction",
+                admin_user=self.admin,
+            )
+
+        message = send_message.call_args.args[0]
+        self.assertIn("Source: Manual Transaction by Admin: admin", message)
+        self.assertIn("Manual correction", message)

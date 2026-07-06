@@ -49,6 +49,12 @@ def send_transaction_notification(transaction, event="updated"):
     user = transaction.user
     username = getattr(user, "username", "Unknown")
     phone = transaction.phone_number or getattr(user, "phone", None) or "Not provided"
+    admin_user = getattr(transaction, "created_by_admin", None)
+    admin_name = getattr(admin_user, "username", None) or "Unknown admin"
+    if getattr(transaction, "origin", "normal") == "admin_manual":
+        source_label = f"Manual Transaction by Admin: {escape(admin_name)}"
+    else:
+        source_label = "Normal Transaction"
     tx_labels = {
         "deposit": "Deposit",
         "withdraw": "Withdrawal",
@@ -87,6 +93,7 @@ def send_transaction_notification(transaction, event="updated"):
         f"Amount: KES {transaction.amount}\n"
         f"Type: {tx_label}\n"
         f"Status: {status_label}\n"
+        f"Source: {source_label}\n"
         f"Phone: {phone}\n"
         f"Reference: {identifier}\n"
         f"Time: {timezone.localtime(timezone.now()).strftime('%Y-%m-%d %H:%M:%S')}"

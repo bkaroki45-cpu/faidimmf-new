@@ -59,7 +59,7 @@ class TransactionPINInline(admin.StackedInline):
 class TransactionInline(admin.TabularInline):
     model = Transaction
     fk_name = "user"
-    fields = ('amount', 'tx_type', 'status_badge', 'checkout_id', 'timestamp')
+    fields = ('amount', 'tx_type', 'status_badge', 'origin', 'created_by_admin', 'checkout_id', 'timestamp')
     readonly_fields = fields
     extra = 0
     can_delete = False
@@ -141,6 +141,7 @@ class CustomUserAdmin(UserAdmin):
     list_filter = ('is_staff', 'is_superuser', 'is_active', 'groups', 'referred_by')
     readonly_fields = ('last_login', 'date_joined', 'referral_code')
     autocomplete_fields = ('referred_by',)
+    actions = ("suspend_users", "unsuspend_users")
 
     fieldsets = (
         (None, {'fields': ('username', 'email', 'password', 'phone', 'referral_code', 'referred_by')}),
@@ -201,6 +202,21 @@ class CustomUserAdmin(UserAdmin):
         return obj.referrals.count()
 
     referrals_count.short_description = "Referrals"
+
+    @admin.action(description="Suspend selected users")
+    def suspend_users(self, request, queryset):
+        queryset = queryset.exclude(pk=request.user.pk)
+        if not request.user.is_superuser:
+            queryset = queryset.filter(is_staff=False, is_superuser=False)
+        updated = queryset.update(is_active=False)
+        self.message_user(request, f"{updated} user(s) suspended.")
+
+    @admin.action(description="Unsuspend selected users")
+    def unsuspend_users(self, request, queryset):
+        if not request.user.is_superuser:
+            queryset = queryset.filter(is_staff=False, is_superuser=False)
+        updated = queryset.update(is_active=True)
+        self.message_user(request, f"{updated} user(s) unsuspended.")
 
 
 @admin.register(ReferralRelationship)
@@ -463,15 +479,18 @@ class TransactionAdmin(admin.ModelAdmin):
         'tx_type',
         'amount',
         'status_badge',
+        'origin_badge',
+        'created_by_admin',
         'timestamp',
         'action_buttons'
     )
 
-    list_filter = ('tx_type', 'status')
+    list_filter = ('tx_type', 'status', 'origin')
 
     search_fields = (
         'user__username',
-        'user__phone'
+        'user__phone',
+        'created_by_admin__username',
     )
 
     actions = [
@@ -490,6 +509,8 @@ class TransactionAdmin(admin.ModelAdmin):
         'status',
         'tx_type',
         'reference_user',
+        'origin',
+        'created_by_admin',
         'result_desc',
         'timestamp',
         'completed_at',
@@ -536,7 +557,7 @@ class TransactionAdmin(admin.ModelAdmin):
                 return redirect(reverse("admin:finance_transaction_changelist"))
 
             tx.status = "completed"
-            tx.result_desc = "Withdrawal paid"
+            tx.result_desc = f"Withdrawal paid by admin {request.user.username}"
             tx.completed_at = timezone.now()
             tx.save(update_fields=["status", "result_desc", "completed_at"])
 
@@ -637,6 +658,14 @@ class TransactionAdmin(admin.ModelAdmin):
 
     status_badge.short_description = "Status"
 
+    def origin_badge(self, obj):
+        if obj.origin == "admin_manual":
+            admin_name = getattr(obj.created_by_admin, "username", "Unknown admin")
+            return render_badge("#7c3aed", f"Manual by {admin_name}")
+        return render_badge("#2563eb", "Normal")
+
+    origin_badge.short_description = "Source"
+
     # -----------------------
     # ACTION BUTTONS
     # -----------------------
@@ -684,7 +713,7 @@ class TransactionAdmin(admin.ModelAdmin):
             # UPDATE TRANSACTION
             # -----------------------
             tx.status = "completed"
-            tx.result_desc = "Paid manually via M-Pesa Till"
+            tx.result_desc = f"Paid manually via M-Pesa Till by admin {request.user.username}"
             tx.completed_at = timezone.now()
 
             tx.save()
