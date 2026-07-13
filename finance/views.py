@@ -5,7 +5,7 @@ import base64
 import requests
 from finance.models import (
     INVESTMENT_DAILY_INTEREST_RATE,
-    INVESTMENT_LOCK_DAYS,
+    INVESTMENT_PERIOD_CHOICES,
     Transaction,
     Wallet,
     InvestmentTracking,
@@ -257,6 +257,16 @@ def invest(request):
             messages.error(request, "Invalid amount")
             return redirect("finance:invest")
         pin = request.POST.get("pin", "").strip()
+        try:
+            term_days = int(request.POST.get("term_days"))
+        except (TypeError, ValueError):
+            messages.error(request, "Choose a valid investment period")
+            return redirect("finance:invest")
+
+        valid_periods = {days for days, _label in INVESTMENT_PERIOD_CHOICES}
+        if term_days not in valid_periods:
+            messages.error(request, "Choose a valid investment period")
+            return redirect("finance:invest")
 
         if amount < MIN_INVESTMENT:
             messages.error(request, f"Minimum investment is {MIN_INVESTMENT_LABEL}")
@@ -270,10 +280,9 @@ def invest(request):
             messages.error(request, "Invalid PIN")
             return redirect("finance:invest")
 
-        reserve = CompanyAccount.objects.select_for_update().get(account_type="reserve")
-        pool = CompanyAccount.objects.select_for_update().get(account_type="pool")
-
         with transaction.atomic():
+            reserve = CompanyAccount.objects.select_for_update().get(account_type="reserve")
+            pool = CompanyAccount.objects.select_for_update().get(account_type="pool")
 
             # 1. wallet deduction
             LedgerEntry.objects.create(
@@ -292,7 +301,8 @@ def invest(request):
             inv = InvestmentTracking.objects.create(
                 user=request.user,
                 amount=amount,
-                interest_rate=INVESTMENT_DAILY_INTEREST_RATE
+                interest_rate=INVESTMENT_DAILY_INTEREST_RATE,
+                term_days=term_days,
             )
 
             # 5. USER HISTORY
@@ -307,7 +317,10 @@ def invest(request):
         messages.success(request, "Investment successful")
         return redirect("finance:invest_tracking")
 
-    return render(request, "finance/invest_form.html", {"wallet": wallet})
+    return render(request, "finance/invest_form.html", {
+        "wallet": wallet,
+        "period_choices": INVESTMENT_PERIOD_CHOICES,
+    })
 
 
 
@@ -325,8 +338,9 @@ def invest_tracking(request):
         # 🔥 CALCULATE (DISPLAY ONLY)
         inv.interest_display = inv.interest_rate * 100
         inv.profit = inv.calculate_profit()
-        inv.weekly_profit = inv.profit * INVESTMENT_LOCK_DAYS
-        inv.total = inv.amount + inv.weekly_profit
+        inv.period_profit = inv.profit * inv.term_days
+        inv.total = inv.amount + inv.period_profit
+        inv.term_label = inv.get_term_days_display()
 
         # 🔥 STATUS
         if inv.is_redeemed:

@@ -5,7 +5,6 @@ import logging
 import random
 import smtplib
 from finance.models import (
-    INVESTMENT_LOCK_DAYS,
     Transaction,
     Wallet,
     CompanyAccount,
@@ -145,7 +144,7 @@ def process_maturity(user, investment):
         total_credited = Decimal("0")
         now = timezone.now()
         elapsed_days = int((now - investment.invested_at).total_seconds() // 86400)
-        payable_days = min(elapsed_days, INVESTMENT_LOCK_DAYS)
+        payable_days = min(elapsed_days, investment.term_days)
         daily_profit = investment.calculate_profit()
 
         # 🔒 prevent duplicates properly
@@ -185,9 +184,52 @@ def process_maturity(user, investment):
         return total_credited
 
 
+def unlock_investment_principal(investment, admin_user=None):
+    """
+    Return an active investment principal before maturity.
+    Any daily profits due up to today are credited first.
+    """
+    if investment.is_redeemed:
+        return Decimal("0")
+
+    credited = process_maturity(investment.user, investment)
+    investment.refresh_from_db()
+
+    if investment.is_redeemed:
+        return credited
+
+    with transaction.atomic():
+        investment = InvestmentTracking.objects.select_for_update().get(id=investment.id)
+
+        if investment.is_redeemed:
+            return credited
+
+        principal_reference = f"ADMIN-UNLOCK-PRINCIPAL-{investment.id}"
+        if not Transaction.objects.filter(checkout_id=principal_reference).exists():
+            description = f"Investment principal unlocked early by admin for investment #{investment.id}"
+            if admin_user:
+                description = f"{description} ({admin_user.username})"
+
+            Transaction.objects.create(
+                user=investment.user,
+                amount=investment.amount,
+                tx_type="investment_return",
+                status="completed",
+                checkout_id=principal_reference,
+                result_desc=description,
+            )
+            credited += investment.amount
+
+        investment.is_redeemed = True
+        investment.maturity_date = timezone.now()
+        investment.save(update_fields=["is_redeemed", "maturity_date"])
+
+    return credited
+
+
 def mature_due_investments(user):
     """
-    Credit due daily profits and return principal after the 7-day lock.
+    Credit due daily profits and return principal after the selected lock period.
     Returns the total amount credited to the user's wallet.
     """
     due_investments = InvestmentTracking.objects.filter(

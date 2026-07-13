@@ -15,7 +15,7 @@
         <div>
             <span class="eyebrow">Investment order</span>
             <h1>Put your wallet balance to work</h1>
-            <p>Invest from KES 2,500, earn 2.5% daily profit to your wallet, and receive your principal back automatically after 7 days.</p>
+            <p>Invest from KES 2,500, earn 2.5% daily profit to your wallet, and receive your principal back automatically after your selected period.</p>
         </div>
         <div class="hero-actions">
             <a href="{% url 'finance:invest_tracking' %}" class="btn secondary">Track Investment</a>
@@ -35,6 +35,13 @@
                 {% csrf_token %}
                 <label for="amount">Amount to invest</label>
                 <input id="amount" type="number" name="amount" min="2500" placeholder="Minimum KES 2,500" required>
+
+                <label for="term_days">Investment period</label>
+                <select id="term_days" name="term_days" required>
+                    {% for days, label in period_choices %}
+                        <option value="{{ days }}">{{ label }}</option>
+                    {% endfor %}
+                </select>
 
                 <label for="pin">Transaction PIN</label>
                 <input id="pin" type="password" name="pin" placeholder="Enter your transaction PIN" required>

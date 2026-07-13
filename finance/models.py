@@ -10,6 +10,14 @@ from django.db.models.signals import post_save
 
 INVESTMENT_DAILY_INTEREST_RATE = Decimal("0.025")
 INVESTMENT_LOCK_DAYS = 7
+INVESTMENT_PERIOD_CHOICES = [
+    (7, "Weekly"),
+    (30, "Monthly"),
+    (90, "3 Months"),
+    (180, "6 Months"),
+    (270, "9 Months"),
+    (365, "Annually"),
+]
 
 # =========================
 # TRANSACTIONS
@@ -469,6 +477,10 @@ class InvestmentTracking(models.Model):
 
     invested_at = models.DateTimeField(default=timezone.now)
     maturity_date = models.DateTimeField(null=True, blank=True)
+    term_days = models.PositiveIntegerField(
+        choices=INVESTMENT_PERIOD_CHOICES,
+        default=INVESTMENT_LOCK_DAYS,
+    )
     is_redeemed = models.BooleanField(default=False)
 
     def save(self, *args, **kwargs):
@@ -476,7 +488,7 @@ class InvestmentTracking(models.Model):
             self.invested_at = timezone.now()
 
         if not self.maturity_date:
-            self.maturity_date = self.invested_at + timedelta(days=INVESTMENT_LOCK_DAYS)
+            self.maturity_date = self.invested_at + timedelta(days=self.term_days)
 
         super().save(*args, **kwargs)
 
@@ -492,7 +504,7 @@ class InvestmentTracking(models.Model):
         )
 
     def total_return(self):
-        return (self.amount + (self.calculate_profit() * INVESTMENT_LOCK_DAYS)).quantize(
+        return (self.amount + (self.calculate_profit() * self.term_days)).quantize(
             Decimal('0.01'),
             rounding=ROUND_DOWN
         )

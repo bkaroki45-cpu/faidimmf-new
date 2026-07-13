@@ -16,7 +16,7 @@
         <div>
             <span class="eyebrow">Portfolio tracking</span>
             <h1>Track every active investment</h1>
-            <p>Daily 2.5% profits are added to your wallet automatically. Principal stays locked for 7 days, then returns to your wallet.</p>
+            <p>Daily 2.5% profits are added to your wallet automatically. Principal stays locked for your chosen period, then returns to your wallet.</p>
         </div>
         <div class="hero-actions">
             <a href="{% url 'finance:invest' %}" class="btn secondary">Invest More</a>
@@ -35,7 +35,7 @@
         </article>
     </section>
 
-    <div class="auto-note">Daily profits are withdrawable from your wallet. Principal is automatically returned after the 7-day lock.</div>
+    <div class="auto-note">Daily profits are withdrawable from your wallet. Principal is automatically returned after the selected lock period, or earlier if an admin unlocks it.</div>
 
     {% if messages %}
     <div>
@@ -54,9 +54,10 @@
                     <tr>
                         <th>Date & Time</th>
                         <th>Amount</th>
+                        <th>Period</th>
                         <th>Interest Rate</th>
                         <th>Daily Profit</th>
-                        <th>7-Day Return</th>
+                        <th>Total Return</th>
                         <th>Status</th>
                     </tr>
                 </thead>
@@ -65,6 +66,7 @@
                     <tr>
                         <td>{{ inv.invested_at|date:"M d, Y H:i" }}</td>
                         <td>KES {{ inv.amount|floatformat:2 }}</td>
+                        <td>{{ inv.term_label }}</td>
                         <td>{{ inv.interest_display|floatformat:2 }}%</td>
                         <td>KES {{ inv.profit|floatformat:2 }}</td>
                         <td>KES {{ inv.total|floatformat:2 }}</td>

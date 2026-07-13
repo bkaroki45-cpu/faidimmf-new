@@ -9,7 +9,7 @@ from django.utils import timezone
 
 from .admin_services import AdminTransactionError, create_admin_transaction
 from .models import CompanyAccount, InvestmentTracking, LedgerEntry, Transaction, Wallet
-from user.utils import mature_due_investments
+from user.utils import mature_due_investments, unlock_investment_principal
 
 
 class AdminTransactionCreationTests(TestCase):
@@ -188,6 +188,42 @@ class AdminTransactionCreationTests(TestCase):
             7,
         )
         self.assertEqual(Transaction.objects.filter(checkout_id=f"PRINCIPAL-{investment.id}").count(), 1)
+
+    def test_monthly_investment_keeps_principal_locked_after_week(self):
+        investment = InvestmentTracking.objects.create(
+            user=self.user,
+            amount=Decimal("2500.00"),
+            interest_rate=Decimal("0.025"),
+            term_days=30,
+            invested_at=timezone.now() - timedelta(days=7, minutes=1),
+        )
+
+        credited = mature_due_investments(self.user)
+        investment.refresh_from_db()
+
+        self.assertEqual(credited, Decimal("437.50"))
+        self.assertFalse(investment.is_redeemed)
+        self.assertFalse(Transaction.objects.filter(checkout_id=f"PRINCIPAL-{investment.id}").exists())
+
+    def test_admin_unlock_returns_principal_before_selected_period(self):
+        investment = InvestmentTracking.objects.create(
+            user=self.user,
+            amount=Decimal("2500.00"),
+            interest_rate=Decimal("0.025"),
+            term_days=90,
+            invested_at=timezone.now() - timedelta(days=2, minutes=1),
+        )
+
+        credited = unlock_investment_principal(investment, admin_user=self.admin)
+        investment.refresh_from_db()
+
+        self.assertEqual(credited, Decimal("2625.00"))
+        self.assertTrue(investment.is_redeemed)
+        self.assertEqual(Wallet.objects.get(user=self.user).balance, Decimal("2625.00"))
+        self.assertEqual(
+            Transaction.objects.filter(checkout_id=f"ADMIN-UNLOCK-PRINCIPAL-{investment.id}").count(),
+            1,
+        )
 
     @override_settings(TELEGRAM_BOT_TOKEN="", TELEGRAM_CHAT_ID="")
     def test_admin_action_button_completes_pending_withdrawal(self):

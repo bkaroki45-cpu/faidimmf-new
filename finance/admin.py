@@ -18,6 +18,7 @@ from user.models import CustomUser, ReferralRelationship, TransactionPIN
 from django.contrib.admin import SimpleListFilter
 from finance.models import LedgerEntry
 from .admin_services import AdminTransactionError, create_admin_transaction
+from user.utils import unlock_investment_principal
 
 
 # =========================
@@ -80,7 +81,7 @@ class TransactionInline(admin.TabularInline):
 class InvestmentInline(admin.TabularInline):
     model = InvestmentTracking
     fk_name = "user"
-    fields = ('amount', 'interest_rate', 'invested_at', 'maturity_date', 'is_redeemed', 'status_badge')
+    fields = ('amount', 'interest_rate', 'term_days', 'invested_at', 'maturity_date', 'is_redeemed', 'status_badge')
     readonly_fields = fields
     extra = 0
     can_delete = False
@@ -755,15 +756,27 @@ class TransactionAdmin(admin.ModelAdmin):
 # =========================
 @admin.register(InvestmentTracking)
 class InvestmentTrackingAdmin(admin.ModelAdmin):
-    list_display = ('user', 'amount', 'status_badge', 'invested_at', 'maturity_date', 'is_redeemed')
+    list_display = (
+        'user',
+        'amount',
+        'term_days',
+        'status_badge',
+        'invested_at',
+        'maturity_date',
+        'is_redeemed',
+        'action_buttons',
+    )
+    actions = ('unlock_selected_principal',)
     readonly_fields = (
         'user',
         'amount',
         'interest_rate',
+        'term_days',
         'invested_at',
         'maturity_date',
         'is_redeemed',
         'status_badge',
+        'action_buttons',
     )
 
     def has_add_permission(self, request):
@@ -771,6 +784,17 @@ class InvestmentTrackingAdmin(admin.ModelAdmin):
 
     def has_delete_permission(self, request, obj=None):
         return False
+
+    def get_urls(self):
+        urls = super().get_urls()
+        custom_urls = [
+            path(
+                "<int:investment_id>/unlock-principal/",
+                self.admin_site.admin_view(self.unlock_principal_view),
+                name="finance_investmenttracking_unlock_principal",
+            ),
+        ]
+        return custom_urls + urls
 
     def status_badge(self, obj):
         if obj.is_redeemed:
@@ -780,6 +804,60 @@ class InvestmentTrackingAdmin(admin.ModelAdmin):
         elif obj.is_matured():
             return render_badge('#10b981', 'Principal due')
         return render_badge('#3b82f6', 'Active')
+
+    def action_buttons(self, obj):
+        if obj.is_redeemed:
+            return "—"
+
+        url = reverse(
+            "admin:finance_investmenttracking_unlock_principal",
+            args=[obj.id],
+        )
+        return format_html(
+            '<a class="button" href="{}" '
+            'style="background:#f59e0b; color:#111827; padding:5px 10px; '
+            'border-radius:4px; font-weight:bold; text-decoration:none;">'
+            'Unlock Principal</a>',
+            url,
+        )
+
+    action_buttons.short_description = "Action"
+
+    def unlock_principal_view(self, request, investment_id):
+        investment = InvestmentTracking.objects.select_related("user").filter(id=investment_id).first()
+
+        if not investment:
+            messages.error(request, "Investment not found.")
+            return redirect(reverse("admin:finance_investmenttracking_changelist"))
+
+        if investment.is_redeemed:
+            messages.warning(request, "This investment principal is already in the user's wallet.")
+            return redirect(reverse("admin:finance_investmenttracking_changelist"))
+
+        credited = unlock_investment_principal(investment, admin_user=request.user)
+        messages.success(
+            request,
+            f"Unlocked KES {credited} to {investment.user.username}'s wallet.",
+        )
+        return redirect(reverse("admin:finance_investmenttracking_changelist"))
+
+    @admin.action(description="Unlock selected investment principal to user wallets")
+    def unlock_selected_principal(self, request, queryset):
+        unlocked = 0
+        total = Decimal("0.00")
+
+        for investment in queryset.select_related("user"):
+            if investment.is_redeemed:
+                continue
+            credited = unlock_investment_principal(investment, admin_user=request.user)
+            if credited:
+                unlocked += 1
+                total += credited
+
+        self.message_user(
+            request,
+            f"Unlocked {unlocked} investment(s), total credited KES {total}.",
+        )
 
 
 # =========================
