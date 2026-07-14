@@ -507,38 +507,21 @@ def profile(request):
 
                 if pin_obj:
                     pin_obj.set_pin(pin_value)
+                    pin_obj.save(update_fields=["pin"])
                 else:
-                    pin_obj = TransactionPIN.objects.create(user=user)
+                    pin_obj = TransactionPIN(user=user)
                     pin_obj.set_pin(pin_value)
+                    pin_obj.save()
 
                 messages.success(request, "Transaction PIN set successfully!")
                 return redirect("user:profile")
             else:
                 messages.error(request, "Error setting PIN. Please check your input.")
 
-        # --- Change PIN ---
-        elif "change_pin" in request.POST:
-            change_form = ChangePINForm(request.POST)
-            if change_form.is_valid():
-                current_pin = change_form.cleaned_data["current_pin"]
-                new_pin = change_form.cleaned_data["new_pin"]
-
-                if not pin_obj:
-                    messages.error(request, "Please set a transaction PIN first.")
-                elif not pin_obj.check_pin(current_pin):
-                    messages.error(request, "Current PIN is incorrect.")
-                else:
-                    pin_obj.set_pin(new_pin)
-                    messages.success(request, "Transaction PIN changed successfully!")
-                    return redirect("user:profile")
-            else:
-                messages.error(request, "Please fill all fields correctly.")
-
     context = {
         "user": user,
         "pin_obj": pin_obj,
         "set_form": set_form,
-        "change_form": change_form if pin_obj else None,
     }
 
     return render(request, "user/profile.html", context)
@@ -635,6 +618,7 @@ def set_new_pin(request):
 
             # ✅ Always hash properly
             pin_obj.set_pin(form.cleaned_data['pin'])
+            pin_obj.save()
 
             # ✅ Clean ONLY OTP session (NOT flush)
             request.session.pop('forgot_pin_user', None)
@@ -668,6 +652,7 @@ def change_pin(request):
                 messages.error(request, "Current PIN is incorrect.")
             else:
                 pin_obj.set_pin(new_pin)
+                pin_obj.save(update_fields=["pin"])
                 messages.success(request, "PIN changed successfully!")
                 return redirect('user:profile')
     else:

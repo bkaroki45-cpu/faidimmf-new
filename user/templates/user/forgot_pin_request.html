@@ -28,14 +28,6 @@
             <button type="submit">Send OTP</button>
         </form>
 
-        {% if messages %}
-        <ul>
-        {% for message in messages %}
-            <li>{{ message }}</li>
-        {% endfor %}
-        </ul>
-        {% endif %}
-
         <!-- Navigation -->
         <div class="back-link">
             <a href="{% url 'user:profile' %}">Return to Profile</a> |

@@ -1,5 +1,8 @@
+import sys
+
 from django.contrib import admin
-from django.urls import path, include
+from django.contrib.staticfiles.views import serve as serve_static_file
+from django.urls import include, path, re_path
 from core.views import (
     favicon,
     favicon_48,
@@ -34,3 +37,15 @@ urlpatterns = [
     # Preserve referral code in redirect
     path('register/', RegisterRedirectWithQuery.as_view()),
 ]
+
+# Some local environments set DEBUG=False. Make `manage.py runserver` still
+# serve assets from Django's static-file finders, without enabling this route
+# for a production WSGI server.
+if 'runserver' in sys.argv:
+    urlpatterns += [
+        re_path(
+            r'^static/(?P<path>.*)$',
+            serve_static_file,
+            {'insecure': True},
+        ),
+    ]

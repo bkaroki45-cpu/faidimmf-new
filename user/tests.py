@@ -1,7 +1,7 @@
 from django.test import TestCase
 from django.urls import reverse
 from unittest.mock import patch
-from user.models import CustomUser, PasswordResetOTP
+from user.models import CustomUser, PasswordResetOTP, TransactionPIN
 
 
 class SignupNotificationTests(TestCase):
@@ -85,3 +85,48 @@ class LoginTests(TestCase):
         self.assertRedirects(response, reverse("user:dashboard"))
         send_otp_email.assert_not_called()
         self.assertEqual(int(self.client.session["_auth_user_id"]), self.user.id)
+
+
+class PinManagementTests(TestCase):
+    def setUp(self):
+        self.user = CustomUser.objects.create_user(
+            username="pinclient",
+            email="pinclient@example.com",
+            password="StrongPass123!",
+        )
+        self.client.force_login(self.user)
+        self.pin = TransactionPIN.objects.create(user=self.user)
+        self.pin.set_pin("1234")
+        self.pin.save(update_fields=["pin"])
+
+    def test_profile_shows_change_pin_button_and_password_reset_button(self):
+        response = self.client.get(reverse("user:profile"))
+
+        self.assertContains(response, reverse("user:change_pin"))
+        self.assertContains(response, reverse("user:forgot_password"))
+        self.assertNotContains(response, 'name="current_pin"')
+
+    def test_change_pin_saves_the_new_pin(self):
+        response = self.client.post(
+            reverse("user:change_pin"),
+            {
+                "current_pin": "1234",
+                "new_pin": "5678",
+                "confirm_new_pin": "5678",
+            },
+        )
+
+        self.assertRedirects(response, reverse("user:profile"))
+        self.pin.refresh_from_db()
+        self.assertTrue(self.pin.check_pin("5678"))
+
+    def test_profile_can_set_and_save_a_pin(self):
+        self.pin.delete()
+
+        response = self.client.post(
+            reverse("user:profile"),
+            {"set_pin": "", "pin": "4321", "confirm_pin": "4321"},
+        )
+
+        self.assertRedirects(response, reverse("user:profile"))
+        self.assertTrue(TransactionPIN.objects.get(user=self.user).check_pin("4321"))

@@ -95,24 +95,17 @@
 
             <h3>Change PIN</h3>
 
-            <form method="POST">
-                {% csrf_token %}
-
-                {{ change_form.as_p }}
-
-                <button type="submit" name="change_pin">
-                    Change PIN
-                </button>
-            </form>
-
-            <p>
-                <a href="{% url 'user:forgot_pin_request' %}">
-                    Forgot PIN?
-                </a>
-            </p>
+            <a class="action-button" href="{% url 'user:change_pin' %}">Change PIN</a>
+            <a class="action-button action-button-secondary" href="{% url 'user:forgot_pin_request' %}">Forgot PIN?</a>
 
         {% endif %}
 
+    </div>
+
+    <div class="password-section">
+        <h3>Password</h3>
+        <p>Forgot your account password?</p>
+        <a class="action-button action-button-secondary" href="{% url 'user:forgot_password' %}">Reset Password</a>
     </div>
 
     <div class="return-dashboard">
