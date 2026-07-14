@@ -99,11 +99,12 @@ class PinManagementTests(TestCase):
         self.pin.set_pin("1234")
         self.pin.save(update_fields=["pin"])
 
-    def test_profile_shows_change_pin_button_and_password_reset_button(self):
+    def test_profile_shows_pin_action_buttons(self):
         response = self.client.get(reverse("user:profile"))
 
         self.assertContains(response, reverse("user:change_pin"))
-        self.assertContains(response, reverse("user:forgot_password"))
+        self.assertContains(response, reverse("user:forgot_pin_request"))
+        self.assertNotContains(response, reverse("user:forgot_password"))
         self.assertNotContains(response, 'name="current_pin"')
 
     def test_change_pin_saves_the_new_pin(self):

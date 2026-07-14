@@ -88,36 +88,48 @@ button:hover {
 }
 
 .action-button {
-    display: block;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     width: 100%;
-    padding: 13px;
-    margin-top: 12px;
-    background: #00a651;
+    min-height: 52px;
+    padding: 13px 18px;
+    background: linear-gradient(135deg, #009b4b, #00a651);
     color: white;
-    border-radius: 12px;
+    border: 1px solid transparent;
+    border-radius: 10px;
     font-size: 0.96rem;
-    font-weight: 600;
+    font-weight: 700;
+    letter-spacing: 0.01em;
     text-align: center;
     text-decoration: none;
-    transition: all 0.3s ease;
+    box-shadow: 0 6px 14px rgba(0, 166, 81, 0.18);
+    transition: background 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
 }
 
 .action-button:hover {
-    background: #008f47;
+    background: linear-gradient(135deg, #008a42, #009b4b);
     color: white;
     transform: translateY(-2px);
-    box-shadow: 0 10px 20px rgba(0,166,81,0.2);
+    box-shadow: 0 10px 20px rgba(0, 166, 81, 0.25);
+}
+
+.action-button:focus-visible {
+    outline: 3px solid rgba(0, 166, 81, 0.3);
+    outline-offset: 3px;
 }
 
 .action-button-secondary {
-    background: #f0fdf4;
-    border: 1px solid #00a651;
-    color: #08783f;
+    background: #fff;
+    border-color: #b7e4c7;
+    color: #087d42;
+    box-shadow: none;
 }
 
 .action-button-secondary:hover {
-    background: #dcfce7;
-    color: #08783f;
+    background: #f0fdf4;
+    color: #056b36;
+    box-shadow: 0 6px 14px rgba(0, 166, 81, 0.12);
 }
 
 /* ------------------------------
@@ -129,16 +141,10 @@ button:hover {
     border-top: 1px solid #e5e7eb;
 }
 
-.password-section {
-    margin-top: 24px;
-    padding-top: 15px;
-    border-top: 1px solid #e5e7eb;
-}
-
-.password-section p {
-    margin: 0;
-    text-align: center;
-    color: #4b5563;
+.pin-actions {
+    display: grid;
+    gap: 12px;
+    margin-top: 16px;
 }
 
 .pin-intro {
