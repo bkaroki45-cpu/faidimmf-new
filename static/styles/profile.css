@@ -87,7 +87,7 @@ button:hover {
     box-shadow: 0 10px 20px rgba(0,166,81,0.2);
 }
 
-.action-button {
+a.action-button {
     display: flex;
     align-items: center;
     justify-content: center;
@@ -95,40 +95,40 @@ button:hover {
     min-height: 52px;
     padding: 13px 18px;
     background: linear-gradient(135deg, #009b4b, #00a651);
-    color: white;
+    color: white !important;
     border: 1px solid transparent;
     border-radius: 10px;
     font-size: 0.96rem;
     font-weight: 700;
     letter-spacing: 0.01em;
     text-align: center;
-    text-decoration: none;
+    text-decoration: none !important;
     box-shadow: 0 6px 14px rgba(0, 166, 81, 0.18);
     transition: background 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
 }
 
-.action-button:hover {
+a.action-button:hover {
     background: linear-gradient(135deg, #008a42, #009b4b);
-    color: white;
+    color: white !important;
     transform: translateY(-2px);
     box-shadow: 0 10px 20px rgba(0, 166, 81, 0.25);
 }
 
-.action-button:focus-visible {
+a.action-button:focus-visible {
     outline: 3px solid rgba(0, 166, 81, 0.3);
     outline-offset: 3px;
 }
 
-.action-button-secondary {
+a.action-button.action-button-secondary {
     background: #fff;
     border-color: #b7e4c7;
-    color: #087d42;
+    color: #087d42 !important;
     box-shadow: none;
 }
 
-.action-button-secondary:hover {
+a.action-button.action-button-secondary:hover {
     background: #f0fdf4;
-    color: #056b36;
+    color: #056b36 !important;
     box-shadow: 0 6px 14px rgba(0, 166, 81, 0.12);
 }
 
